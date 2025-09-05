@@ -2,9 +2,16 @@ services:
   mysql:
     image: 'mysql:latest'
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
+      - 'MYSQL_DATABASE=KanjiMaster'
       - 'MYSQL_PASSWORD=secret'
       - 'MYSQL_ROOT_PASSWORD=verysecret'
       - 'MYSQL_USER=myuser'
     ports:
       - '3306'
+    olumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    
+volumes:
+  mysql_data:
