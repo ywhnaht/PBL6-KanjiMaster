@@ -28,8 +28,8 @@ public class CompoundWords {
     @Column(name = "meaning_en")
     String meaningEn;
 
-    @Column(name = "meaning_vi")
-    String meaningVi;
+//    @Column(name = "meaning_vi")
+//    String meaningVi;
 
     String meaning;
 
