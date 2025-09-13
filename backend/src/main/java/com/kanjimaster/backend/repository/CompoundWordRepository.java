@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -36,4 +37,6 @@ public interface CompoundWordRepository extends JpaRepository<CompoundWords, Int
             "WHERE c.word LIKE %:word% " +
             "ORDER BY c.frequency DESC")
     Page<CompoundWords> findByWordContaining(String word, Pageable pageable);
+
+    List<CompoundWords> findTop3ByWordContainingOrMeaningContaining(String word, String meaning);
 }

@@ -18,6 +18,10 @@ public class CompoundWordService {
     CompoundWordRepository compoundWordRepository;
     TranslationService translationService;
 
+    public CompoundWords getById(Integer id) {
+        return compoundWordRepository.findById(id).orElseThrow(() -> new RuntimeException("Compound not found"));
+    }
+
     public CompoundWords getCompoundWordByWord(String word) {
         return compoundWordRepository.findByWord(word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
     }
