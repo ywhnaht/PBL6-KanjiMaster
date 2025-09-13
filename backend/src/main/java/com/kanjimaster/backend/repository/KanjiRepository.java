@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -26,4 +27,6 @@ public interface KanjiRepository extends JpaRepository<Kanji, Integer> {
     // Exact match cho hán việt
     @Query("SELECT k FROM Kanji k WHERE k.hanViet = :hanViet")
     Page<Kanji> findByHanVietExact(@Param("hanViet") String hanViet, Pageable pageable);
+
+    List<Kanji> findTop2ByKanjiContainingOrHanVietContaining(String kanji, String hanViet);
 }
