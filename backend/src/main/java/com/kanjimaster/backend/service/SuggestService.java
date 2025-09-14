@@ -8,7 +8,6 @@ import com.kanjimaster.backend.repository.KanjiRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,7 @@ public class SuggestService {
         return CompletableFuture.completedFuture(result);
     }
 
-    @Cacheable(value = "suggest", key = "#keyword", unless = "#result == null")
+    // @Cacheable(value = "suggest", key = "#keyword", unless = "#result == null")
     public List<SuggestItem> searchSuggest(String keyword) {
         CompletableFuture<List<Kanji>> kanji = searchKanji(keyword);
         CompletableFuture<List<CompoundWords>> compound = searchCompound(keyword);
