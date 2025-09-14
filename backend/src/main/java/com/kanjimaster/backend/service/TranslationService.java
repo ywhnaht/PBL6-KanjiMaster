@@ -18,7 +18,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,7 @@ public class TranslationService {
     CompoundWordRepository compoundWordRepository;
     RedisTemplate<String, String> redisTemplate;
 
-    @Value("${spring.deepl.api-key}")
+    @Value("${DEEPL_API_KEY}")
     @NonFinal
     String apiKey;
 
@@ -37,10 +36,10 @@ public class TranslationService {
 
     public String translateAndCacheIfNull(CompoundWords word) {
         String key = "compound:" + word.getId();
-        String cached = redisTemplate.opsForValue().get(key);
-        if (cached != null && !cached.isEmpty()) {
-            return cached;
-        }
+        // String cached = redisTemplate.opsForValue().get(key);
+        // if (cached != null && !cached.isEmpty()) {
+        //     return cached;
+        // }
 
         String vi = word.getMeaning();
         if (vi == null || vi.isEmpty()) {
@@ -49,7 +48,7 @@ public class TranslationService {
             compoundWordRepository.save(word);
         }
 
-        redisTemplate.opsForValue().set(key, vi, Duration.ofDays(1));
+        // redisTemplate.opsForValue().set(key, vi, Duration.ofDays(1));
         return vi;
     }
 
