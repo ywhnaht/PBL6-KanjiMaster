@@ -6,6 +6,9 @@ import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.service.CompoundWordService;
 import com.kanjimaster.backend.service.TranslationService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.kanjimaster.backend.service.KanjiService;
@@ -26,6 +29,7 @@ public class KanjiController {
     TranslationService translationService;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Lấy thông tin Kanji theo ID")
     public ResponseEntity<ApiResponse<KanjiDto>> getKanjiById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiById(id), "Kanji found!"));
     }
@@ -35,6 +39,7 @@ public class KanjiController {
         return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByCharacter(key), "Kanji found"));
     }
 
+    @Operation(summary = "Tìm kanji bằng hán việt")
     @GetMapping("/search/han")
     public ResponseEntity<ApiResponse<PagedResponse<KanjiDto>>> searchByHanViet(
             @RequestParam String hanViet,
@@ -43,6 +48,7 @@ public class KanjiController {
         return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByHanViet(hanViet, page, size), "Kanji found"));
     }
 
+    @Operation(summary = "Lấy danh sách kanji theo level kèm ohaan trang với page và size")
     @GetMapping("/level")
     public ResponseEntity<ApiResponse<PagedResponse<KanjiDto>>> getKanjiByLevel(
             @RequestParam String level,
@@ -51,6 +57,7 @@ public class KanjiController {
         return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByLevel(level, page, size), "Kanji Found"));
     }
 
+    @Operation(summary = "Lấy danh sách từ ghép theo kanji id kèm phân trang")
     @GetMapping("/{id}/compounds")
     public ResponseEntity<ApiResponse<PagedResponse<CompoundWords>>> getCompoundWordById(
             @PathVariable Integer id,
