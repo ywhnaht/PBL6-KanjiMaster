@@ -3,6 +3,7 @@ package com.kanjimaster.backend.controller;
 import com.kanjimaster.backend.model.dto.ApiResponse;
 import com.kanjimaster.backend.model.dto.SuggestItem;
 import com.kanjimaster.backend.service.SuggestService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +23,7 @@ import java.util.List;
 public class SuggestController {
     SuggestService suggestService;
 
+    @Operation(summary = "Hiển thị gợi ý tìm kiếm gồm kanji và từ ghép")
     @GetMapping
     public ResponseEntity<ApiResponse<List<SuggestItem>>> searchSuggest(@RequestParam String keyword) {
         return ResponseEntity.ok(ApiResponse.success(suggestService.searchSuggest(keyword), "Suggest found!"));

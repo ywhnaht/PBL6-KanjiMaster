@@ -3,6 +3,7 @@ package com.kanjimaster.backend.controller;
 import com.kanjimaster.backend.model.dto.ApiResponse;
 import com.kanjimaster.backend.model.dto.SearchResponse;
 import com.kanjimaster.backend.service.SearchService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SearchController {
     SearchService searchService;
 
+    @Operation(summary = "Tìm theo query (gồm cả kanji, từ ghép, hán việt, meaning)")
     @GetMapping
     public ResponseEntity<ApiResponse<SearchResponse>> search(
             @RequestParam String q,
