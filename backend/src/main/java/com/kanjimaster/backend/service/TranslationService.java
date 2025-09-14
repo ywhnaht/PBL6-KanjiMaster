@@ -26,7 +26,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TranslationService {
     CompoundWordRepository compoundWordRepository;
-    RedisTemplate<String, String> redisTemplate;
+//    RedisTemplate<String, String> redisTemplate;
 
     @Value("${DEEPL_API_KEY}")
     @NonFinal
