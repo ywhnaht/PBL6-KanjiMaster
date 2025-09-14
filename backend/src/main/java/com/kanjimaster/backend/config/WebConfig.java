@@ -13,6 +13,9 @@ public class WebConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/v1/api-docs/**").permitAll()  
+                        .requestMatchers("/swagger-ui/**").permitAll() 
+                        .requestMatchers("/swagger-ui.html").permitAll()
                         .anyRequest().permitAll()
                 );
 
