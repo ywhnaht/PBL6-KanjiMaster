@@ -1,51 +1,42 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DrawBoard from "../DrawBoard";
+import useSearchStore from "../../../store/useSearchStore";
 
-export default function Search({ placeholder = "日本, nihon, Nhật Bản", onUpdate }) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [showDrawBoard, setShowDrawBoard] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false); // Thêm state mới
+export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) {
   const navigate = useNavigate();
+  const { query, results, setQuery, fetchResults, reset, isLoading } =
+    useSearchStore();
+  const [showDrawBoard, setShowDrawBoard] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const dictionary = [
-    { kanji: "恋愛", reading: "れんあい", meaning: "luyến ái; tình yêu" },
-    { kanji: "恋水", reading: "こいみず / こいすい", meaning: "nước mắt tình yêu" },
-    { kanji: "恋", reading: "こい", meaning: "tình yêu" },
-    { kanji: "偶々", reading: "たまたま", meaning: "thỉnh thoảng; tình cờ; ngẫu nhiên" },
-  ];
-
-  const predictions = ["大夫", "大人", "大丈夫", "大米", "大天", "大入"];
   const icons = ["keyboard", "draw", "mic", "document_scanner"];
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const value = e.target.value;
     setQuery(value);
-    setShowDropdown(true); // Hiển thị dropdown khi gõ
+    setShowDropdown(true);
 
     if (value.trim() === "") {
-      setResults([]);
-      onUpdate?.(value, []); 
+      reset();
       return;
     }
 
-    const filtered = dictionary.filter(
-      (item) =>
-        item.kanji.includes(value) ||
-        item.reading.includes(value) ||
-        item.meaning.includes(value)
-    );
-    setResults(filtered);
-    onUpdate?.(value, filtered);
+    try {
+      console.log("🔍 Gửi request với value:", value); // 👈 log input
+
+      const res = await fetchResults(value); // ✅ gọi API
+      console.log("✅ API trả về:", res); // 👈 log response
+    } catch (error) {
+      console.error("❌ Lỗi khi gọi API:", error); // 👈 log error
+    }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && query.trim() !== "") {
-      // Navigate tới /search/kanji/恋水 khi bấm Enter
       navigate(`/search/word/${encodeURIComponent(query)}`);
-      setShowDropdown(false); // Tắt dropdown
-      setShowDrawBoard(false); // Đóng DrawBoard
+      setShowDropdown(false);
+      setShowDrawBoard(false);
     }
   };
 
@@ -82,58 +73,35 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản", on
       {showDropdown && (query || results.length > 0) && (
         <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
           <ul className="divide-y divide-gray-100">
-            {/* Khi có query */}
-            {query.trim() !== "" ? (
-              results.length > 0 ? (
-                results.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
-                    onClick={() => {
-                      // Khi click vào suggestion, set query và navigate
-                      setQuery(item.kanji);
-                      setResults([item]);
-                      onUpdate?.(item.kanji, [item]);
-                      navigate(`/search/word/${encodeURIComponent(item.kanji)}`);
-                      setShowDropdown(false); // Tắt dropdown khi click suggestion
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">history</span>
-                    <div>
-                      <div className="text-lg font-semibold text-gray-800">{item.kanji}</div>
-                      <div className="text-sm text-gray-500">{item.reading}</div>
-                      <div className="text-sm text-gray-700">{item.meaning}</div>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <li className="p-3 text-gray-500 text-sm italic">Không tìm thấy từ nào</li>
-              )
-            ) : (
-              /* Khi chưa nhập query → show predictions */
-              predictions.map((p, idx) => (
+            {isLoading ? (
+              <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
+            ) : results.length > 0 ? (
+              results.map((item) => (
                 <li
-                  key={idx}
-                  className="flex items-center gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
+                  key={item.id}
+                  className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
                   onClick={() => {
-                    // Khi click vào prediction, set query và navigate
-                    setQuery(p);
-                    const filtered = dictionary.filter(
-                      (item) =>
-                        item.kanji.includes(p) ||
-                        item.reading.includes(p) ||
-                        item.meaning.includes(p)
-                    );
-                    setResults(filtered);
-                    onUpdate?.(p, filtered);
-                    navigate(`/search/word/${encodeURIComponent(p)}`);
-                    setShowDropdown(false); // Tắt dropdown khi click prediction
+                    setQuery(item.text); // ✅ text từ API
+                    navigate(`/search/word/${encodeURIComponent(item.text)}`);
+                    setShowDropdown(false);
                   }}
                 >
-                  <span className="material-symbols-outlined text-gray-400">search</span>
-                  <span className="text-gray-700">{p}</span>
+                  <span className="material-symbols-outlined text-gray-400">
+                    history
+                  </span>
+                  <div>
+                    <div className="text-lg font-semibold text-gray-800">
+                      {item.text}
+                    </div>
+                    <div className="text-sm text-gray-500">{item.reading}</div>
+                    <div className="text-sm text-gray-700">{item.meaning}</div>
+                  </div>
                 </li>
               ))
+            ) : (
+              <li className="p-3 text-gray-500 text-sm italic">
+                Không tìm thấy từ nào
+              </li>
             )}
           </ul>
         </div>
@@ -141,7 +109,10 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản", on
 
       {/* DrawBoard */}
       {showDrawBoard && (
-        <DrawBoard predictions={predictions} onClose={() => setShowDrawBoard(false)} />
+        <DrawBoard
+          predictions={results.map((r) => r.text)}
+          onClose={() => setShowDrawBoard(false)}
+        />
       )}
     </div>
   );
