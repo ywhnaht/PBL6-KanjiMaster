@@ -15,6 +15,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -40,6 +42,12 @@ public class KanjiService {
         Page<Kanji> kanjiPage = kanjiRepository.findByHanVietFullText(hanViet, PageRequest.of(page, size));
 
         return PagedMapper.map(kanjiPage, kanjiMapper::toDto);
+    }
+
+    public List<KanjiDto> getKanjiByCompoundId(Integer compoundId) {
+        List<Kanji> kanjiList = kanjiRepository.findKanjiByCompoundId(compoundId);
+
+        return kanjiMapper.toDtoList(kanjiList);
     }
 
     // public PagedResponse<KanjiDto> searchKanji(String key, String field, int page, int size) {
