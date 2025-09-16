@@ -39,6 +39,9 @@ public class Kanji {
     String radical;
     String strokes;
 
+    @Column(name = "svg_link", nullable = false)
+    String svgLink;
+
     @OneToMany(mappedBy = "kanji", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     Set<CompoundKanji> compoundKanjis;
