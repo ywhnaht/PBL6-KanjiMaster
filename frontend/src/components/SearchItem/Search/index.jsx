@@ -5,8 +5,7 @@ import useSearchStore from "../../../store/useSearchStore";
 
 export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) {
   const navigate = useNavigate();
-  const { query, results, setQuery, fetchResults, reset, isLoading } =
-    useSearchStore();
+  const { query, results, setQuery, fetchResults, reset, isLoading } = useSearchStore();
   const [showDrawBoard, setShowDrawBoard] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -16,6 +15,7 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     const value = e.target.value;
     setQuery(value);
     setShowDropdown(true);
+    console.log("🔍 Gửi request với value:", value, "Encoded:", encodeURIComponent(value));
 
     if (value.trim() === "") {
       reset();
@@ -23,12 +23,10 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     }
 
     try {
-      console.log("🔍 Gửi request với value:", value); // 👈 log input
-
-      const res = await fetchResults(value); // ✅ gọi API
-      console.log("✅ API trả về:", res); // 👈 log response
+      const res = await fetchResults(value);
+      console.log("✅ API trả về:", res);
     } catch (error) {
-      console.error("❌ Lỗi khi gọi API:", error); // 👈 log error
+      console.error("❌ Lỗi khi gọi API:", error);
     }
   };
 
@@ -71,39 +69,37 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
 
       {/* Suggestion Dropdown */}
       {showDropdown && (query || results.length > 0) && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
-          <ul className="divide-y divide-gray-100">
-            {isLoading ? (
-              <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
-            ) : results.length > 0 ? (
-              results.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
-                  onClick={() => {
-                    setQuery(item.text); // ✅ text từ API
-                    navigate(`/search/word/${encodeURIComponent(item.text)}`);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <span className="material-symbols-outlined text-gray-400">
-                    history
-                  </span>
-                  <div>
-                    <div className="text-lg font-semibold text-gray-800">
-                      {item.text}
+        <div>
+          {console.log("📊 Rendering dropdown with results:", results, "isLoading:", isLoading)}
+          <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-[1000]">
+            <ul className="divide-y divide-gray-100">
+              {isLoading ? (
+                <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
+              ) : results.length > 0 ? (
+                results.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
+                    onClick={() => {
+                      setQuery(item.text);
+                      navigate(`/search/word/${encodeURIComponent(item.text)}`);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    {console.log("📊 Rendering item:", item)}
+                    <span className="material-symbols-outlined text-gray-400">history</span>
+                    <div>
+                      <div className="text-lg font-semibold text-gray-800">{item.text}</div>
+                      <div className="text-sm text-gray-500">{item.reading}</div>
+                      <div className="text-sm text-gray-700">{item.meaning}</div>
                     </div>
-                    <div className="text-sm text-gray-500">{item.reading}</div>
-                    <div className="text-sm text-gray-700">{item.meaning}</div>
-                  </div>
-                </li>
-              ))
-            ) : (
-              <li className="p-3 text-gray-500 text-sm italic">
-                Không tìm thấy từ nào
-              </li>
-            )}
-          </ul>
+                  </li>
+                ))
+              ) : (
+                <li className="p-3 text-gray-500 text-sm italic">Không tìm thấy từ nào</li>
+              )}
+            </ul>
+          </div>
         </div>
       )}
 
