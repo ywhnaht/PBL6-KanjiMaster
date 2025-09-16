@@ -17,4 +17,6 @@ public class KanjiDto {
     String kunyomi;
     String onyomi;
     String radical;
+    String strokes;
+    String svgLink;
 }

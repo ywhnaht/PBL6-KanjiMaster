@@ -1,22 +1,22 @@
 # Stage 1: Build stage
-FROM eclipse-temurin:23-jdk-alpine as build
+FROM eclipse-temurin:23-jdk-alpine AS build
 
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
+# 1. Copy chỉ pom.xml và Maven wrapper trước để tận dụng cache dependency
 COPY mvnw .
 COPY mvnw.cmd .
 COPY .mvn .mvn
 COPY pom.xml .
 
-# Download dependencies
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline -B
+# 2. Grant execution and download dependencies offline
+RUN chmod +x mvnw \
+    && ./mvnw dependency:go-offline -B
 
-# Copy source code
-COPY src src
+# 3. Copy source code sau khi cache dependencies xong
+COPY src ./src
 
-# Build the application
+# 4. Build the application, skip tests to giảm thời gian
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Runtime stage
@@ -24,7 +24,7 @@ FROM eclipse-temurin:23-jre-alpine
 
 WORKDIR /app
 
-# Copy the built jar from build stage
+# Copy built jar
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose port
