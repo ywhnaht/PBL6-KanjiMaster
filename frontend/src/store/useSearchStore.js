@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getSearch } from "../apis/getSearch"; // import API call
+import { getSearch } from "../apis/getSearch";
 
 const useSearchStore = create((set) => ({
   query: "",
@@ -11,15 +11,15 @@ const useSearchStore = create((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   reset: () => set({ query: "", results: [], isLoading: false }),
 
-  // ✅ fetch từ API
-  fetchResults: async (value) => {
+  fetchResults: async (searchValue) => {
     set({ isLoading: true });
     try {
-      const results = await getSearch(value);
-      set({ results, isLoading: false });
-    } catch (err) {
-      console.error("Fetch results failed:", err);
+      const res = await getSearch(searchValue);
+      set({ results: res, isLoading: false });
+      return res;
+    } catch {
       set({ results: [], isLoading: false });
+      return [];
     }
   },
 }));
