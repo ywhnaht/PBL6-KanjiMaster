@@ -31,7 +31,7 @@ public class SuggestService {
 
     @Async
     public CompletableFuture<List<CompoundWords>> searchCompound(String keyword) {
-        List<CompoundWords> result = compoundWordRepository.findTop3ByWordContainingOrMeaningContaining(keyword, keyword);
+        List<CompoundWords> result = compoundWordRepository.findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(keyword, keyword, keyword);
         return CompletableFuture.completedFuture(result);
     }
 
@@ -48,7 +48,7 @@ public class SuggestService {
 
         List<SuggestItem> suggestItems = new ArrayList<>();
         kanjis.forEach(k -> suggestItems.add(new SuggestItem("KANJI", k.getId(), k.getKanji(), k.getHanViet(), k.getJoyoReading())));
-        compoundWords.forEach(c -> suggestItems.add(new SuggestItem("COMPOUND", c.getId(), c.getWord(), c.getMeaning(), c.getReading())));
+        compoundWords.forEach(c -> suggestItems.add(new SuggestItem("COMPOUND", c.getId(), c.getWord(), c.getMeaning(), c.getHiragana())));
 
         return suggestItems;
     }

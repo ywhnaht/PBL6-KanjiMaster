@@ -31,6 +31,9 @@ public class KanjiController {
     @GetMapping("/{id}")
     @Operation(summary = "Lấy thông tin Kanji theo ID")
     public ResponseEntity<ApiResponse<KanjiDto>> getKanjiById(@PathVariable Integer id) {
+        KanjiDto kanjiDto = kanjiService.getKanjiById(id);
+        System.out.println("SVG LINK DTO= " + kanjiDto.getSvgLink());
+
         return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiById(id), "Kanji found!"));
     }
 
