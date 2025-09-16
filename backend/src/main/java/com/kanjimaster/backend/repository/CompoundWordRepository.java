@@ -1,6 +1,7 @@
 package com.kanjimaster.backend.repository;
 
 import com.kanjimaster.backend.model.entity.CompoundWords;
+import com.kanjimaster.backend.model.entity.Kanji;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

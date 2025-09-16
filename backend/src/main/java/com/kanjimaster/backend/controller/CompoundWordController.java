@@ -1,9 +1,12 @@
 package com.kanjimaster.backend.controller;
 
 import com.kanjimaster.backend.model.dto.ApiResponse;
+import com.kanjimaster.backend.model.dto.KanjiDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.service.CompoundWordService;
+import com.kanjimaster.backend.service.KanjiService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,12 +14,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/compound")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CompoundWordController {
     CompoundWordService compoundWordService;
+    KanjiService kanjiService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CompoundWords>> getById(@PathVariable Integer id) {
@@ -36,5 +42,11 @@ public class CompoundWordController {
         PagedResponse<CompoundWords> pages = compoundWordService.getCompoundWordByMeaning(meaning, page, size);
         pages.getItems().forEach(compoundWordService::translateAndSaveIfNull);
         return ResponseEntity.ok(ApiResponse.success(pages, "Compound found"));
+    }
+
+    @Operation(summary = "Lấy 2 từ kanji bằng id từ ghép")
+    @GetMapping("/{id}/kanji")
+    public ResponseEntity<ApiResponse<List<KanjiDto>>> getKanjiByCompoundId(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByCompoundId(id), "Kanji found!"));
     }
 }

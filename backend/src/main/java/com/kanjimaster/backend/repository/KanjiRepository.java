@@ -29,4 +29,10 @@ public interface KanjiRepository extends JpaRepository<Kanji, Integer> {
     Page<Kanji> findByHanVietExact(@Param("hanViet") String hanViet, Pageable pageable);
 
     List<Kanji> findTop2ByKanjiContainingOrHanVietContaining(String kanji, String hanViet);
+
+    @Query("SELECT k " +
+            "FROM Kanji k " +
+            "JOIN CompoundKanji c ON k.id = c.kanji.id " +
+            "WHERE c.compoundWord.id = :compoundId")
+    List<Kanji> findKanjiByCompoundId(@Param("compoundId") Integer compoundId);
 }
