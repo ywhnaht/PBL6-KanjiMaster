@@ -5,7 +5,7 @@ import useSearchStore from "../../../store/useSearchStore";
 
 export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) {
   const navigate = useNavigate();
-  const { query, results, setQuery, fetchResults, reset, isLoading } = useSearchStore();
+  const { query, results, setQuery, fetchSuggest, reset, isLoading } = useSearchStore();
   const [showDrawBoard, setShowDrawBoard] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -23,7 +23,7 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     }
 
     try {
-      const res = await fetchResults(value);
+      const res = await fetchSuggest(value);
       console.log("✅ API trả về:", res);
     } catch (error) {
       console.error("❌ Lỗi khi gọi API:", error);
