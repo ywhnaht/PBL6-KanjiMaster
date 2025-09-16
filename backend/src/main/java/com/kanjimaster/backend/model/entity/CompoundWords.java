@@ -37,6 +37,10 @@ public class CompoundWords {
 
     Integer frequency;
 
+    String hiragana;
+
+    String example;
+
     @OneToMany(mappedBy = "compoundWord", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     Set<CompoundKanji> compoundKanjis;

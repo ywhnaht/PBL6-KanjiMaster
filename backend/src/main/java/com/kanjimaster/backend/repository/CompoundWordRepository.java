@@ -39,5 +39,5 @@ public interface CompoundWordRepository extends JpaRepository<CompoundWords, Int
             "ORDER BY c.frequency DESC")
     Page<CompoundWords> findByWordContaining(String word, Pageable pageable);
 
-    List<CompoundWords> findTop3ByWordContainingOrMeaningContaining(String word, String meaning);
+    List<CompoundWords> findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(String word, String meaning, String hiragana);
 }
