@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,11 @@ public class SearchController {
             @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        return ResponseEntity.ok(ApiResponse.success(searchService.search(q, page, size), "Search found!"));
+
+        SearchResponse results = searchService.search(q, page, size);
+        if (results.getCompoundResults().isEmpty() && results.getKanjiResults().isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Search not found!"));
+
+        return ResponseEntity.ok(ApiResponse.success(results, "Search found!"));
     }
 }

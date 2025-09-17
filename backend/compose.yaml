@@ -39,6 +39,11 @@ services:
       - redis_data:/data
     networks:
       - kanjimaster-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+      interval: 5s
 
   backend:
     build:
@@ -49,15 +54,15 @@ services:
       mysql:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/KanjiMaster?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_REDIS_HOST: ${REDIS_HOST}
-      SPRING_REDIS_PORT: ${REDIS_PORT}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
       DEEPL_API_KEY: ${DEEPL_API_KEY}
     networks:
       - kanjimaster-network

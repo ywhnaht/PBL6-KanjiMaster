@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,10 @@ public class SuggestController {
     @Operation(summary = "Hiển thị gợi ý tìm kiếm gồm kanji và từ ghép")
     @GetMapping
     public ResponseEntity<ApiResponse<List<SuggestItem>>> searchSuggest(@RequestParam String keyword) {
-        return ResponseEntity.ok(ApiResponse.success(suggestService.searchSuggest(keyword), "Suggest found!"));
+        List<SuggestItem> results = suggestService.searchSuggest(keyword);
+        if (results.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Suggest not found!"));
+
+        return ResponseEntity.ok(ApiResponse.success(results, "Suggest found!"));
     }
 }
