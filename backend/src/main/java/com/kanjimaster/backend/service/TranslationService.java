@@ -6,7 +6,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +28,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TranslationService {
     CompoundWordRepository compoundWordRepository;
-//    RedisTemplate<String, String> redisTemplate;
+   RedisTemplate<String, CompoundWords> redisTemplate;
 
     @Value("${DEEPL_API_KEY}")
     @NonFinal
@@ -34,12 +36,19 @@ public class TranslationService {
 
     RestTemplate restTemplate = new RestTemplate();
 
-    public String translateAndCacheIfNull(CompoundWords word) {
+    public CompoundWords translateAndCacheIfNull(CompoundWords word) {
         String key = "compound:" + word.getId();
-        // String cached = redisTemplate.opsForValue().get(key);
-        // if (cached != null && !cached.isEmpty()) {
-        //     return cached;
-        // }
+        CompoundWords cached = null;
+        try {
+            cached = redisTemplate.opsForValue().get(key);
+            if (cached != null) {
+                // log.debug("Found cached translation for word: {}", word.getWord());
+                return cached;
+            }
+        } catch (RedisConnectionFailureException e) {
+            // log.warn("Redis connection failed, proceeding without cache: {}", e.getMessage());
+            // Continue without cache
+        }
 
         String vi = word.getMeaning();
         if (vi == null || vi.isEmpty()) {
@@ -48,8 +57,13 @@ public class TranslationService {
             compoundWordRepository.save(word);
         }
 
-        // redisTemplate.opsForValue().set(key, vi, Duration.ofDays(1));
-        return vi;
+        try {
+            redisTemplate.opsForValue().set(key, word, Duration.ofDays(1));
+            // lo.debug("Cached translation for word: {}", word.getWord());
+        } catch (RedisConnectionFailureException e) {
+            // log.warn("Failed to cache translation due to Redis connection failure: {}", e.getMessage());
+        }
+        return word;
     }
 
     private String callDeepL(String text) {
