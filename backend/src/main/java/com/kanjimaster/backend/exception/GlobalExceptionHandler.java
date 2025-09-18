@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.kanjimaster.backend.controller")
 public class GlobalExceptionHandler {
     @ExceptionHandler(KanjiNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleKanjiNotFoundException(KanjiNotFoundException exception) {
