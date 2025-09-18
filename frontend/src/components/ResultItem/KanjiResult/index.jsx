@@ -4,7 +4,6 @@ export default function KanjiResult({
   kanjis = [],
   examples = [],
   compounds = [],
-  relatedResults = [],
 }) {
   const [selected, setSelected] = useState(0);
   const mainKanji = kanjis[selected];
@@ -172,49 +171,24 @@ export default function KanjiResult({
           {/* Compounds */}
           {compounds.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">Từ ghép</h3>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">
+                Từ ghép liên quan
+              </h3>
               <div className="space-y-3">
-                {compounds.map((w, i) => (
+                {compounds.map((c, i) => (
                   <div
                     key={i}
                     className="border border-gray-200 rounded-lg p-3"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xl font-semibold text-gray-800">
-                        {w.word}
+                        {c.word}
                       </span>
                       <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {w.reading}
+                        {c.hiragana}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm">{w.meaning}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Related Results */}
-          {relatedResults.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Từ liên quan
-              </h3>
-              <div className="space-y-3">
-                {relatedResults.map((r, i) => (
-                  <div
-                    key={i}
-                    className="border border-gray-200 rounded-lg p-3 flex items-center gap-3"
-                  >
-                    <span className="text-2xl font-semibold text-gray-800">
-                      {r.word}
-                    </span>
-                    <div>
-                      <p className="font-medium text-gray-800">{r.meaning}</p>
-                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {r.reading}
-                      </span>
-                    </div>
+                    <p className="text-gray-600 text-sm">{c.meaning}</p>
                   </div>
                 ))}
               </div>

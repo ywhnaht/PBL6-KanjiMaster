@@ -2,7 +2,7 @@ import React from "react";
 
 export default function WordResult({
   word,
-  reading,
+  hiragana,
   meaning,
   compounds = [],
   examples = [],
@@ -34,7 +34,7 @@ export default function WordResult({
                     {word}
                   </div>
                   <div className="text-2xl text-gray-600 font-medium mt-2">
-                    {reading}
+                    {hiragana}
                   </div>
                 </div>
 
@@ -106,7 +106,7 @@ export default function WordResult({
                         {c.word}
                       </span>
                       <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {c.reading}
+                        {c.hiragana}
                       </span>
                     </div>
                     <p className="text-gray-600 text-sm">{c.meaning}</p>
@@ -134,7 +134,7 @@ export default function WordResult({
                     <div>
                       <p className="font-medium text-gray-800">{r.meaning}</p>
                       <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {r.reading}
+                        {r.hiragana}
                       </span>
                     </div>
                   </div>
