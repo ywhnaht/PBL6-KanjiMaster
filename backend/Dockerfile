@@ -15,6 +15,7 @@ RUN chmod +x mvnw \
 
 # 3. Copy source code sau khi cache dependencies xong
 COPY src ./src
+COPY .env .
 
 # 4. Build the application, skip tests to giảm thời gian
 RUN ./mvnw clean package -DskipTests
