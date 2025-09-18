@@ -85,8 +85,8 @@ public class SearchService {
         // Auto translate compound meanings if null
         compoundResults.forEach(compound -> {
             if (compound.getMeaning() == null || compound.getMeaning().isEmpty()) {
-                String translation = translationService.translateAndCacheIfNull(compound);
-                compound.setMeaning(translation);
+                CompoundWords compoundWords = translationService.translateAndCacheIfNull(compound);
+                compound.setMeaning(compoundWords.getMeaning());
             }
         });
 

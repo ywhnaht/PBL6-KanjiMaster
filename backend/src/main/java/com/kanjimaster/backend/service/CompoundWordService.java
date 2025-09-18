@@ -19,34 +19,40 @@ public class CompoundWordService {
     TranslationService translationService;
 
     public CompoundWords getById(Integer id) {
-        return compoundWordRepository.findById(id).orElseThrow(() -> new RuntimeException("Compound not found"));
+        CompoundWords words = compoundWordRepository.findById(id).orElseThrow(() -> new RuntimeException("Compound not found"));
+        translationService.translateAndCacheIfNull(words);
+        return words;
     }
 
     public CompoundWords getCompoundWordByWord(String word) {
-        return compoundWordRepository.findByWord(word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
+        CompoundWords words = compoundWordRepository.findByWord(word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
+        translationService.translateAndCacheIfNull(words);
+        return words;
     }
 
     public PagedResponse<CompoundWords> getCompoundWordByMeaning(String meaning, int page, int size) {
 //        String key = "%" + meaning + "%";
         Page<CompoundWords> wordsPage = compoundWordRepository.findByMeaningFullText(meaning, PageRequest.of(page, size));
-        return PagedMapper.map(wordsPage);
+        Page<CompoundWords> update = wordsPage.map(translationService::translateAndCacheIfNull);
+        return PagedMapper.map(update);
     }
 
     public PagedResponse<CompoundWords> getByKanjiId(Integer kanjiId, int page, int size) {
         Page<CompoundWords> compoundWords = compoundWordRepository.findByKanjiId(kanjiId, PageRequest.of(page, size));
-        return PagedMapper.map(compoundWords);
+        Page<CompoundWords> update = compoundWords.map(translationService::translateAndCacheIfNull);
+        return PagedMapper.map(update);
     }
 
     public boolean checkMeaningIsNull(Integer id) {
         return compoundWordRepository.existsByIdAndMeaningIsNull(id);
     }
 
-    public void translateAndSaveIfNull(CompoundWords word) {
-        if (word.getMeaning() == null || word.getMeaning().isEmpty()) {
-            String vi = translationService.translateAndCacheIfNull(word);
-            word.setMeaning(vi);
-            compoundWordRepository.save(word);
-        }
-    }
+//    public void translateAndSaveIfNull(CompoundWords word) {
+//        if (word.getMeaning() == null || word.getMeaning().isEmpty()) {
+//            String vi = translationService.translateAndCacheIfNull(word);
+//            word.setMeaning(vi);
+//            compoundWordRepository.save(word);
+//        }
+//    }
 
 }
