@@ -1,6 +1,7 @@
+// src/store/useSearchStore.js
 import { create } from "zustand";
 import { getSearch } from "../apis/getSearch";
-import { getSearchResult } from "../apis/getSearchResult";
+import { getSearchResult, getCompoundKanjis } from "../apis/getSearchResult";
 
 const useSearchStore = create((set) => ({
   query: "",
@@ -24,7 +25,6 @@ const useSearchStore = create((set) => ({
       compoundTotalPages: 0,
     }),
 
-  // Gợi ý tìm kiếm
   fetchSuggest: async (searchValue) => {
     set({ isLoading: true });
     try {
@@ -37,93 +37,110 @@ const useSearchStore = create((set) => ({
     }
   },
 
-  // Chi tiết từ / kanji
-// src/store/useSearchStore.js
-fetchWordDetail: async (searchValue, page = 0, size = 5) => {
-  set({ isLoading: true });
-  try {
-    const res = await getSearchResult(searchValue, page, size);
-    let apiWord = null;
+  fetchWordDetail: async (searchValue, type = "word", page = 0, size = 5) => {
+    set({ isLoading: true });
+    try {
+      const res = await getSearchResult(searchValue, page, size);
 
-    // ✅ Trường hợp tìm Kanji
-    if (res.searchType === "kanji" && res.kanjiResults?.length > 0) {
-      const kanji = res.kanjiResults[0];
-      apiWord = {
-        word: kanji.kanji,
-        reading: kanji.joyoReading || kanji.kunyomi || kanji.onyomi,
-        meaning: kanji.hanViet,
-        compounds: res.compoundResults || [],
-        totalCompounds: res.totalCompoundResults || 0,
-        examples: res.exampleResults || [],
-        relatedResults: res.relatedResults || [],
-        kanjis: res.kanjiResults.map((k) => ({
-          ...k,
-          sinoViet: k.sinoViet || k.hanViet || "",
-          nativeViet: k.nativeViet || "",
-        })),
-      };
-    }
+      // ✅ In ra console toàn bộ response để debug
+      console.log("🔍 API response for", searchValue, "type:", type, res);
 
-    // ✅ Trường hợp tìm từ ghép
-    else if (
-      res.searchType === "compound_word" &&
-      res.compoundResults?.length > 0
-    ) {
-      const mainCompound = res.compoundResults[0]; // chữ ghép chính
-      let kanjiResults = res.kanjiResults || [];
+      let apiWord = null;
+      const isSingleKanji = searchValue.length === 1;
 
-      if (kanjiResults.length === 0) {
-        const chars = mainCompound.word.split("");
-        kanjiResults = await Promise.all(
-          chars.map(async (ch) => {
-            try {
-              const detail = await getSearchResult(ch, 0, 1);
-              if (detail.kanjiResults?.length > 0) {
-                const k = detail.kanjiResults[0];
-                return {
-                  ...k,
-                  sinoViet: k.sinoViet || k.hanViet || "",
-                  nativeViet: k.nativeViet || "",
-                };
-              }
-              return { kanji: ch, sinoViet: "", nativeViet: "" };
-            } catch {
-              return { kanji: ch, sinoViet: "", nativeViet: "" };
-            }
-          })
-        );
+      if (type === "word") {
+        if (isSingleKanji && res.kanjiResults?.[0]) {
+          const mainKanji = res.kanjiResults[0];
+          apiWord = {
+            id: mainKanji.id,
+            word: mainKanji.kanji,
+            hiragana:
+              mainKanji.joyoReading ||
+              mainKanji.kunyomi ||
+              mainKanji.onyomi ||
+              "",
+            meaning: mainKanji.hanViet || "",
+            compounds: res.compoundResults || [],
+            examples: res.exampleResults || [],
+            relatedResults: res.relatedResults || [],
+          };
+        } else {
+          const mainWord = res.compoundResults?.[0] || null;
+          if (mainWord) {
+            apiWord = {
+              id: mainWord.id,
+              word: mainWord.word,
+              hiragana: mainWord.hiragana || "",
+              meaning: mainWord.meaning || mainWord.meaningEn || "",
+              compounds: res.compoundResults || [],
+              examples: res.exampleResults || [],
+              relatedResults: res.relatedResults || [],
+            };
+          }
+        }
       }
 
-      apiWord = {
-        // thông tin chữ ghép chính
-        word: mainCompound.word,
-        reading: mainCompound.reading,
-        meaning: mainCompound.meaning || mainCompound.meaningEn,
+      if (type === "kanji") {
+        let kanjis = [];
 
-        // ✅ giữ toàn bộ danh sách compounds
-        compounds: res.compoundResults || [],
-        totalCompounds: res.totalCompoundResults || 0,
+        if (!isSingleKanji) {
+          if (res.compoundResults?.[0]) {
+            try {
+              kanjis = await getCompoundKanjis(res.compoundResults[0].id);
+              console.log("📦 Compound Kanjis API:", kanjis);
+            } catch (err) {
+              console.warn("Không lấy được kanji từ compound API:", err);
+            }
+          }
+        }
 
-        examples: res.exampleResults || [],
-        relatedResults: res.relatedResults || [],
-        kanjis: kanjiResults,
-      };
+        if (kanjis.length === 0 && res.kanjiResults?.length > 0) {
+          kanjis = res.kanjiResults;
+        }
+
+        let allCompounds = [];
+        for (let k of kanjis) {
+          try {
+            const detail = await getSearchResult(k.kanji, 0, 5);
+            console.log(`📚 Compounds for kanji ${k.kanji}:`, detail.compoundResults);
+            if (detail.compoundResults) {
+              allCompounds = [...allCompounds, ...detail.compoundResults];
+            }
+          } catch (err) {
+            console.warn(`Không lấy được từ ghép cho kanji ${k.kanji}:`, err);
+          }
+        }
+
+        if (kanjis.length > 0) {
+          apiWord = {
+            id: kanjis[0].id,
+            kanjis: kanjis.map((k) => ({
+              ...k,
+              sinoViet: k.sinoViet || k.hanViet || "",
+              nativeViet: k.nativeViet || "",
+              svgUrl: `http://localhost:8080/api/v1/kanji/${k.id}/svg`,
+            })),
+            examples: res.exampleResults || [],
+            compounds: allCompounds,
+            relatedResults: res.relatedResults || [],
+          };
+        }
+      }
+
+      set({
+        wordDetail: apiWord,
+        isLoading: false,
+        compoundPage: page,
+        compoundTotalPages: Math.ceil((res.totalCompoundResults || 0) / size),
+      });
+
+      return apiWord;
+    } catch (error) {
+      console.error("❌ fetchWordDetail error:", error);
+      set({ wordDetail: null, isLoading: false });
+      return null;
     }
-
-    set({
-      wordDetail: apiWord,
-      isLoading: false,
-      compoundPage: page,
-      compoundTotalPages: Math.ceil((res.totalCompoundResults || 0) / size),
-    });
-    return apiWord;
-  } catch (error) {
-    console.error("fetchWordDetail error:", error);
-    set({ wordDetail: null, isLoading: false });
-    return null;
-  }
-},
-
+  },
 }));
 
 export default useSearchStore;

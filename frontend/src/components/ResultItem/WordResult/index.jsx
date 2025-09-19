@@ -29,11 +29,11 @@ export default function WordResult({
             <div className="mb-8 text-left">
               <div className="flex justify-between items-start mb-4">
                 {/* Left side: Word + Reading */}
-                <div>
+                <div className="text-center">
                   <div className="text-8xl font-light text-gray-800 select-text">
                     {word}
                   </div>
-                  <div className="text-2xl text-gray-600 font-medium mt-2">
+                  <div className="text-2xl text-gray-600 font-medium mt-3">
                     {hiragana}
                   </div>
                 </div>

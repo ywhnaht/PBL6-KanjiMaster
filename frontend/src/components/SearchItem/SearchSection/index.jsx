@@ -1,17 +1,25 @@
-import React from "react";
+// src/components/SearchSection.jsx
+import React, { useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Search from "../Search";
+import useSearchStore from "../../../store/useSearchStore";
 
 export default function SearchSection() {
   const navigate = useNavigate();
-  const { type, value } = useParams(); // lấy đúng param từ URL
+  const { type, value } = useParams();
   // eslint-disable-next-line no-unused-vars
   const location = useLocation();
+  const { fetchWordDetail } = useSearchStore();
 
-  // tab hiện tại
-  const currentTab = type === "word" ? "Word" : "Kanji";
-
+  const currentTab = type === "kanji" ? "Kanji" : "Word";
   const tabs = ["Word", "Kanji"];
+
+  // 🔄 mỗi khi đổi tab hoặc value thì gọi API
+  useEffect(() => {
+    if (value) {
+      fetchWordDetail(value, type); // ✅ truyền type để tách API
+    }
+  }, [type, value]);
 
   const handleTabClick = (tab) => {
     if (!value) return;
