@@ -24,9 +24,12 @@ public interface KanjiRepository extends JpaRepository<Kanji, Integer> {
     @Query("SELECT k FROM Kanji k WHERE k.hanViet LIKE %:hanViet%")
     Page<Kanji> findByHanVietLike(@Param("hanViet") String hanViet, Pageable pageable);
 
-    // Exact match cho hán việt
     @Query("SELECT k FROM Kanji k WHERE k.hanViet = :hanViet")
-    Page<Kanji> findByHanVietExact(@Param("hanViet") String hanViet, Pageable pageable);
+    Optional<Kanji> findByHanVietExact(@Param("hanViet") String hanViet);
+
+    Page<Kanji> findByHanVietStartingWith(String hanViet, Pageable pageable);
+
+    Page<Kanji> findByHanVietContaining(String hanViet, Pageable pageable);
 
     List<Kanji> findTop2ByKanjiContainingOrHanVietContaining(String kanji, String hanViet);
 

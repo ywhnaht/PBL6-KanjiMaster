@@ -11,7 +11,14 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @Entity
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "compound_kanji")
+@Table(
+        name = "compound_kanji",
+        indexes = {
+                @Index(name = "idx_compound_kanji", columnList = "kanji_id, compound_id"),
+                @Index(name = "idx_compound", columnList = "compound_id"),
+                @Index(name = "idx_kanji", columnList = "kanji_id")
+        }
+)
 public class CompoundKanji {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
