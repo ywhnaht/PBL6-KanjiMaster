@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -158,7 +159,6 @@ public class SearchService {
     }
 
     private Page<Kanji> searchKanjiByHanViet(String hanViet, PageRequest pageRequest) {
-        // Strategy 1: Exact match trước
         Page<Kanji> exactResults = kanjiRepository.findByHanVietLike(hanViet, pageRequest);
         if (!exactResults.isEmpty()) {
             return exactResults;
@@ -181,8 +181,9 @@ public class SearchService {
     }
 
     private Page<CompoundWords> searchCompoundByMeaning(String meaning, PageRequest pageRequest) {
-        // Strategy 1: Full-text search cho phrase dài
-        if (meaning.length() >= 3) {
+        if (meaning.length() < 4) {
+            return compoundWordRepository.findByMeaningLike(meaning, pageRequest);
+        } else {
             try {
                 Page<CompoundWords> fullTextResults = compoundWordRepository.findByMeaningFullText(meaning, pageRequest);
                 if (!fullTextResults.isEmpty()) {
@@ -193,14 +194,12 @@ public class SearchService {
             }
         }
 
-        // Strategy 2: LIKE search (fallback)
-        return compoundWordRepository.findByMeaningLike(meaning, pageRequest);
+        return Page.empty();
     }
 
     private String performMixedSearch(String query, int page, int size,
                                       List<KanjiDto> kanjiResults,
                                       List<CompoundWords> compoundResults) {
-        // Try all search types and return results
 
         // Try kanji search
         if (query.length() == 1 && KANJI_PATTERN.matcher(query).find()) {
