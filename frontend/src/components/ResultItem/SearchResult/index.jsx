@@ -14,12 +14,27 @@ export default function SearchResult({ type, query }) {
     setCompoundPage,
   } = useSearchStore();
 
-  // 🔄 refetch khi query hoặc type thay đổi
+  // ✅ mock nhiều câu ví dụ
+  const examples = [
+    {
+      jp: "日本語を学びます。",
+      vi: "Tôi học tiếng Nhật.",
+    },
+    {
+      jp: "学生が図書館で勉強しています。",
+      vi: "Sinh viên đang học trong thư viện.",
+    },
+    {
+      jp: "私は毎日新しいことを学ぶ。",
+      vi: "Tôi học điều mới mỗi ngày.",
+    },
+  ];
+
   useEffect(() => {
     if (query) {
-      fetchWordDetail(query, 0, 5); // reset về trang 0 mỗi khi đổi tab / query
+      fetchWordDetail(query, type, 0, 5); // ✅ truyền type
     }
-  }, [query, type, fetchWordDetail]);
+  }, [query, type]);
 
   if (isLoading) {
     return <div className="p-6 text-gray-500 italic">Đang tải...</div>;
@@ -29,7 +44,6 @@ export default function SearchResult({ type, query }) {
     return <div className="p-6 text-gray-500 italic">Không có dữ liệu</div>;
   }
 
-  // ✅ Nếu type = "word" thì render WordResult + truyền pagination
   if (type === "word") {
     return (
       <WordResult
@@ -38,19 +52,28 @@ export default function SearchResult({ type, query }) {
         compoundTotalPages={compoundTotalPages}
         onCompoundPageChange={(page) => {
           setCompoundPage(page);
-          fetchWordDetail(query, page, 5); // gọi lại API với trang mới
+          fetchWordDetail(query, "word", page, 5);
         }}
       />
     );
   }
 
-  // ✅ Nếu type = "kanji" thì render KanjiResult
-  return (
-    <KanjiResult
-      kanjis={wordDetail.kanjis || []}
-      examples={wordDetail.examples || []}
-      compounds={wordDetail.compounds || []}
-      relatedResults={wordDetail.relatedResults || []}
-    />
-  );
+  if (type === "kanji") {
+    if (!wordDetail.kanjis || wordDetail.kanjis.length === 0) {
+      return (
+        <div className="p-6 text-gray-500 italic">Không tìm thấy kanji</div>
+      );
+    }
+
+    return (
+      <KanjiResult
+        kanjis={wordDetail.kanjis}
+        examples={examples} // ✅ ép dùng mock ví dụ ở đây
+        compounds={wordDetail.compounds || []}
+        relatedResults={wordDetail.relatedResults || []}
+      />
+    );
+  }
+
+  return null;
 }
