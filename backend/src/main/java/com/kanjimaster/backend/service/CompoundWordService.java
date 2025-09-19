@@ -25,7 +25,7 @@ public class CompoundWordService {
     }
 
     public CompoundWords getCompoundWordByWord(String word) {
-        CompoundWords words = compoundWordRepository.findByWord(word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
+        CompoundWords words = compoundWordRepository.findByWordOrHiragana(word, word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
         translationService.translateAndCacheIfNull(words);
         return words;
     }
