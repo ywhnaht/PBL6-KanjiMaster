@@ -17,7 +17,14 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "kanji")
+@Table(
+        name = "kanji",
+        indexes = {
+                @Index(name = "idx_char", columnList = "`char`"),
+                @Index(name = "idx_han_viet", columnList = "han_viet"),
+                @Index(name = "idx_radical", columnList = "radical")
+        }
+)
 public class Kanji {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
