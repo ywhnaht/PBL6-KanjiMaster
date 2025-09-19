@@ -55,7 +55,7 @@ public class SearchService {
 
             case "compound_word":
                 // Tìm compound word (chuỗi kanji/hiragana)
-                Optional<CompoundWords> exactCompound = compoundWordRepository.findByWord(query);
+                Optional<CompoundWords> exactCompound = compoundWordRepository.findByWordOrHiragana(query, query);
                 if (exactCompound.isPresent()) {
                     compoundResults.add(exactCompound.get());
                     totalCompoundResults = 1;
@@ -210,7 +210,7 @@ public class SearchService {
 
         // Try compound word search
         if (KANJI_PATTERN.matcher(query).find() || HIRAGANA_KATAKANA_PATTERN.matcher(query).find()) {
-            compoundWordRepository.findByWord(query).ifPresent(compoundResults::add);
+            compoundWordRepository.findByWordOrHiragana(query, query).ifPresent(compoundResults::add);
 
             // Also search for compounds containing this word
             try {
