@@ -17,7 +17,13 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "compound_words")
+@Table(
+        name = "compound_words",
+        indexes = {
+                @Index(name = "idx_word", columnList = "word"),
+                @Index(name = "idx_frequency", columnList = "frequency")
+        }
+)
 public class CompoundWords {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
