@@ -76,7 +76,7 @@ const useSearchStore = create((set, get) => ({
     }
   }, 500), // debounce 500ms
 
-  fetchWordDetail: async (searchValue, type = "word", page = 0, size = 5) => {
+  fetchWordDetail: async (searchValue, type = "word", page = 0, size = 6) => {
     set({ isLoading: true });
     try {
       const res = await getSearchResult(searchValue, page, size);
