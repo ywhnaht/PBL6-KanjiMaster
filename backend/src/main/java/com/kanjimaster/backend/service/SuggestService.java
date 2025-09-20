@@ -36,7 +36,7 @@ public class SuggestService {
         return CompletableFuture.completedFuture(result);
     }
 
-    // @Cacheable(value = "suggest", key = "#keyword", unless = "#result == null")
+    @Cacheable(value = "suggest", key = "#keyword", unless = "#result == null")
     public List<SuggestItem> searchSuggest(String keyword) {
         CompletableFuture<List<Kanji>> kanji = searchKanji(keyword);
         CompletableFuture<List<CompoundWords>> compound = searchCompound(keyword);
