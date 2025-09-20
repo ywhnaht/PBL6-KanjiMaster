@@ -1,10 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import KanjiStroke from "../../../ultis/KanjiStroke";
+import { useNavigate } from "react-router-dom";
+
 export default function KanjiResult({
   kanjis = [],
   examples = [],
   compounds = [],
 }) {
+  // ✅ Hook được gọi ở cấp component (không gọi trong map/callback)
+  const navigate = useNavigate();
+
   const [selected, setSelected] = useState(0);
   const [compoundPage, setCompoundPage] = useState(0);
   const [kanjiStrokeKey, setKanjiStrokeKey] = useState(0); // Key để trigger re-render KanjiStroke
@@ -67,6 +72,19 @@ export default function KanjiResult({
     return colors[level] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
+  // Hàm helper để quyết định type khi navigate (1 ký tự => kanji, khác => word)
+  const getSearchType = (text) => {
+    const t = typeof text === "string" ? text.trim() : "";
+    return t.length === 1 ? "kanji" : "word";
+  };
+
+  // Xử lý khi click 1 compound: chuyển tới trang search phù hợp
+  const handleCompoundClick = (c) => {
+    if (!c || !c.word) return;
+    const type = getSearchType(c.word);
+    navigate(`/search/${type}/${encodeURIComponent(c.word)}`);
+  };
+
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -102,9 +120,8 @@ export default function KanjiResult({
         <div className="xl:col-span-2">
           {mainKanji ? (
             <div className="bg-white rounded-xl shadow-lg p-8 mb-6 flex flex-col ">
-              {/* Kanji + buttons */}
+              {/* Kanji & info */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-8 px-[62px]">
-                {/* Kanji & info */}
                 <div className="flex-1 flex flex-col items-center md:items-start">
                   <div className="text-8xl font-light text-gray-800 select-text mb-4 pl-8">
                     {mainKanji.kanji}
@@ -193,9 +210,7 @@ export default function KanjiResult({
           {/* Examples */}
           {examples && examples.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Câu ví dụ
-              </h3>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">Câu ví dụ</h3>
               <div className="space-y-4">
                 {examples.map((ex, i) => (
                   <div key={i} className="border-l-4 border-blue-200 pl-4 py-2">
@@ -221,9 +236,7 @@ export default function KanjiResult({
           {mainKanji?.svgLink && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg text-gray-800">
-                  Thứ tự nét viết
-                </h3>
+                <h3 className="font-bold text-lg text-gray-800">Thứ tự nét viết</h3>
                 <button
                   onClick={handleRedrawStrokes}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md 
@@ -265,7 +278,17 @@ export default function KanjiResult({
                   {paginatedCompounds.map((c, i) => (
                     <div
                       key={i}
-                      className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleCompoundClick(c)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleCompoundClick(c);
+                        }
+                      }}
+                      className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 
+                   transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xl font-semibold text-gray-800">
