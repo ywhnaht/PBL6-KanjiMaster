@@ -15,7 +15,6 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     const value = e.target.value;
     setQuery(value);
     setShowDropdown(true);
-    console.log("🔍 Gửi request với value:", value, "Encoded:", encodeURIComponent(value));
 
     if (value.trim() === "") {
       reset();
@@ -23,8 +22,7 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     }
 
     try {
-      const res = await fetchSuggest(value);
-      console.log("✅ API trả về:", res);
+      await fetchSuggest(value);
     } catch (error) {
       console.error("❌ Lỗi khi gọi API:", error);
     }
@@ -70,7 +68,6 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
       {/* Suggestion Dropdown */}
       {showDropdown && (query || results.length > 0) && (
         <div>
-          {console.log("📊 Rendering dropdown with results:", results, "isLoading:", isLoading)}
           <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-[1000]">
             <ul className="divide-y divide-gray-100">
               {isLoading ? (
@@ -86,7 +83,6 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
                       setShowDropdown(false);
                     }}
                   >
-                    {console.log("📊 Rendering item:", item)}
                     <span className="material-symbols-outlined text-gray-400">history</span>
                     <div>
                       <div className="text-lg font-semibold text-gray-800">{item.text}</div>

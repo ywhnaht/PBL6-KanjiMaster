@@ -2,14 +2,17 @@
 import { create } from "zustand";
 import { getSearch } from "../apis/getSearch";
 import { getSearchResult, getCompoundKanjis } from "../apis/getSearchResult";
+import _ from "lodash";
 
-const useSearchStore = create((set) => ({
+const useSearchStore = create((set, get) => ({
   query: "",
   results: [],
   wordDetail: null,
   isLoading: false,
   compoundPage: 0,
   compoundTotalPages: 0,
+  suggestCache: {}, // cache tạm thời các từ đã search
+  apiCallCount: 0,  // ✅ số lần fetchSuggest được gọi
 
   setQuery: (query) => set({ query }),
   setResults: (results) => set({ results }),
@@ -23,26 +26,60 @@ const useSearchStore = create((set) => ({
       isLoading: false,
       compoundPage: 0,
       compoundTotalPages: 0,
+      apiCallCount: 0,
+      suggestCache: {},
     }),
 
-  fetchSuggest: async (searchValue) => {
+  // debounce API call 500ms
+  fetchSuggest: _.debounce(async (searchValue) => {
+    const timestamp = new Date().toISOString();
+
+    // tăng biến đếm mỗi khi debounce thực sự gọi API
+    set((state) => ({ apiCallCount: state.apiCallCount + 1 }));
+    const callNumber = get().apiCallCount;
+
+    console.log(`🟢 [${timestamp}] fetchSuggest called (#${callNumber}) for: "${searchValue}"`);
+
+    if (!searchValue.trim()) {
+      set({ results: [], isLoading: false });
+      console.log(`⚪ [${timestamp}] Empty search, cleared results`);
+      return [];
+    }
+
+    const { suggestCache } = get();
+
+    // Trả về cache nếu đã có
+    if (suggestCache[searchValue]) {
+      console.log(`♻️ [${timestamp}] Returning cached result for: "${searchValue}"`);
+      set({ results: suggestCache[searchValue], isLoading: false });
+      return suggestCache[searchValue];
+    }
+
     set({ isLoading: true });
     try {
       const res = await getSearch(searchValue);
-      set({ results: res, isLoading: false });
+      const timestampAfter = new Date().toISOString();
+      console.log(`✅ [${timestampAfter}] API returned for: "${searchValue}"`, res);
+
+      set((state) => ({
+        results: res,
+        isLoading: false,
+        suggestCache: { ...state.suggestCache, [searchValue]: res },
+      }));
+
       return res;
-    } catch {
+    } catch (error) {
+      const timestampErr = new Date().toISOString();
+      console.error(`❌ [${timestampErr}] fetchSuggest error for: "${searchValue}"`, error);
       set({ results: [], isLoading: false });
       return [];
     }
-  },
+  }, 500), // debounce 500ms
 
   fetchWordDetail: async (searchValue, type = "word", page = 0, size = 5) => {
     set({ isLoading: true });
     try {
       const res = await getSearchResult(searchValue, page, size);
-
-      // ✅ In ra console toàn bộ response để debug
       console.log("🔍 API response for", searchValue, "type:", type, res);
 
       let apiWord = null;
@@ -83,14 +120,11 @@ const useSearchStore = create((set) => ({
       if (type === "kanji") {
         let kanjis = [];
 
-        if (!isSingleKanji) {
-          if (res.compoundResults?.[0]) {
-            try {
-              kanjis = await getCompoundKanjis(res.compoundResults[0].id);
-              console.log("📦 Compound Kanjis API:", kanjis);
-            } catch (err) {
-              console.warn("Không lấy được kanji từ compound API:", err);
-            }
+        if (!isSingleKanji && res.compoundResults?.[0]) {
+          try {
+            kanjis = await getCompoundKanjis(res.compoundResults[0].id);
+          } catch (err) {
+            console.warn("Không lấy được kanji từ compound API:", err);
           }
         }
 
@@ -102,7 +136,6 @@ const useSearchStore = create((set) => ({
         for (let k of kanjis) {
           try {
             const detail = await getSearchResult(k.kanji, 0, 5);
-            console.log(`📚 Compounds for kanji ${k.kanji}:`, detail.compoundResults);
             if (detail.compoundResults) {
               allCompounds = [...allCompounds, ...detail.compoundResults];
             }
