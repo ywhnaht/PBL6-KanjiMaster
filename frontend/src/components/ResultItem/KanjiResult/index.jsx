@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import KanjiStroke from "../../../ultis/KanjiStroke"; // import KanjiStroke mới
-
+import KanjiStroke from "../../../ultis/KanjiStroke";
 export default function KanjiResult({
   kanjis = [],
   examples = [],
@@ -8,17 +7,19 @@ export default function KanjiResult({
 }) {
   const [selected, setSelected] = useState(0);
   const [compoundPage, setCompoundPage] = useState(0);
-  const pageSize = 8;
+  const [kanjiStrokeKey, setKanjiStrokeKey] = useState(0); // Key để trigger re-render KanjiStroke
 
+  const pageSize = 8;
   const mainKanji = kanjis[selected];
 
   useEffect(() => {
     setCompoundPage(0);
+    // Khi chọn kanji mới, trigger animation vẽ lại
+    setKanjiStrokeKey((prev) => prev + 1);
   }, [selected, kanjis]);
 
   const compoundsForSelected = useMemo(() => {
     if (!mainKanji) return [];
-
     if (
       compounds &&
       !Array.isArray(compounds) &&
@@ -26,14 +27,12 @@ export default function KanjiResult({
     ) {
       return compounds[mainKanji.kanji] || [];
     }
-
     if (Array.isArray(compounds) && compounds.length > 0) {
       const filtered = compounds.filter((c) =>
         c.word?.includes(mainKanji.kanji)
       );
       return filtered.length > 0 ? filtered : compounds;
     }
-
     return [];
   }, [compounds, mainKanji]);
 
@@ -41,6 +40,7 @@ export default function KanjiResult({
     1,
     Math.ceil(compoundsForSelected.length / pageSize)
   );
+
   const paginatedCompounds = compoundsForSelected.slice(
     compoundPage * pageSize,
     (compoundPage + 1) * pageSize
@@ -50,6 +50,11 @@ export default function KanjiResult({
   const nextPage = () =>
     setCompoundPage((p) => Math.min(totalPages - 1, p + 1));
   const goToPage = (i) => setCompoundPage(i);
+
+  // Function để trigger vẽ lại animation
+  const handleRedrawStrokes = () => {
+    setKanjiStrokeKey((prev) => prev + 1);
+  };
 
   const getJLPTColor = (level) => {
     const colors = {
@@ -72,7 +77,6 @@ export default function KanjiResult({
             {mainKanji?.kanji || "-"}
           </span>
         </h2>
-
         {/* Kanji Selector */}
         {kanjis.length > 1 && (
           <div className="flex gap-2">
@@ -103,7 +107,6 @@ export default function KanjiResult({
                 <div className="text-8xl font-light text-gray-800 mb-4 select-text">
                   {mainKanji.kanji}
                 </div>
-
                 <div className="flex items-center justify-center gap-3">
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-semibold border ${getJLPTColor(
@@ -126,7 +129,6 @@ export default function KanjiResult({
                     {mainKanji.meaning || "-"}
                   </p>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-purple-50 rounded-lg">
                     <h3 className="font-semibold text-purple-800 mb-2">
@@ -145,7 +147,6 @@ export default function KanjiResult({
                     </p>
                   </div>
                 </div>
-
                 <div className="p-4 bg-orange-50 rounded-lg">
                   <h3 className="font-semibold text-orange-800 mb-3">
                     Dịch nghĩa Tiếng Việt
@@ -198,15 +199,36 @@ export default function KanjiResult({
         <div className="space-y-6">
           {/* Stroke order SVG */}
           {mainKanji?.svgLink && (
-            <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center">
-              <KanjiStroke
-                svgUrl={mainKanji.svgLink}
-                color="#ef4444"
-                width={160}
-                height={160}
-                strokeDuration={200}
-                strokeDelay={400}
-              />
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg text-gray-800">
+                  Thứ tự nét viết
+                </h3>
+                <button
+                  onClick={handleRedrawStrokes}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md 
+                     bg-blue-50 text-blue-600 hover:bg-blue-100 
+                      border border-blue-200 shadow-sm
+                      transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  title="Vẽ lại nét"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    refresh
+                  </span>
+                </button>
+              </div>
+              <div className="flex flex-col items-center">
+                <KanjiStroke
+                  key={kanjiStrokeKey}
+                  svgUrl={mainKanji.svgLink}
+                  width={200}
+                  height={200}
+                  strokeDuration={300}
+                  strokeDelay={400}
+                  autoPlay={true}
+                  loop={false}
+                />
+              </div>
             </div>
           )}
 
@@ -223,7 +245,7 @@ export default function KanjiResult({
                   {paginatedCompounds.map((c, i) => (
                     <div
                       key={i}
-                      className="border border-gray-200 rounded-lg p-3"
+                      className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xl font-semibold text-gray-800">
@@ -246,10 +268,10 @@ export default function KanjiResult({
                     <button
                       onClick={prevPage}
                       disabled={compoundPage === 0}
-                      className={`px-3 py-1 rounded-md text-sm font-medium ${
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         compoundPage === 0
-                          ? "bg-gray-100 text-gray-400"
-                          : "bg-white text-gray-700 hover:bg-gray-100"
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-100 border"
                       }`}
                     >
                       &lt;
@@ -258,10 +280,10 @@ export default function KanjiResult({
                       <button
                         key={i}
                         onClick={() => goToPage(i)}
-                        className={`px-3 py-1 rounded-md text-sm font-medium ${
+                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                           compoundPage === i
                             ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-700 hover:bg-gray-100"
+                            : "bg-white text-gray-700 hover:bg-gray-100 border"
                         }`}
                       >
                         {i + 1}
@@ -270,10 +292,10 @@ export default function KanjiResult({
                     <button
                       onClick={nextPage}
                       disabled={compoundPage === totalPages - 1}
-                      className={`px-3 py-1 rounded-md text-sm font-medium ${
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         compoundPage === totalPages - 1
-                          ? "bg-gray-100 text-gray-400"
-                          : "bg-white text-gray-700 hover:bg-gray-100"
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-100 border"
                       }`}
                     >
                       &gt;
