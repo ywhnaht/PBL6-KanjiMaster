@@ -28,9 +28,15 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     }
   };
 
+  // ✅ xác định type: 1 ký tự => kanji, còn lại => word
+  const getSearchType = (text) => {
+    return text.trim().length === 1 ? "kanji" : "word";
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && query.trim() !== "") {
-      navigate(`/search/word/${encodeURIComponent(query)}`);
+      const type = getSearchType(query);
+      navigate(`/search/${type}/${encodeURIComponent(query)}`);
       setShowDropdown(false);
       setShowDrawBoard(false);
     }
@@ -73,24 +79,27 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
               {isLoading ? (
                 <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
               ) : results.length > 0 ? (
-                results.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
-                    onClick={() => {
-                      setQuery(item.text);
-                      navigate(`/search/word/${encodeURIComponent(item.text)}`);
-                      setShowDropdown(false);
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">history</span>
-                    <div>
-                      <div className="text-lg font-semibold text-gray-800">{item.text}</div>
-                      <div className="text-sm text-gray-500">{item.reading}</div>
-                      <div className="text-sm text-gray-700">{item.meaning}</div>
-                    </div>
-                  </li>
-                ))
+                results.map((item) => {
+                  const type = getSearchType(item.text);
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
+                      onClick={() => {
+                        setQuery(item.text);
+                        navigate(`/search/${type}/${encodeURIComponent(item.text)}`);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-gray-400">history</span>
+                      <div>
+                        <div className="text-lg font-semibold text-gray-800">{item.text}</div>
+                        <div className="text-sm text-gray-500">{item.reading}</div>
+                        <div className="text-sm text-gray-700">{item.meaning}</div>
+                      </div>
+                    </li>
+                  );
+                })
               ) : (
                 <li className="p-3 text-gray-500 text-sm italic">Không tìm thấy từ nào</li>
               )}

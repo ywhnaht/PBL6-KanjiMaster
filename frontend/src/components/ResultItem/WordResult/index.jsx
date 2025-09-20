@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function WordResult({
   word,
@@ -8,6 +9,20 @@ export default function WordResult({
   examples = [],
   relatedResults = [],
 }) {
+  const navigate = useNavigate();
+
+  // ✅ Helper: xác định type (kanji hay word)
+  const getSearchType = (text) => {
+    const t = typeof text === "string" ? text.trim() : "";
+    return t.length === 1 ? "kanji" : "word";
+  };
+
+  const handleNavigate = (text) => {
+    if (!text) return;
+    const type = getSearchType(text);
+    navigate(`/search/${type}/${encodeURIComponent(text)}`);
+  };
+
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -99,7 +114,16 @@ export default function WordResult({
                 {compounds.map((c, i) => (
                   <div
                     key={i}
-                    className="border border-gray-200 rounded-lg p-3"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleNavigate(c.word)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleNavigate(c.word);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xl font-semibold text-gray-800">
@@ -126,7 +150,16 @@ export default function WordResult({
                 {relatedResults.map((r, i) => (
                   <div
                     key={i}
-                    className="border border-gray-200 rounded-lg p-3 flex items-center gap-3"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleNavigate(r.word)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleNavigate(r.word);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:border-blue-300 transition-colors cursor-pointer"
                   >
                     <span className="text-2xl font-semibold text-gray-800">
                       {r.word}
