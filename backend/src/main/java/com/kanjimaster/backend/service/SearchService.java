@@ -10,6 +10,7 @@ import com.kanjimaster.backend.repository.KanjiRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ public class SearchService {
     private static final Pattern KANJI_PATTERN = Pattern.compile("[\u4E00-\u9FAF]");
     private static final Pattern HIRAGANA_KATAKANA_PATTERN = Pattern.compile("[\u3040-\u309F\u30A0-\u30FF]");
 
+    @Cacheable(value = "search", key = "#query", unless = "#result == null")
     public SearchResponse search(String query, int page, int size) {
         String searchType = detectSearchType(query);
         List<KanjiDto> kanjiResults = new ArrayList<>();
