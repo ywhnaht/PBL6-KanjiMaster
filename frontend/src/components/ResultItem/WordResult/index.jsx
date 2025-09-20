@@ -27,7 +27,7 @@ export default function WordResult({
           <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
             {/* Word big display */}
             <div className="mb-8 text-left">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-4 px-[20px]">
                 {/* Left side: Word + Reading */}
                 <div className="text-center">
                   <div className="text-8xl font-light text-gray-800 select-text">

@@ -9,7 +9,7 @@ export default function KanjiResult({
   const [compoundPage, setCompoundPage] = useState(0);
   const [kanjiStrokeKey, setKanjiStrokeKey] = useState(0); // Key để trigger re-render KanjiStroke
 
-  const pageSize = 8;
+  const pageSize = 3;
   const mainKanji = kanjis[selected];
 
   useEffect(() => {
@@ -101,32 +101,56 @@ export default function KanjiResult({
         {/* Main content */}
         <div className="xl:col-span-2">
           {mainKanji ? (
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-              {/* Kanji big display */}
-              <div className="flex flex-col items-center mb-8">
-                <div className="text-8xl font-light text-gray-800 mb-4 select-text">
-                  {mainKanji.kanji}
+            <div className="bg-white rounded-xl shadow-lg p-8 mb-6 flex flex-col ">
+              {/* Kanji + buttons */}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-8 px-[62px]">
+                {/* Kanji & info */}
+                <div className="flex-1 flex flex-col items-center md:items-start">
+                  <div className="text-8xl font-light text-gray-800 select-text mb-4 pl-8">
+                    {mainKanji.kanji}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold border ${getJLPTColor(
+                        mainKanji.level
+                      )}`}
+                    >
+                      JLPT N{mainKanji.level || "-"}
+                    </span>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                      {mainKanji.strokes ?? "-"} nét
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center gap-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold border ${getJLPTColor(
-                      mainKanji.level
-                    )}`}
-                  >
-                    JLPT {mainKanji.level || "-"}
-                  </span>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
-                    {mainKanji.strokes ?? "-"} nét
-                  </span>
+
+                {/* Buttons */}
+                <div className="flex md:flex-col justify-center items-center md:items-start gap-3 mt-4 md:mt-0">
+                  <button className="group p-3 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
+                    <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-2xl group-hover:font-variation-settings-FILL-1">
+                      favorite
+                    </span>
+                  </button>
+                  <button className="group p-3 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors">
+                    <span className="material-symbols-outlined text-blue-500 group-hover:text-blue-600 text-2xl">
+                      share
+                    </span>
+                  </button>
+                  <button className="group p-3 rounded-full bg-green-50 hover:bg-green-100 transition-colors">
+                    <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-2xl group-hover:font-variation-settings-FILL-1">
+                      bookmark
+                    </span>
+                  </button>
                 </div>
               </div>
 
               {/* Meaning & Readings */}
               <div className="space-y-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
-                  <h3 className="font-semibold text-blue-800 mb-2">Ý nghĩa</h3>
+                  <h3 className="font-semibold text-blue-800 mb-2">
+                    常用 (Cách đọc theo âm On và Kun)
+                  </h3>
                   <p className="text-blue-700 font-medium">
-                    {mainKanji.meaning || "-"}
+                    {mainKanji.joyoReading || "-"}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,11 +188,7 @@ export default function KanjiResult({
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <p className="text-gray-500 italic">Không có dữ liệu kanji</p>
-            </div>
-          )}
+          ) : null}
 
           {/* Examples */}
           {examples && examples.length > 0 && (
