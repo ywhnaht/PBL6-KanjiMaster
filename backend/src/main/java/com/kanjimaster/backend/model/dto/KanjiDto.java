@@ -1,7 +1,7 @@
 package com.kanjimaster.backend.model.dto;
 
 import com.kanjimaster.backend.model.entity.CompoundWords;
-import jakarta.persistence.Entity;
+import com.kanjimaster.backend.model.entity.KanjiExamples;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -24,5 +24,6 @@ public class KanjiDto {
     String radical;
     String strokes;
     String svgLink;
-    List<CompoundWords> compoundWords;
+    List<CompoundWordDto> compoundWords;
+    List<KanjiExampleDto> kanjiExamples;
 }
