@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
 public class SearchService {
     KanjiRepository kanjiRepository;
     CompoundWordRepository compoundWordRepository;
-    TranslationService translationService;
     KanjiMapper kanjiMapper;
+    TranslationService translationService;
 
     private static final Pattern KANJI_PATTERN = Pattern.compile("[\u4E00-\u9FAF]");
     private static final Pattern HIRAGANA_KATAKANA_PATTERN = Pattern.compile("[\u3040-\u309F\u30A0-\u30FF]");
@@ -85,11 +85,11 @@ public class SearchService {
                 break;
         }
 
-        // Auto translate compound meanings if null
         compoundResults.forEach(compound -> {
             if (compound.getMeaning() == null || compound.getMeaning().isEmpty()) {
-                CompoundWords compoundWords = translationService.translateAndCacheIfNull(compound);
-                compound.setMeaning(compoundWords.getMeaning());
+                String word = translationService.translateText(compound.getWord());
+                compound.setMeaning(word);
+                compoundWordRepository.save(compound);
             }
         });
 

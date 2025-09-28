@@ -47,6 +47,9 @@ public class CompoundWords {
 
     String example;
 
+    @Column(name = "example_meaning")
+    String exampleMeaning;
+
     @OneToMany(mappedBy = "compoundWord", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     Set<CompoundKanji> compoundKanjis;

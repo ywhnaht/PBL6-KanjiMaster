@@ -45,7 +45,7 @@ public class SuggestService {
 
         List<Kanji> kanjis = kanji.join();
         List<CompoundWords> compoundWords = compound.join();
-        compoundWords.forEach(translationService::translateAndCacheIfNull);
+        compoundWords.forEach(k -> translationService.translateText(k.getMeaning()));
 
         List<SuggestItem> suggestItems = new ArrayList<>();
         kanjis.forEach(k -> suggestItems.add(new SuggestItem("KANJI", k.getId(), k.getKanji(), k.getHanViet(), k.getJoyoReading())));

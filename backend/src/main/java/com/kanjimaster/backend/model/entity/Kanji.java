@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,7 +40,6 @@ public class Kanji {
     @Column(name = "joyo_reading", nullable = false)
     String joyoReading;
 
-    String meaning;
     String kunyomi;
     String onyomi;
     String level;
@@ -52,4 +52,16 @@ public class Kanji {
     @OneToMany(mappedBy = "kanji", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     Set<CompoundKanji> compoundKanjis;
+
+    @OneToMany(mappedBy = "kanji", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<KanjiExamples> kanjiExamples;
+
+    @Transient
+    @JsonIgnore
+    public List<CompoundWords> getCompoundWords() {  // Đổi tên method
+        if (compoundKanjis == null) return List.of();
+        return compoundKanjis.stream()
+                .map(CompoundKanji::getCompoundWord)
+                .toList();
+    }
 }

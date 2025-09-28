@@ -71,7 +71,7 @@ public class KanjiController {
 
         PagedResponse<CompoundWords> pages = compoundWordService.getByKanjiId(id, page, size);
         if (!pages.getItems().isEmpty()) {
-            pages.getItems().forEach(translationService::translateAndCacheIfNull);
+            pages.getItems().forEach(compoundWordService::translateIfNull);
         }
 
         return ResponseEntity.ok(ApiResponse.success(pages, "Compound found!"));
