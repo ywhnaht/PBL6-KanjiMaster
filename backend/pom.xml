@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>23</java.version>
+		<java.version>21</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -141,8 +141,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-					<source>23</source>   <!-- hoặc 21 nếu bạn đang dùng JDK 21 -->
-					<target>23</target>
+					<source>21</source>   <!-- hoặc 21 nếu bạn đang dùng JDK 21 -->
+					<target>21</target>
 					<annotationProcessorPaths>
 						<!-- Lombok -->
 						<path>
