@@ -19,7 +19,6 @@ export default function KanjiResult({
 
   useEffect(() => {
     setCompoundPage(0);
-    // Khi chọn kanji mới, trigger animation vẽ lại
     setKanjiStrokeKey((prev) => prev + 1);
   }, [selected, kanjis]);
 
@@ -206,28 +205,30 @@ export default function KanjiResult({
               </div>
             </div>
           ) : null}
-
-          {/* Examples */}
-          {examples && examples.length > 0 && (
+          {examples.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">Câu ví dụ</h3>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">
+                Câu ví dụ
+              </h3>
               <div className="space-y-4">
                 {examples.map((ex, i) => (
-                  <div key={i} className="border-l-4 border-blue-200 pl-4 py-2">
+                  <div
+                    key={ex.id || i}
+                    className="border-l-4 border-blue-200 pl-4 py-2"
+                  >
+                    {/* Câu gốc (tiếng Nhật) */}
                     <p className="text-lg font-medium text-gray-800">
-                      {ex.jp || ex.ja || "-"}
+                      {ex.sentence}
                     </p>
-                    {ex.vi && (
-                      <p className="text-blue-600 mb-1 font-medium">{ex.vi}</p>
-                    )}
-                    {ex.en && (
-                      <p className="text-gray-500 text-sm italic">{ex.en}</p>
-                    )}
+                    {/* Nghĩa tiếng Việt */}
+                    <p className="text-gray-500 text-sm italic">{ex.meaning}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Examples */}
         </div>
 
         {/* Sidebar */}
@@ -236,7 +237,9 @@ export default function KanjiResult({
           {mainKanji?.svgLink && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg text-gray-800">Thứ tự nét viết</h3>
+                <h3 className="font-bold text-lg text-gray-800">
+                  Thứ tự nét viết
+                </h3>
                 <button
                   onClick={handleRedrawStrokes}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md 

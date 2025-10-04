@@ -6,7 +6,7 @@ export default function WordResult({
   hiragana,
   meaning,
   compounds = [],
-  examples = [],
+  examples = [], // đã map sẵn từ SearchResult
   relatedResults = [],
 }) {
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ export default function WordResult({
         <div className="xl:col-span-2">
           {/* Main Word Display */}
           <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-            {/* Word big display */}
             <div className="mb-8 text-left">
               <div className="flex justify-between items-start mb-4 px-[20px]">
                 {/* Left side: Word + Reading */}
@@ -56,7 +55,7 @@ export default function WordResult({
                 {/* Right side: Action buttons */}
                 <div className="flex flex-col gap-1.5 mt-2">
                   <button className="group p-1 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
-                    <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-base group-hover:font-variation-settings-FILL-1">
+                    <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-base">
                       favorite
                     </span>
                   </button>
@@ -66,7 +65,7 @@ export default function WordResult({
                     </span>
                   </button>
                   <button className="group p-1 rounded-full bg-green-50 hover:bg-green-100 transition-colors">
-                    <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-base group-hover:font-variation-settings-FILL-1">
+                    <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-base">
                       bookmark
                     </span>
                   </button>
@@ -91,10 +90,24 @@ export default function WordResult({
               </h3>
               <div className="space-y-4">
                 {examples.map((ex, i) => (
-                  <div key={i} className="border-l-4 border-blue-200 pl-4 py-2">
-                    <p className="text-lg font-medium text-gray-800">{ex.jp}</p>
-                    <p className="text-blue-600 mb-1 font-medium">{ex.vi}</p>
-                    <p className="text-gray-500 text-sm italic">{ex.en}</p>
+                  <div
+                    key={ex.id || i}
+                    className="border-l-4 border-blue-200 pl-4 py-2"
+                  >
+                    {/* Câu gốc (tiếng Nhật) */}
+                    <p className="text-lg font-medium text-gray-800">
+                      {ex.sentence || ex.example}
+                    </p>
+                    {/* Nghĩa tiếng Việt */}
+                    {ex.meaning && (
+                      <p className="text-gray-500 text-sm italic">
+                        {ex.meaning}
+                      </p>
+                    )}
+                    {/* Nghĩa tiếng Anh (nếu có) */}
+                    {ex.meaningEn && (
+                      <p className="text-gray-400 text-sm">{ex.meaningEn}</p>
+                    )}
                   </div>
                 ))}
               </div>

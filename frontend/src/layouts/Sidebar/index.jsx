@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
 export default function Sidebar() {
-  const [activeIndex, setActiveIndex] = useState(0); // JLPT là index 2
+  const [activeIndex, setActiveIndex] = useState(2);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menus = [
     { icon: "search", label: "Search" },
@@ -15,18 +16,36 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="bg-white/90 shadow-xl transition-all duration-300 w-[240px] shrink-0 h-full flex flex-col border-r border-gray-200 backdrop-blur-sm">
-      <div className="p-5 border-b border-gray-200">
-        <h2 className="text-2xl font-extrabold text-purple-600 flex items-center gap-2 hover:text-purple-700 transition-all duration-300">
-          <span className="material-symbols-outlined animate-pulse transition-transform hover:rotate-12">
+    <div
+      className={`bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 h-screen flex flex-col border-r border-gray-200 ${
+        isCollapsed ? "w-[72px]" : "w-[240px]"
+      } overflow-x-hidden`}   // ✅ chặn scroll ngang
+    >
+      {/* Header */}
+      <div className="p-5 border-b border-gray-200 transition-all duration-300">
+        <div
+          className={`flex items-center gap-2 ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+        >
+          <span className="material-symbols-outlined text-purple-600 text-3xl shrink-0">
             translate
           </span>
-          Kanji Smart
-        </h2>
+          {!isCollapsed && (
+            <h2 className="text-2xl font-extrabold text-purple-600 whitespace-nowrap transition-all duration-300">
+              Kanji Smart
+            </h2>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-3 px-4">
+      {/* Menu Items */}
+      <div className="flex-1 overflow-y-auto py-4 overflow-x-hidden"> {/* ✅ fix ngang */}
+        <ul
+          className={`space-y-2 transition-all duration-300 ${
+            isCollapsed ? "px-2" : "px-4"
+          }`}
+        >
           {menus.map((m, idx) => (
             <li key={idx}>
               <a
@@ -35,35 +54,64 @@ export default function Sidebar() {
                   e.preventDefault();
                   setActiveIndex(idx);
                 }}
-                className={`flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1 ${
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative ${
                   activeIndex === idx
-                    ? "bg-gradient-to-r from-purple-50 to-purple-200 text-primary-600 font-medium shadow-sm hover:shadow-md"
-                    : "text-gray-800 hover:bg-gray-50 hover:shadow-sm"
-                }`}
+                    ? "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 shadow-sm"
+                    : "text-gray-700 hover:bg-gray-100"
+                } ${isCollapsed ? "justify-center" : ""}`}
+                title={isCollapsed ? m.label : ""}
               >
                 <span
-                  className={`material-symbols-outlined text-xl ${
-                    activeIndex === idx ? "text-primary-600" : "text-gray-800"
+                  className={`material-symbols-outlined text-xl shrink-0 transition-colors duration-200 ${
+                    activeIndex === idx ? "text-purple-700" : "text-gray-700"
                   }`}
                 >
                   {m.icon}
                 </span>
-                <span
-                  className={`font-medium ${
-                    activeIndex === idx ? "text-primary-600" : "text-gray-800"
-                  }`}
-                >
-                  {m.label}
-                </span>
+                {!isCollapsed && (   // ✅ chỉ render khi mở rộng
+                  <span
+                    className={`font-medium whitespace-nowrap transition-all duration-300 ${
+                      activeIndex === idx
+                        ? "text-purple-700"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {m.label}
+                  </span>
+                )}
+
+                {/* Tooltip khi collapsed */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                    {m.label}
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                  </div>
+                )}
               </a>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="p-5 border-t border-gray-200">
-        <button className="w-full flex items-center justify-center p-3.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-300 hover:shadow-md transform hover:scale-105">
-          <span className="material-symbols-outlined">menu_open</span>
+      {/* Toggle Button */}
+      <div className="p-4 border-t border-gray-200 transition-all duration-300">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="w-full flex items-center justify-center gap-3 p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 group"
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <span
+            className={`material-symbols-outlined transition-transform duration-300 ${
+              isCollapsed ? "rotate-180" : ""
+            }`}
+          >
+            {isCollapsed ? "menu" : "menu_open"}
+          </span>
+          {!isCollapsed && (
+            <span className="font-medium whitespace-nowrap transition-all duration-300">
+              Collapse
+            </span>
+          )}
         </button>
       </div>
     </div>

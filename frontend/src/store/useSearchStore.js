@@ -12,7 +12,7 @@ const useSearchStore = create((set, get) => ({
   compoundPage: 0,
   compoundTotalPages: 0,
   suggestCache: {}, // cache tạm thời các từ đã search
-  apiCallCount: 0,  // ✅ số lần fetchSuggest được gọi
+  apiCallCount: 0, // ✅ số lần fetchSuggest được gọi
 
   setQuery: (query) => set({ query }),
   setResults: (results) => set({ results }),
@@ -30,7 +30,7 @@ const useSearchStore = create((set, get) => ({
       suggestCache: {},
     }),
 
-  // debounce API call 500ms
+  // ✅ Debounce API call 500ms
   fetchSuggest: _.debounce(async (searchValue) => {
     const timestamp = new Date().toISOString();
 
@@ -38,7 +38,9 @@ const useSearchStore = create((set, get) => ({
     set((state) => ({ apiCallCount: state.apiCallCount + 1 }));
     const callNumber = get().apiCallCount;
 
-    console.log(`🟢 [${timestamp}] fetchSuggest called (#${callNumber}) for: "${searchValue}"`);
+    console.log(
+      `🟢 [${timestamp}] fetchSuggest called (#${callNumber}) for: "${searchValue}"`
+    );
 
     if (!searchValue.trim()) {
       set({ results: [], isLoading: false });
@@ -50,7 +52,9 @@ const useSearchStore = create((set, get) => ({
 
     // Trả về cache nếu đã có
     if (suggestCache[searchValue]) {
-      console.log(`♻️ [${timestamp}] Returning cached result for: "${searchValue}"`);
+      console.log(
+        `♻️ [${timestamp}] Returning cached result for: "${searchValue}"`
+      );
       set({ results: suggestCache[searchValue], isLoading: false });
       return suggestCache[searchValue];
     }
@@ -59,7 +63,10 @@ const useSearchStore = create((set, get) => ({
     try {
       const res = await getSearch(searchValue);
       const timestampAfter = new Date().toISOString();
-      console.log(`✅ [${timestampAfter}] API returned for: "${searchValue}"`, res);
+      console.log(
+        `✅ [${timestampAfter}] API returned for: "${searchValue}"`,
+        res
+      );
 
       set((state) => ({
         results: res,
@@ -70,12 +77,16 @@ const useSearchStore = create((set, get) => ({
       return res;
     } catch (error) {
       const timestampErr = new Date().toISOString();
-      console.error(`❌ [${timestampErr}] fetchSuggest error for: "${searchValue}"`, error);
+      console.error(
+        `❌ [${timestampErr}] fetchSuggest error for: "${searchValue}"`,
+        error
+      );
       set({ results: [], isLoading: false });
       return [];
     }
-  }, 500), // debounce 500ms
+  }, 500),
 
+  // ✅ Fetch chi tiết Word/Kanji
   fetchWordDetail: async (searchValue, type = "word", page = 0, size = 6) => {
     set({ isLoading: true });
     try {
@@ -85,6 +96,100 @@ const useSearchStore = create((set, get) => ({
       let apiWord = null;
       const isSingleKanji = searchValue.length === 1;
 
+      // ✅ helper gom example lại
+      const extractExamples = (res, type = "word") => {
+        let examples = [];
+
+        // --- Trường hợp Kanji ---
+        if (type === "kanji" && res.kanjiResults?.length > 0) {
+          for (let k of res.kanjiResults) {
+            // từ kanjiExamples
+            if (k.kanjiExamples?.length > 0) {
+              examples = [
+                ...examples,
+                ...k.kanjiExamples.map((ex) => ({
+                  id: ex.id,
+                  sentence: ex.sentence,
+                  reading: ex.reading || "",
+                  meaning: ex.meaning || "",
+                  source: "kanjiExample",
+                  kanji: k.kanji,
+                })),
+              ];
+            }
+
+            // từ compoundWords trong kanjiResults
+            if (k.compoundWords?.length > 0) {
+              examples = [
+                ...examples,
+                ...k.compoundWords
+                  .filter((cw) => cw.example)
+                  .map((cw) => ({
+                    id: cw.id,
+                    sentence: cw.example,
+                    reading: cw.hiragana || "",
+                    meaning: cw.exampleMeaning || "",
+                    source: "compoundWord",
+                    kanji: k.kanji,
+                  })),
+              ];
+            }
+          }
+        }
+
+        // --- Trường hợp Word ---
+        else {
+          if (res.kanjiResults?.[0]?.kanjiExamples) {
+            examples = [
+              ...examples,
+              ...res.kanjiResults[0].kanjiExamples.map((ex) => ({
+                id: ex.id,
+                sentence: ex.sentence,
+                reading: ex.reading,
+                meaning: ex.meaning,
+                source: "kanjiExample",
+                kanji: res.kanjiResults[0].kanji,
+              })),
+            ];
+          }
+
+          if (res.kanjiResults?.[0]?.compoundWords) {
+            examples = [
+              ...examples,
+              ...res.kanjiResults[0].compoundWords
+                .filter((cw) => cw.example)
+                .map((cw) => ({
+                  id: cw.id,
+                  sentence: cw.example,
+                  reading: cw.hiragana || "",
+                  meaning: cw.exampleMeaning || "",
+                  source: "compoundWord",
+                  kanji: res.kanjiResults[0].kanji,
+                })),
+            ];
+          }
+
+          if (res.compoundResults) {
+            examples = [
+              ...examples,
+              ...res.compoundResults
+                .filter((cw) => cw.example)
+                .map((cw) => ({
+                  id: cw.id,
+                  sentence: cw.example,
+                  reading: cw.hiragana || "",
+                  meaning: cw.exampleMeaning || "",
+                  source: "compoundResult",
+                  kanji: cw.word,
+                })),
+            ];
+          }
+        }
+
+        return examples;
+      };
+
+      // --- Nếu là Word ---
       if (type === "word") {
         if (isSingleKanji && res.kanjiResults?.[0]) {
           const mainKanji = res.kanjiResults[0];
@@ -98,7 +203,7 @@ const useSearchStore = create((set, get) => ({
               "",
             meaning: mainKanji.hanViet || "",
             compounds: res.compoundResults || [],
-            examples: res.exampleResults || [],
+            examples: extractExamples(res, "word"),
             relatedResults: res.relatedResults || [],
           };
         } else {
@@ -110,13 +215,14 @@ const useSearchStore = create((set, get) => ({
               hiragana: mainWord.hiragana || "",
               meaning: mainWord.meaning || mainWord.meaningEn || "",
               compounds: res.compoundResults || [],
-              examples: res.exampleResults || [],
+              examples: extractExamples(res, "word"),
               relatedResults: res.relatedResults || [],
             };
           }
         }
       }
 
+      // --- Nếu là Kanji ---
       if (type === "kanji") {
         let kanjis = [];
 
@@ -153,7 +259,9 @@ const useSearchStore = create((set, get) => ({
               nativeViet: k.nativeViet || "",
               svgUrl: `http://localhost:8080/api/v1/kanji/${k.id}/svg`,
             })),
-            examples: res.exampleResults || [],
+            // ✅ lưu nguyên kanjiExamples để render
+            kanjiExamples: _.flatten(kanjis.map((k) => k.kanjiExamples || [])),
+            examples: extractExamples(res, "kanji"), // gom tất cả ví dụ
             compounds: allCompounds,
             relatedResults: res.relatedResults || [],
           };

@@ -4,6 +4,7 @@ export default function DrawBoard({ predictions, onClose }) {
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
   const isDrawing = useRef(false);
+  const lastSentTime = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -11,20 +12,36 @@ export default function DrawBoard({ predictions, onClose }) {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.lineWidth = 10;
-    ctx.strokeStyle = "black"; // Màu xám + mờ nhẹ
+    ctx.strokeStyle = "black";
     ctxRef.current = ctx;
   }, []);
 
+  const logCoordinates = (x, y) => {
+    console.log({ x, y });
+  };
+
   const startDrawing = (e) => {
     isDrawing.current = true;
+    const { offsetX, offsetY } = e.nativeEvent;
     ctxRef.current.beginPath();
-    ctxRef.current.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    ctxRef.current.moveTo(offsetX, offsetY);
+
+    // log khi bắt đầu
+    logCoordinates(offsetX, offsetY);
   };
 
   const draw = (e) => {
     if (!isDrawing.current) return;
-    ctxRef.current.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    const { offsetX, offsetY } = e.nativeEvent;
+    ctxRef.current.lineTo(offsetX, offsetY);
     ctxRef.current.stroke();
+
+    // throttle log toạ độ mỗi 50ms
+    const now = Date.now();
+    if (now - lastSentTime.current > 50) {
+      logCoordinates(offsetX, offsetY);
+      lastSentTime.current = now;
+    }
   };
 
   const stopDrawing = () => {

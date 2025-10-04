@@ -14,22 +14,6 @@ export default function SearchResult({ type, query }) {
     setCompoundPage,
   } = useSearchStore();
 
-  // ✅ mock nhiều câu ví dụ
-  const examples = [
-    {
-      jp: "日本語を学びます。",
-      vi: "Tôi học tiếng Nhật.",
-    },
-    {
-      jp: "学生が図書館で勉強しています。",
-      vi: "Sinh viên đang học trong thư viện.",
-    },
-    {
-      jp: "私は毎日新しいことを学ぶ。",
-      vi: "Tôi học điều mới mỗi ngày.",
-    },
-  ];
-
   useEffect(() => {
     if (query) {
       fetchWordDetail(query, type, 0, 5); // ✅ truyền type
@@ -49,6 +33,8 @@ export default function SearchResult({ type, query }) {
       <WordResult
         {...wordDetail}
         compoundPage={compoundPage}
+        examples={wordDetail.examples || []}
+        exampleMeaning={wordDetail.examples?.[0]?.meaning || ""}
         compoundTotalPages={compoundTotalPages}
         onCompoundPageChange={(page) => {
           setCompoundPage(page);
@@ -68,7 +54,7 @@ export default function SearchResult({ type, query }) {
     return (
       <KanjiResult
         kanjis={wordDetail.kanjis}
-        examples={examples} // ✅ ép dùng mock ví dụ ở đây
+        examples={wordDetail.kanjiExamples || []} // 👈 dùng thẳng kanjiExamples
         compounds={wordDetail.compounds || []}
         relatedResults={wordDetail.relatedResults || []}
       />
