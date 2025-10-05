@@ -22,6 +22,7 @@ public interface KanjiMapper {
 //    KanjiDto toDtoWithCompoundWords(Kanji entity, List<CompoundWords> compoundWords);
     CompoundWordDto toDto(CompoundWords entity);
     KanjiExampleDto toDto(KanjiExamples entity);
+    List<CompoundWordDto> toDtoListCompoundWords(List<CompoundWords> entities);
     // List<KanjiExampleDto> toDtoList(List<KanjiExamples> entities); 
 
     default KanjiDto toDtoWithCompoundWords(Kanji kanji, List<CompoundWords> compoundWords) {

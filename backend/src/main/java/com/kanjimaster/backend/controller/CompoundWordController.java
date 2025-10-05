@@ -48,7 +48,6 @@ public class CompoundWordController {
             @RequestParam(defaultValue = "5") int size) {
         PagedResponse<CompoundWords> pages = compoundWordService.getCompoundWordByMeaning(meaning, page, size);
         if (!pages.getItems().isEmpty()) {
-            pages.getItems().forEach(compoundWordService::translateIfNull);
             return ResponseEntity.ok(ApiResponse.success(pages, "Compound found"));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Compound not found!"));

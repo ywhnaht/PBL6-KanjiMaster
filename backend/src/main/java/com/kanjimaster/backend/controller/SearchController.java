@@ -1,7 +1,6 @@
 package com.kanjimaster.backend.controller;
 
-import com.kanjimaster.backend.model.dto.ApiResponse;
-import com.kanjimaster.backend.model.dto.SearchResponse;
+import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
@@ -23,15 +22,21 @@ public class SearchController {
 
     @Operation(summary = "Tìm theo query (gồm cả kanji, từ ghép, hán việt, meaning)")
     @GetMapping
-    public ResponseEntity<ApiResponse<SearchResponse>> search(
+    public ResponseEntity<ApiResponse<Object>> search(
             @RequestParam String q,
+            @RequestParam(defaultValue = "full") String mode,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "8") int limit) {
 
-        SearchResponse results = searchService.search(q, page, size);
-        if (results.getCompoundResults().isEmpty() && results.getKanjiResults().isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Search not found!"));
+        SearchMode searchMode = SearchMode.from(mode);
+        Object data = searchService.searchSuggest(q, searchMode, limit);
 
-        return ResponseEntity.ok(ApiResponse.success(results, "Search found!"));
+        boolean empty = (data instanceof SearchSuggestResponse ss && ss.getResults().isEmpty());
+
+        if (empty) {
+            return ResponseEntity.ok(ApiResponse.error("No results"));
+        }
+        return ResponseEntity.ok(ApiResponse.success(data, "OK"));
     }
 }
