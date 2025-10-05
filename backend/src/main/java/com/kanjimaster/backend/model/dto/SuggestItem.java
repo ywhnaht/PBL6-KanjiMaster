@@ -14,4 +14,5 @@ public class SuggestItem {
     String text;
     String meaning;
     String reading;
+    int rank;
 }
