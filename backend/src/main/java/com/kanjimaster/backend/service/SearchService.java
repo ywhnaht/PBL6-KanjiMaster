@@ -98,7 +98,7 @@ public class SearchService {
         }
 
         return SearchSuggestResponse.builder()
-                .mode("suggest")
+                .mode(mode.name())
                 .query(q)
                 .results(ranked)
                 .initials(initialResult)
