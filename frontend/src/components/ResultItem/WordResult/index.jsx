@@ -1,13 +1,61 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import useSearchStore from "../../../store/useSearchStore";
 
 export default function WordResult({
   word,
-  reading,
+  hiragana,
   meaning,
-  compounds = [],
-  examples = [],
-  relatedResults = [],
+  examples = [], // đã map sẵn từ SearchResult
+  relatedWords = [],
+  query = "", // Thêm prop query từ component cha
 }) {
+  const navigate = useNavigate();
+  const {
+    compoundKanjis,
+    fetchKanjiDetail,
+    fetchCompoundDetail,
+    fetchCompoundKanji,
+    setQuery, // Thêm để cập nhật input
+    setCurrentWordId, // Thêm để lưu wordId
+  } = useSearchStore();
+
+  // Sử dụng query từ prop hoặc fallback sang word
+  const displayQuery = query || word || "-";
+
+  const handleNavigate = async (id, type, newWord = "") => {
+    if (!id) return;
+
+    // Cập nhật input với từ mới nếu có
+    if (newWord) {
+      setQuery(newWord);
+    }
+
+    if (type === "kanji") {
+      await fetchKanjiDetail(id); // lấy chi tiết Kanji
+    } else {
+      await fetchCompoundDetail(id); // lấy chi tiết từ ghép
+      await fetchCompoundKanji(id); // lấy Kanji cấu thành
+      setCurrentWordId(id); // Lưu wordId hiện tại
+    }
+
+    navigate(`/search/${type}/${id}`);
+  };
+
+  // Hàm xử lý click vào từ liên quan
+  const handleRelatedWordClick = (relatedWord) => {
+    if (!relatedWord?.id) return;
+
+    // Cập nhật input với từ liên quan
+    if (relatedWord.word) {
+      setQuery(relatedWord.word);
+    }
+
+    // Lưu wordId và fetch chi tiết
+    setCurrentWordId(relatedWord.id);
+    handleNavigate(relatedWord.id, "word", relatedWord.word);
+  };
+
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -15,7 +63,7 @@ export default function WordResult({
         <h2 className="text-2xl font-bold text-gray-800">
           Kết quả cho:{" "}
           <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
-            {word}
+            {displayQuery}
           </span>
         </h2>
       </div>
@@ -25,23 +73,22 @@ export default function WordResult({
         <div className="xl:col-span-2">
           {/* Main Word Display */}
           <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-            {/* Word big display */}
             <div className="mb-8 text-left">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-4 px-[20px]">
                 {/* Left side: Word + Reading */}
-                <div>
+                <div className="text-center">
                   <div className="text-8xl font-light text-gray-800 select-text">
                     {word}
                   </div>
-                  <div className="text-2xl text-gray-600 font-medium mt-2">
-                    {reading}
+                  <div className="text-2xl text-gray-600 font-medium mt-3">
+                    {hiragana}
                   </div>
                 </div>
 
                 {/* Right side: Action buttons */}
                 <div className="flex flex-col gap-1.5 mt-2">
                   <button className="group p-1 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
-                    <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-base group-hover:font-variation-settings-FILL-1">
+                    <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-base">
                       favorite
                     </span>
                   </button>
@@ -51,7 +98,7 @@ export default function WordResult({
                     </span>
                   </button>
                   <button className="group p-1 rounded-full bg-green-50 hover:bg-green-100 transition-colors">
-                    <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-base group-hover:font-variation-settings-FILL-1">
+                    <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-base">
                       bookmark
                     </span>
                   </button>
@@ -76,10 +123,24 @@ export default function WordResult({
               </h3>
               <div className="space-y-4">
                 {examples.map((ex, i) => (
-                  <div key={i} className="border-l-4 border-blue-200 pl-4 py-2">
-                    <p className="text-lg font-medium text-gray-800">{ex.jp}</p>
-                    <p className="text-blue-600 mb-1 font-medium">{ex.vi}</p>
-                    <p className="text-gray-500 text-sm italic">{ex.en}</p>
+                  <div
+                    key={ex.id || i}
+                    className="border-l-4 border-blue-200 pl-4 py-2"
+                  >
+                    {/* Câu gốc (tiếng Nhật) */}
+                    <p className="text-lg font-medium text-gray-800">
+                      {ex.sentence || ex.example}
+                    </p>
+                    {/* Nghĩa tiếng Việt */}
+                    {ex.meaning && (
+                      <p className="text-gray-500 text-sm italic">
+                        {ex.meaning}
+                      </p>
+                    )}
+                    {/* Nghĩa tiếng Anh (nếu có) */}
+                    {ex.meaningEn && (
+                      <p className="text-gray-400 text-sm">{ex.meaningEn}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -87,56 +148,86 @@ export default function WordResult({
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar: Kanji cấu thành và Từ liên quan */}
         <div className="space-y-6">
-          {/* Compounds */}
-          {compounds.length > 0 && (
+          {/* Kanji cấu thành */}
+          {compoundKanjis && compoundKanjis.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Từ ghép liên quan
+                Kanji cấu thành
               </h3>
               <div className="space-y-3">
-                {compounds.map((c, i) => (
+                {compoundKanjis.map((k, i) => (
                   <div
-                    key={i}
-                    className="border border-gray-200 rounded-lg p-3"
+                    key={k.id || i}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleNavigate(k.id, "kanji", k.kanji)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleNavigate(k.id, "kanji", k.kanji);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xl font-semibold text-gray-800">
-                        {c.word}
+                        {k.kanji}
                       </span>
                       <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {c.reading}
+                        {k.hanViet}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm">{c.meaning}</p>
+                    <p className="text-gray-600 text-sm">
+                      Level: {k.level} | ON: {k.onyomi} | KUN: {k.kunyomi}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Related Words */}
-          {relatedResults.length > 0 && (
+          {/* Từ liên quan */}
+          {relatedWords.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Từ liên quan
+                Từ liên quan với{" "}
+                <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                  {displayQuery}
+                </span>
               </h3>
               <div className="space-y-3">
-                {relatedResults.map((r, i) => (
+                {relatedWords.map((relatedWord, i) => (
                   <div
-                    key={i}
-                    className="border border-gray-200 rounded-lg p-3 flex items-center gap-3"
+                    key={relatedWord.id || i}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleRelatedWordClick(relatedWord)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleRelatedWordClick(relatedWord);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-green-300 hover:bg-green-50 transition-colors cursor-pointer"
                   >
-                    <span className="text-2xl font-semibold text-gray-800">
-                      {r.word}
-                    </span>
-                    <div>
-                      <p className="font-medium text-gray-800">{r.meaning}</p>
-                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {r.reading}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-lg font-semibold text-gray-800">
+                        {relatedWord.word}
+                      </span>
+                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {relatedWord.reading || relatedWord.hiragana || ""}
                       </span>
                     </div>
+                    <p className="text-gray-600 text-sm">
+                      {relatedWord.meaning || relatedWord.meaningEn || ""}
+                    </p>
+                    {relatedWord.partOfSpeech && (
+                      <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        {relatedWord.partOfSpeech}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
