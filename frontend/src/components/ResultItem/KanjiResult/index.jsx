@@ -7,14 +7,15 @@ export default function KanjiResult({
   kanjis = [],
   examples = [],
   compounds = [],
+  query = "", // Thêm prop query từ component cha
 }) {
   const navigate = useNavigate();
-  const { 
-    setQuery, 
-    setCurrentWordId, 
+  const {
+    setQuery,
+    setCurrentWordId,
     setCurrentKanjiId,
     fetchKanjiDetail,
-    compoundKanjis // Lấy compoundKanjis từ store
+    compoundKanjis, // Lấy compoundKanjis từ store
   } = useSearchStore();
 
   const [selected, setSelected] = useState(0);
@@ -23,6 +24,9 @@ export default function KanjiResult({
 
   const pageSize = 4;
   const mainKanji = kanjis[selected];
+
+  // Sử dụng query từ prop hoặc fallback sang kanji đang chọn
+  const displayQuery = query || mainKanji?.kanji || "-";
 
   useEffect(() => {
     setCompoundPage(0);
@@ -75,11 +79,11 @@ export default function KanjiResult({
   // Khi click vào từ ghép: navigate thẳng sang /search/word/{id} và cập nhật input
   const handleCompoundClick = (item) => {
     if (!item?.id) return;
-    
+
     if (item.word) {
       setQuery(item.word);
     }
-    
+
     setCurrentWordId(item.id);
     navigate(`/search/word/${item.id}`);
   };
@@ -87,16 +91,16 @@ export default function KanjiResult({
   // Hàm xử lý khi click vào Kanji cấu thành (từ tab Word)
   const handleKanjiClick = async (kanji) => {
     if (!kanji?.id) return;
-    
+
     // Cập nhật input với chữ kanji
     if (kanji.kanji) {
       setQuery(kanji.kanji);
     }
-    
+
     // Lưu kanjiId và fetch chi tiết
     setCurrentKanjiId(kanji.id);
     await fetchKanjiDetail(kanji.id);
-    
+
     navigate(`/search/kanji/${kanji.id}`);
   };
 
@@ -107,7 +111,7 @@ export default function KanjiResult({
         <h2 className="text-2xl font-bold text-gray-800">
           Kết quả cho:{" "}
           <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
-            {mainKanji?.kanji || "-"}
+            {displayQuery}
           </span>
         </h2>
 
@@ -121,7 +125,7 @@ export default function KanjiResult({
                   onClick={() => handleKanjiClick(k)}
                   className="w-14 h-14 flex items-center justify-center text-2xl font-semibold text-gray-800 bg-white border-3 border-gray-400 rounded-lg hover:border-blue-500 hover:bg-blue-100 active:bg-blue-200 transition-all"
                   title={`${k.kanji} - ${k.hanViet}`}
-                  style={{borderWidth: '3px'}}
+                  style={{ borderWidth: "3px" }}
                 >
                   {k.kanji}
                 </button>
@@ -305,7 +309,10 @@ export default function KanjiResult({
           {/* Compounds */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="font-bold text-lg text-gray-800 mb-4">
-              Từ ghép liên quan
+              Kết quả tương tự cho:{" "}
+              <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                {displayQuery}
+              </span>
             </h3>
             {compoundsForSelected.length === 0 ? (
               <p className="text-gray-500 italic">Không có từ ghép liên quan</p>
