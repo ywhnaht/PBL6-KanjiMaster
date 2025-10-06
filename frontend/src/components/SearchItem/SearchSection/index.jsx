@@ -1,22 +1,74 @@
-import React from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+// src/components/SearchSection.jsx
+// eslint-disable-next-line no-unused-vars
+import React, { useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Search from "../Search";
+import useSearchStore from "../../../store/useSearchStore";
 
 export default function SearchSection() {
   const navigate = useNavigate();
-  const { type, value } = useParams(); // lấy đúng param từ URL
-  // eslint-disable-next-line no-unused-vars
-  const location = useLocation();
-
-  // tab hiện tại
-  const currentTab = type === "word" ? "Word" : "Kanji";
+  const { type, value } = useParams();
+  const {
+    wordDetail,
+    kanjiDetail,
+    fetchKanjiDetail,
+    fetchCompoundDetail,
+    fetchCompoundKanji,
+    currentWordId,
+    currentKanjiId,
+    compoundKanjis,
+  } = useSearchStore();
 
   const tabs = ["Word", "Kanji"];
 
-  const handleTabClick = (tab) => {
+  // Xác định tab hiện tại
+  const currentTab = type === "kanji" ? "Kanji" : "Word";
+
+  // 🔄 gọi API riêng theo type và lưu ID hiện tại
+  useEffect(() => {
     if (!value) return;
-    const path = `/search/${tab.toLowerCase()}/${encodeURIComponent(value)}`;
-    navigate(path);
+
+    if (type === "kanji") {
+      fetchKanjiDetail(value);
+    } else {
+      fetchCompoundDetail(value);
+      fetchCompoundKanji(value);
+    }
+  }, [type, value]);
+
+  // Khi click tab, chuyển đổi giữa Word và Kanji dựa trên ID đã lưu
+  const handleTabClick = async (tab) => {
+    if (tab === currentTab) return; // Đã ở tab này rồi thì không làm gì
+
+    if (tab === "Word") {
+      // Chuyển từ Kanji sang Word - sử dụng wordId đã lưu
+      const targetWordId = currentWordId || wordDetail?.id;
+      if (targetWordId) {
+        // Gọi API để cập nhật dữ liệu mới nhất
+        await fetchCompoundDetail(targetWordId);
+        await fetchCompoundKanji(targetWordId);
+        navigate(`/search/word/${targetWordId}`);
+      } else {
+        console.warn("Không tìm thấy wordId để chuyển tab");
+      }
+    } else if (tab === "Kanji") {
+      // Chuyển từ Word sang Kanji - sử dụng kanjiId đã lưu hoặc lấy từ đầu tiên
+      let targetKanjiId = currentKanjiId || kanjiDetail?.id;
+      
+      // Nếu không có kanjiId, lấy kanji đầu tiên từ compoundKanjis
+      if (!targetKanjiId && compoundKanjis && compoundKanjis.length > 0) {
+        targetKanjiId = compoundKanjis[0].id;
+        console.log("📝 Lấy kanji đầu tiên từ compoundKanjis:", targetKanjiId);
+      }
+      
+      if (targetKanjiId) {
+        // Gọi API để cập nhật dữ liệu mới nhất
+        await fetchKanjiDetail(targetKanjiId);
+        navigate(`/search/kanji/${targetKanjiId}`);
+      } else {
+        console.warn("Không tìm thấy kanjiId để chuyển tab và không có compoundKanjis");
+      }
+    }
   };
 
   return (
