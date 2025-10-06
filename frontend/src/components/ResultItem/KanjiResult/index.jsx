@@ -1,20 +1,27 @@
 import React, { useState, useMemo, useEffect } from "react";
 import KanjiStroke from "../../../ultis/KanjiStroke";
 import { useNavigate } from "react-router-dom";
+import useSearchStore from "../../../store/useSearchStore";
 
 export default function KanjiResult({
   kanjis = [],
   examples = [],
   compounds = [],
 }) {
-  // ✅ Hook được gọi ở cấp component (không gọi trong map/callback)
   const navigate = useNavigate();
+  const { 
+    setQuery, 
+    setCurrentWordId, 
+    setCurrentKanjiId,
+    fetchKanjiDetail,
+    compoundKanjis // Lấy compoundKanjis từ store
+  } = useSearchStore();
 
   const [selected, setSelected] = useState(0);
   const [compoundPage, setCompoundPage] = useState(0);
-  const [kanjiStrokeKey, setKanjiStrokeKey] = useState(0); // Key để trigger re-render KanjiStroke
+  const [kanjiStrokeKey, setKanjiStrokeKey] = useState(0);
 
-  const pageSize = 3;
+  const pageSize = 4;
   const mainKanji = kanjis[selected];
 
   useEffect(() => {
@@ -22,15 +29,9 @@ export default function KanjiResult({
     setKanjiStrokeKey((prev) => prev + 1);
   }, [selected, kanjis]);
 
+  // Chỉ lọc compounds liên quan đến Kanji đang chọn
   const compoundsForSelected = useMemo(() => {
     if (!mainKanji) return [];
-    if (
-      compounds &&
-      !Array.isArray(compounds) &&
-      typeof compounds === "object"
-    ) {
-      return compounds[mainKanji.kanji] || [];
-    }
     if (Array.isArray(compounds) && compounds.length > 0) {
       const filtered = compounds.filter((c) =>
         c.word?.includes(mainKanji.kanji)
@@ -71,17 +72,32 @@ export default function KanjiResult({
     return colors[level] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
-  // Hàm helper để quyết định type khi navigate (1 ký tự => kanji, khác => word)
-  const getSearchType = (text) => {
-    const t = typeof text === "string" ? text.trim() : "";
-    return t.length === 1 ? "kanji" : "word";
+  // Khi click vào từ ghép: navigate thẳng sang /search/word/{id} và cập nhật input
+  const handleCompoundClick = (item) => {
+    if (!item?.id) return;
+    
+    if (item.word) {
+      setQuery(item.word);
+    }
+    
+    setCurrentWordId(item.id);
+    navigate(`/search/word/${item.id}`);
   };
 
-  // Xử lý khi click 1 compound: chuyển tới trang search phù hợp
-  const handleCompoundClick = (c) => {
-    if (!c || !c.word) return;
-    const type = getSearchType(c.word);
-    navigate(`/search/${type}/${encodeURIComponent(c.word)}`);
+  // Hàm xử lý khi click vào Kanji cấu thành (từ tab Word)
+  const handleKanjiClick = async (kanji) => {
+    if (!kanji?.id) return;
+    
+    // Cập nhật input với chữ kanji
+    if (kanji.kanji) {
+      setQuery(kanji.kanji);
+    }
+    
+    // Lưu kanjiId và fetch chi tiết
+    setCurrentKanjiId(kanji.id);
+    await fetchKanjiDetail(kanji.id);
+    
+    navigate(`/search/kanji/${kanji.id}`);
   };
 
   return (
@@ -94,31 +110,51 @@ export default function KanjiResult({
             {mainKanji?.kanji || "-"}
           </span>
         </h2>
-        {/* Kanji Selector */}
-        {kanjis.length > 1 && (
-          <div className="flex gap-2">
-            {kanjis.map((k, i) => (
-              <button
-                key={i}
-                onClick={() => setSelected(i)}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selected === i
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {k.kanji}
-              </button>
-            ))}
-          </div>
-        )}
+
+        <div className="flex items-center gap-3">
+          {/* Kanji cấu thành */}
+          {compoundKanjis && compoundKanjis.length > 0 && (
+            <div className="flex gap-2">
+              {compoundKanjis.map((k, i) => (
+                <button
+                  key={k.id || i}
+                  onClick={() => handleKanjiClick(k)}
+                  className="w-14 h-14 flex items-center justify-center text-2xl font-semibold text-gray-800 bg-white border-3 border-gray-400 rounded-lg hover:border-blue-500 hover:bg-blue-100 active:bg-blue-200 transition-all"
+                  title={`${k.kanji} - ${k.hanViet}`}
+                  style={{borderWidth: '3px'}}
+                >
+                  {k.kanji}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Kanji Selector */}
+          {kanjis.length > 1 && (
+            <div className="flex gap-2">
+              {kanjis.map((k, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelected(i)}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selected === i
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {k.kanji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Main content */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Main content */}
         <div className="xl:col-span-2">
-          {mainKanji ? (
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-6 flex flex-col ">
+          {mainKanji && (
+            <div className="bg-white rounded-xl shadow-lg p-8 mb-6 flex flex-col">
               {/* Kanji & info */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-8 px-[62px]">
                 <div className="flex-1 flex flex-col items-center md:items-start">
@@ -194,17 +230,19 @@ export default function KanjiResult({
                   <div className="space-y-2">
                     <p className="text-orange-700">
                       <span className="font-semibold">Hán Việt:</span>{" "}
-                      {mainKanji.sinoViet || "-"}
+                      {mainKanji.hanViet || "-"}
                     </p>
                     <p className="text-orange-700">
                       <span className="font-semibold">Thuần Việt:</span>{" "}
-                      {mainKanji.nativeViet || "-"}
+                      {mainKanji.radical || "-"}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-          ) : null}
+          )}
+
+          {/* Ví dụ */}
           {examples.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
               <h3 className="font-bold text-lg text-gray-800 mb-4">
@@ -216,19 +254,15 @@ export default function KanjiResult({
                     key={ex.id || i}
                     className="border-l-4 border-blue-200 pl-4 py-2"
                   >
-                    {/* Câu gốc (tiếng Nhật) */}
                     <p className="text-lg font-medium text-gray-800">
                       {ex.sentence}
                     </p>
-                    {/* Nghĩa tiếng Việt */}
                     <p className="text-gray-500 text-sm italic">{ex.meaning}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
-          {/* Examples */}
         </div>
 
         {/* Sidebar */}
@@ -257,8 +291,8 @@ export default function KanjiResult({
                 <KanjiStroke
                   key={kanjiStrokeKey}
                   svgUrl={mainKanji.svgLink}
-                  width={200}
-                  height={200}
+                  width={260}
+                  height={260}
                   strokeDuration={300}
                   strokeDelay={400}
                   autoPlay={true}
