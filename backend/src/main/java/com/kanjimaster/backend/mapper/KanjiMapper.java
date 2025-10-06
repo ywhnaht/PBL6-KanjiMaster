@@ -1,34 +1,39 @@
 package com.kanjimaster.backend.mapper;
 
-import com.kanjimaster.backend.model.dto.CompoundWordDto;
 import com.kanjimaster.backend.model.dto.KanjiDto;
-import com.kanjimaster.backend.model.dto.KanjiExampleDto;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.Kanji;
-import com.kanjimaster.backend.model.entity.KanjiExamples;
-import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Context;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
+@Mapper(
+        componentModel = "spring",
+        // Báo cho KanjiMapper biết về sự tồn tại của các mapper khác
+        uses = { CompoundWordMapper.class, KanjiExampleMapper.class }
+)
 public interface KanjiMapper {
-    @Mapping(target = "compoundWords", ignore = true)
+
+    // MapStruct sẽ tự động dùng KanjiExampleMapper để chuyển đổi trường này
     @Mapping(target = "kanjiExamples", source = "kanjiExamples")
+    // Trường compoundWords sẽ được xử lý thủ công ở dưới
+    @Mapping(target = "compoundWords", ignore = true)
     KanjiDto toDto(Kanji entity);
-    List<KanjiDto> toDtoList(List<Kanji> entity);
 
-//    KanjiDto toDtoWithCompoundWords(Kanji entity, List<CompoundWords> compoundWords);
-    CompoundWordDto toDto(CompoundWords entity);
-    KanjiExampleDto toDto(KanjiExamples entity);
-    List<CompoundWordDto> toDtoListCompoundWords(List<CompoundWords> entities);
-    // List<KanjiExampleDto> toDtoList(List<KanjiExamples> entities); 
+    List<KanjiDto> toDtoList(List<Kanji> entities);
 
-    default KanjiDto toDtoWithCompoundWords(Kanji kanji, List<CompoundWords> compoundWords) {
+    // Phương thức custom để thêm danh sách từ ghép
+    default KanjiDto toDtoWithCompoundWords(Kanji kanji, List<CompoundWords> compoundWords, @Context CompoundWordMapper compoundWordMapper) {
+        if (kanji == null) {
+            return null;
+        }
+        // Gọi phương thức mapping cơ bản
         KanjiDto dto = toDto(kanji);
-        if (compoundWords != null && !compoundWords.isEmpty()) {
-            dto.setCompoundWords(compoundWords.stream().map(this::toDto).toList());
+        // Dùng CompoundWordMapper được inject để chuyển đổi danh sách
+        if (compoundWords != null) {
+            dto.setCompoundWords(compoundWordMapper.toDtoList(compoundWords));
         }
         return dto;
     }

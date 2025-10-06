@@ -1,6 +1,7 @@
 package com.kanjimaster.backend.service;
 
 import com.kanjimaster.backend.exception.KanjiNotFoundException;
+import com.kanjimaster.backend.mapper.CompoundWordMapper;
 import com.kanjimaster.backend.mapper.KanjiMapper;
 import com.kanjimaster.backend.mapper.PagedMapper;
 import com.kanjimaster.backend.model.dto.KanjiDto;
@@ -28,29 +29,30 @@ import java.util.Set;
 public class KanjiService {
     KanjiMapper kanjiMapper;
     KanjiRepository kanjiRepository;
-    CompoundWordService compoundWordService;
+    CompoundWordRepository compoundWordRepository;
     KanjiExampleService kanjiExampleService;
+    CompoundWordMapper compoundWordMapper;
 
     public KanjiDto getKanjiById(Integer id) {
         Kanji kanji = kanjiRepository.findById(id).orElseThrow(() -> new KanjiNotFoundException("Kanji not found!"));
-        PagedResponse<CompoundWords> compoundWords = compoundWordService.getByKanjiId(id, 0, 5);
+        Page<CompoundWords> compoundWords = compoundWordRepository.findByKanjiId(id, PageRequest.of(0, 5));
 
         if (kanji.getKanjiExamples() != null && !kanji.getKanjiExamples().isEmpty()) {
             kanji.getKanjiExamples().forEach(kanjiExampleService::translateIfNull);
         }
 
-        return kanjiMapper.toDtoWithCompoundWords(kanji, compoundWords.getItems());
+        return kanjiMapper.toDtoWithCompoundWords(kanji, compoundWords.getContent(), compoundWordMapper);
     }
 
     public KanjiDto getKanjiByCharacter(String character) {
         Kanji kanji = kanjiRepository.findByKanji(character).orElseThrow(() -> new KanjiNotFoundException("Kanji not found"));
-        PagedResponse<CompoundWords> compoundWords = compoundWordService.getByKanjiId(kanji.getId(), 0, 5);
+        Page<CompoundWords> compoundWords = compoundWordRepository.findByKanjiId(kanji.getId(), PageRequest.of(0, 5));
 
         if (kanji.getKanjiExamples() != null && !kanji.getKanjiExamples().isEmpty()) {
             kanji.getKanjiExamples().forEach(kanjiExampleService::translateIfNull);
         }
 
-        return kanjiMapper.toDtoWithCompoundWords(kanji, compoundWords.getItems());
+        return kanjiMapper.toDtoWithCompoundWords(kanji, compoundWords.getContent(), compoundWordMapper);
     }
 
     public PagedResponse<KanjiDto> getKanjiByLevel(String level, int page, int size) {
@@ -69,13 +71,13 @@ public class KanjiService {
         List<Kanji> kanjiList = kanjiRepository.findKanjiByCompoundId(compoundId);
 
         List<KanjiDto> result = kanjiList.stream().map(k -> {
-            PagedResponse<CompoundWords> compoundWords = compoundWordService.getByKanjiId(k.getId(), 0, 5);
+            Page<CompoundWords> compoundWords = compoundWordRepository.findByKanjiId(k.getId(), PageRequest.of(0, 5));
 
             if (k.getKanjiExamples() != null && !k.getKanjiExamples().isEmpty()) {
                 k.getKanjiExamples().forEach(kanjiExampleService::translateIfNull);
             }
             
-            return kanjiMapper.toDtoWithCompoundWords(k, compoundWords.getItems());
+            return kanjiMapper.toDtoWithCompoundWords(k, compoundWords.getContent(), compoundWordMapper);
         }).toList();
 
         return result;
