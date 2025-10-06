@@ -1,26 +1,32 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import useSearchStore from "../../../store/useSearchStore";
 
 export default function WordResult({
   word,
   hiragana,
   meaning,
-  compounds = [],
   examples = [], // đã map sẵn từ SearchResult
-  relatedResults = [],
 }) {
   const navigate = useNavigate();
+  const {
+    compoundKanjis,
+    fetchKanjiDetail,
+    fetchCompoundDetail,
+    fetchCompoundKanji,
+  } = useSearchStore();
 
-  // ✅ Helper: xác định type (kanji hay word)
-  const getSearchType = (text) => {
-    const t = typeof text === "string" ? text.trim() : "";
-    return t.length === 1 ? "kanji" : "word";
-  };
+  const handleNavigate = async (id, type) => {
+    if (!id) return;
 
-  const handleNavigate = (text) => {
-    if (!text) return;
-    const type = getSearchType(text);
-    navigate(`/search/${type}/${encodeURIComponent(text)}`);
+    if (type === "kanji") {
+      await fetchKanjiDetail(id); // lấy chi tiết Kanji
+    } else {
+      await fetchCompoundDetail(id); // lấy chi tiết từ ghép
+      await fetchCompoundKanji(id); // lấy Kanji cấu thành
+    }
+
+    navigate(`/search/${type}/${id}`);
   };
 
   return (
@@ -115,74 +121,39 @@ export default function WordResult({
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar: Kanji cấu thành */}
         <div className="space-y-6">
-          {/* Compounds */}
-          {compounds.length > 0 && (
+          {compoundKanjis && compoundKanjis.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Từ ghép liên quan
+                Kanji cấu thành
               </h3>
               <div className="space-y-3">
-                {compounds.map((c, i) => (
+                {compoundKanjis.map((k, i) => (
                   <div
-                    key={i}
+                    key={k.id || i}
                     role="button"
                     tabIndex={0}
-                    onClick={() => handleNavigate(c.word)}
+                    onClick={() => handleNavigate(k.id, "kanji")}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleNavigate(c.word);
+                        handleNavigate(k.id, "kanji");
                       }
                     }}
                     className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xl font-semibold text-gray-800">
-                        {c.word}
+                        {k.kanji}
                       </span>
                       <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {c.hiragana}
+                        {k.hanViet}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm">{c.meaning}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Related Words */}
-          {relatedResults.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">
-                Từ liên quan
-              </h3>
-              <div className="space-y-3">
-                {relatedResults.map((r, i) => (
-                  <div
-                    key={i}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleNavigate(r.word)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleNavigate(r.word);
-                      }
-                    }}
-                    className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:border-blue-300 transition-colors cursor-pointer"
-                  >
-                    <span className="text-2xl font-semibold text-gray-800">
-                      {r.word}
-                    </span>
-                    <div>
-                      <p className="font-medium text-gray-800">{r.meaning}</p>
-                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {r.hiragana}
-                      </span>
-                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Level: {k.level} | ON: {k.onyomi} | KUN: {k.kunyomi}
+                    </p>
                   </div>
                 ))}
               </div>

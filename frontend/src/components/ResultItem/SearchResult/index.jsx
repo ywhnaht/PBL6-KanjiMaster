@@ -1,13 +1,16 @@
-// src/components/SearchResult.js
 import React, { useEffect } from "react";
 import WordResult from "../WordResult";
 import KanjiResult from "../KanjiResult";
 import useSearchStore from "../../../store/useSearchStore";
 
-export default function SearchResult({ type, query }) {
+export default function SearchResult({ type, queryOrId }) {
   const {
-    fetchWordDetail,
+    fetchCompoundDetail,
+    fetchKanjiDetail,
+    fetchCompoundKanji,
     wordDetail,
+    kanjiDetail,
+    compoundKanjis,
     isLoading,
     compoundPage,
     compoundTotalPages,
@@ -15,51 +18,49 @@ export default function SearchResult({ type, query }) {
   } = useSearchStore();
 
   useEffect(() => {
-    if (query) {
-      fetchWordDetail(query, type, 0, 5); // ✅ truyền type
+    if (!queryOrId) return;
+
+    if (type === "word") {
+      // Lấy chi tiết từ ghép
+      fetchCompoundDetail(queryOrId, "word", 0, 5);
+
+      // Lấy luôn các Kanji cấu thành
+      fetchCompoundKanji(queryOrId);
+    } else if (type === "kanji") {
+      fetchKanjiDetail(queryOrId);
     }
-  }, [query, type]);
+  }, [queryOrId, type]);
 
   if (isLoading) {
     return <div className="p-6 text-gray-500 italic">Đang tải...</div>;
   }
 
-  if (!wordDetail) {
-    return <div className="p-6 text-gray-500 italic">Không có dữ liệu</div>;
-  }
-
-  if (type === "word") {
+  if (type === "word" && wordDetail) {
     return (
       <WordResult
         {...wordDetail}
         compoundPage={compoundPage}
-        examples={wordDetail.examples || []}
-        exampleMeaning={wordDetail.examples?.[0]?.meaning || ""}
         compoundTotalPages={compoundTotalPages}
+        compoundKanjis={compoundKanjis || []} // đảm bảo luôn có mảng
         onCompoundPageChange={(page) => {
           setCompoundPage(page);
-          fetchWordDetail(query, "word", page, 5);
+          fetchCompoundDetail(queryOrId, "word", page, 5);
+          fetchCompoundKanji(queryOrId); // cập nhật Kanji khi đổi trang
         }}
       />
     );
   }
 
-  if (type === "kanji") {
-    if (!wordDetail.kanjis || wordDetail.kanjis.length === 0) {
-      return (
-        <div className="p-6 text-gray-500 italic">Không tìm thấy kanji</div>
-      );
-    }
+  if (type === "kanji" && kanjiDetail) {
+  return (
+    <KanjiResult
+      kanjis={[kanjiDetail]} // đưa kanjiDetail vào mảng để KanjiResult vẫn dùng selected index
+      examples={kanjiDetail.kanjiExamples || []}
+      compounds={kanjiDetail.compoundWords || []} // từ ghép liên quan
+    />
+  );
+}
 
-    return (
-      <KanjiResult
-        kanjis={wordDetail.kanjis}
-        examples={wordDetail.kanjiExamples || []} // 👈 dùng thẳng kanjiExamples
-        compounds={wordDetail.compounds || []}
-        relatedResults={wordDetail.relatedResults || []}
-      />
-    );
-  }
 
-  return null;
+  return <div className="p-6 text-gray-500 italic">Không có dữ liệu</div>;
 }

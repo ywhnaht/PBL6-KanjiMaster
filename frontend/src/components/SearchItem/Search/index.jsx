@@ -5,7 +5,18 @@ import useSearchStore from "../../../store/useSearchStore";
 
 export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) {
   const navigate = useNavigate();
-  const { query, results, setQuery, fetchSuggest, reset, isLoading } = useSearchStore();
+  const {
+    query,
+    results,
+    setQuery,
+    fetchSuggest,
+    reset,
+    fetchCompoundDetail,
+    fetchKanjiDetail,
+    fetchCompoundKanji,
+    isLoading,
+  } = useSearchStore();
+
   const [showDrawBoard, setShowDrawBoard] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -28,23 +39,39 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     }
   };
 
-  // ✅ xác định type: 1 ký tự => kanji, còn lại => word
-  const getSearchType = (text) => {
-    return text.trim().length === 1 ? "kanji" : "word";
+  const handleSelect = async (item) => {
+    setQuery(item.text);
+
+    // Xác định type
+    const type = item.type === "KANJI" ? "kanji" : "word";
+
+    if (type === "kanji") {
+      // Lấy chi tiết Kanji theo id
+      await fetchKanjiDetail(item.id);
+    } else {
+      // Lấy chi tiết compound theo id
+      const detail = await fetchCompoundDetail(item.id);
+
+      // Sau khi có detail, gọi API Kanji
+      if (detail?.id) {
+        await fetchCompoundKanji(detail.id);
+      }
+    }
+
+    navigate(`/search/${type}/${item.id}`);
+    setShowDropdown(false);
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter" && query.trim() !== "") {
-      const type = getSearchType(query);
-      navigate(`/search/${type}/${encodeURIComponent(query)}`);
-      setShowDropdown(false);
-      setShowDrawBoard(false);
+      if (results.length > 0) {
+        await handleSelect(results[0]);
+      }
     }
   };
 
   return (
     <div className="relative group">
-      {/* Input */}
       <input
         type="text"
         value={query}
@@ -73,38 +100,35 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
 
       {/* Suggestion Dropdown */}
       {showDropdown && (query || results.length > 0) && (
-        <div>
-          <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-[1000]">
-            <ul className="divide-y divide-gray-100">
-              {isLoading ? (
-                <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
-              ) : results.length > 0 ? (
-                results.map((item) => {
-                  const type = getSearchType(item.text);
-                  return (
-                    <li
-                      key={item.id}
-                      className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
-                      onClick={() => {
-                        setQuery(item.text);
-                        navigate(`/search/${type}/${encodeURIComponent(item.text)}`);
-                        setShowDropdown(false);
-                      }}
-                    >
-                      <span className="material-symbols-outlined text-gray-400">history</span>
-                      <div>
-                        <div className="text-lg font-semibold text-gray-800">{item.text}</div>
-                        <div className="text-sm text-gray-500">{item.reading}</div>
-                        <div className="text-sm text-gray-700">{item.meaning}</div>
-                      </div>
-                    </li>
-                  );
-                })
-              ) : (
-                <li className="p-3 text-gray-500 text-sm italic">Không tìm thấy từ nào</li>
-              )}
-            </ul>
-          </div>
+        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-[1000]">
+          <ul className="divide-y divide-gray-100">
+            {isLoading ? (
+              <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
+            ) : results.length > 0 ? (
+              results.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
+                  onClick={() => handleSelect(item)}
+                >
+                  <span className="material-symbols-outlined text-gray-400">
+                    history
+                  </span>
+                  <div>
+                    <div className="text-lg font-semibold text-gray-800">
+                      {item.text}
+                    </div>
+                    <div className="text-sm text-gray-500">{item.reading}</div>
+                    <div className="text-sm text-gray-700">{item.meaning}</div>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className="p-3 text-gray-500 text-sm italic">
+                Không tìm thấy từ nào
+              </li>
+            )}
+          </ul>
         </div>
       )}
 
