@@ -40,4 +40,6 @@ public interface CompoundWordRepository extends JpaRepository<CompoundWords, Int
     Page<CompoundWords> findByWordContaining(String word, Pageable pageable);
 
     List<CompoundWords> findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(String word, String meaning, String hiragana);
+
+    Page<CompoundWords> findByMeaningContainingAndIdNot(String keyword, Integer id, Pageable pageable);
 }

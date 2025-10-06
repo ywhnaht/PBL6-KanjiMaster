@@ -1,7 +1,10 @@
 package com.kanjimaster.backend.model.dto;
 
+import com.kanjimaster.backend.model.entity.CompoundWords;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +16,7 @@ public class CompoundWordDto {
     String word;
     String hiragana;
     String meaning;
-    String example;
-    String exampleMeaning;
+//    String example;
+//    String exampleMeaning;
+    List<CompoundWordDto> relatedWords;
 }

@@ -1,6 +1,10 @@
 package com.kanjimaster.backend.service;
 
+import com.kanjimaster.backend.mapper.CompoundWordMapper;
+import com.kanjimaster.backend.mapper.KanjiMapper;
 import com.kanjimaster.backend.mapper.PagedMapper;
+import com.kanjimaster.backend.model.dto.CompoundWordDetailDto;
+import com.kanjimaster.backend.model.dto.CompoundWordDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.repository.CompoundWordRepository;
@@ -10,6 +14,10 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class CompoundWordService {
     CompoundWordRepository compoundWordRepository;
     TranslationService translationService;
+    CompoundWordMapper compoundWordMapper;
 
     public CompoundWords translateIfNull(CompoundWords compoundWords) {
         String meaning = compoundWords.getMeaning();
@@ -43,10 +52,20 @@ public class CompoundWordService {
         return compoundWords;
     }
 
-    public CompoundWords getById(Integer id) {
+    public CompoundWordDetailDto getById(Integer id) {
         CompoundWords words = compoundWordRepository.findById(id).orElseThrow(() -> new RuntimeException("Compound not found"));
         translateIfNull(words);
-        return words;
+
+        Page<CompoundWords> related = compoundWordRepository
+                .findByMeaningFullText(words.getMeaning(), PageRequest.of(0, 5));
+
+        List<CompoundWords> filteredRelated = related.getContent().stream()
+                .filter(word -> !word.getId().equals(id))
+                .limit(5)
+                .map(this::translateIfNull)
+                .collect(Collectors.toList());
+
+        return compoundWordMapper.toDetailDto(words, filteredRelated);
     }
 
     public CompoundWords getCompoundWordByWord(String word) {

@@ -1,8 +1,6 @@
 package com.kanjimaster.backend.controller;
 
-import com.kanjimaster.backend.model.dto.ApiResponse;
-import com.kanjimaster.backend.model.dto.KanjiDto;
-import com.kanjimaster.backend.model.dto.PagedResponse;
+import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.Kanji;
 import com.kanjimaster.backend.service.CompoundWordService;
@@ -29,8 +27,8 @@ public class CompoundWordController {
     TranslationService translationService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CompoundWords>> getById(@PathVariable Integer id) {
-        CompoundWords compoundWord = compoundWordService.getById(id);
+    public ResponseEntity<ApiResponse<CompoundWordDetailDto>> getById(@PathVariable Integer id) {
+        CompoundWordDetailDto compoundWord = compoundWordService.getById(id);
         if (compoundWord != null)
             return ResponseEntity.ok(ApiResponse.success(compoundWord, "Compound found!"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Compound not found!"));
