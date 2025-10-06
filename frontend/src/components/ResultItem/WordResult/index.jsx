@@ -7,6 +7,8 @@ export default function WordResult({
   hiragana,
   meaning,
   examples = [], // đã map sẵn từ SearchResult
+  relatedWords = [],
+  query = "", // Thêm prop query từ component cha
 }) {
   const navigate = useNavigate();
   const {
@@ -14,19 +16,44 @@ export default function WordResult({
     fetchKanjiDetail,
     fetchCompoundDetail,
     fetchCompoundKanji,
+    setQuery, // Thêm để cập nhật input
+    setCurrentWordId, // Thêm để lưu wordId
   } = useSearchStore();
 
-  const handleNavigate = async (id, type) => {
+  // Sử dụng query từ prop hoặc fallback sang word
+  const displayQuery = query || word || "-";
+
+  const handleNavigate = async (id, type, newWord = "") => {
     if (!id) return;
+
+    // Cập nhật input với từ mới nếu có
+    if (newWord) {
+      setQuery(newWord);
+    }
 
     if (type === "kanji") {
       await fetchKanjiDetail(id); // lấy chi tiết Kanji
     } else {
       await fetchCompoundDetail(id); // lấy chi tiết từ ghép
       await fetchCompoundKanji(id); // lấy Kanji cấu thành
+      setCurrentWordId(id); // Lưu wordId hiện tại
     }
 
     navigate(`/search/${type}/${id}`);
+  };
+
+  // Hàm xử lý click vào từ liên quan
+  const handleRelatedWordClick = (relatedWord) => {
+    if (!relatedWord?.id) return;
+
+    // Cập nhật input với từ liên quan
+    if (relatedWord.word) {
+      setQuery(relatedWord.word);
+    }
+
+    // Lưu wordId và fetch chi tiết
+    setCurrentWordId(relatedWord.id);
+    handleNavigate(relatedWord.id, "word", relatedWord.word);
   };
 
   return (
@@ -36,7 +63,7 @@ export default function WordResult({
         <h2 className="text-2xl font-bold text-gray-800">
           Kết quả cho:{" "}
           <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
-            {word}
+            {displayQuery}
           </span>
         </h2>
       </div>
@@ -121,8 +148,9 @@ export default function WordResult({
           )}
         </div>
 
-        {/* Sidebar: Kanji cấu thành */}
+        {/* Sidebar: Kanji cấu thành và Từ liên quan */}
         <div className="space-y-6">
+          {/* Kanji cấu thành */}
           {compoundKanjis && compoundKanjis.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="font-bold text-lg text-gray-800 mb-4">
@@ -134,11 +162,11 @@ export default function WordResult({
                     key={k.id || i}
                     role="button"
                     tabIndex={0}
-                    onClick={() => handleNavigate(k.id, "kanji")}
+                    onClick={() => handleNavigate(k.id, "kanji", k.kanji)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleNavigate(k.id, "kanji");
+                        handleNavigate(k.id, "kanji", k.kanji);
                       }
                     }}
                     className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors cursor-pointer"
@@ -154,6 +182,52 @@ export default function WordResult({
                     <p className="text-gray-600 text-sm">
                       Level: {k.level} | ON: {k.onyomi} | KUN: {k.kunyomi}
                     </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Từ liên quan */}
+          {relatedWords.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="font-bold text-lg text-gray-800 mb-4">
+                Từ liên quan với{" "}
+                <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                  {displayQuery}
+                </span>
+              </h3>
+              <div className="space-y-3">
+                {relatedWords.map((relatedWord, i) => (
+                  <div
+                    key={relatedWord.id || i}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleRelatedWordClick(relatedWord)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleRelatedWordClick(relatedWord);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-green-300 hover:bg-green-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-lg font-semibold text-gray-800">
+                        {relatedWord.word}
+                      </span>
+                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {relatedWord.reading || relatedWord.hiragana || ""}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {relatedWord.meaning || relatedWord.meaningEn || ""}
+                    </p>
+                    {relatedWord.partOfSpeech && (
+                      <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        {relatedWord.partOfSpeech}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

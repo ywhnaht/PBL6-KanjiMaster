@@ -123,6 +123,7 @@ const useSearchStore = create((set, get) => ({
         examples: data.example
           ? [{ example: data.example, meaning: data.exampleMeaning }]
           : [],
+        relatedWords: data.relatedWords || [],
       };
 
       // THÊM: lưu wordId khi fetch thành công
