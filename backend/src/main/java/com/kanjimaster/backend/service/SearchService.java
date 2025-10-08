@@ -71,7 +71,7 @@ public class SearchService {
         List<Kanji> kanjis = kanji.join();
         List<CompoundWords> compoundWords = compound.join();
 
-        compoundWords.forEach(k -> translationService.translateText(k.getMeaning()));
+//        compoundWords.forEach(compoundWordService::translateIfNull);
 
         List<SuggestItem> suggestItems = new ArrayList<>();
         kanjis.forEach(k -> suggestItems.add(new SuggestItem("KANJI", k.getId(), k.getKanji(), k.getHanViet(), k.getJoyoReading(), rank(q, k.getKanji(), k.getHanViet()))));
