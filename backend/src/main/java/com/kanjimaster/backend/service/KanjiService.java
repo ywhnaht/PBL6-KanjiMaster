@@ -2,8 +2,10 @@ package com.kanjimaster.backend.service;
 
 import com.kanjimaster.backend.exception.KanjiNotFoundException;
 import com.kanjimaster.backend.mapper.CompoundWordMapper;
+import com.kanjimaster.backend.mapper.KanjiBasicMapper;
 import com.kanjimaster.backend.mapper.KanjiMapper;
 import com.kanjimaster.backend.mapper.PagedMapper;
+import com.kanjimaster.backend.model.dto.KanjiBasicDto;
 import com.kanjimaster.backend.model.dto.KanjiDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
@@ -28,6 +30,7 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class KanjiService {
     KanjiMapper kanjiMapper;
+    KanjiBasicMapper kanjiBasicMapper;
     KanjiRepository kanjiRepository;
     CompoundWordRepository compoundWordRepository;
     KanjiExampleService kanjiExampleService;
@@ -55,10 +58,10 @@ public class KanjiService {
         return kanjiMapper.toDtoWithCompoundWords(kanji, compoundWords.getContent(), compoundWordMapper);
     }
 
-    public PagedResponse<KanjiDto> getKanjiByLevel(String level, int page, int size) {
+    public PagedResponse<KanjiBasicDto> getKanjiByLevel(String level, int page, int size) {
         Page<Kanji> kanjiPage = kanjiRepository.findByLevel(level, PageRequest.of(page, size));
 
-        return PagedMapper.map(kanjiPage, kanjiMapper::toDto);
+        return PagedMapper.map(kanjiPage, kanjiBasicMapper::toDto);
     }
 
     public PagedResponse<KanjiDto> getKanjiByHanViet(String hanViet, int page, int size) {
