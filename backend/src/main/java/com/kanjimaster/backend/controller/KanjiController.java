@@ -1,6 +1,7 @@
 package com.kanjimaster.backend.controller;
 
 import com.kanjimaster.backend.model.dto.ApiResponse;
+import com.kanjimaster.backend.model.dto.KanjiBasicDto;
 import com.kanjimaster.backend.model.dto.KanjiDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
@@ -53,12 +54,12 @@ public class KanjiController {
 
     @Operation(summary = "Lấy danh sách kanji theo level kèm phân trang với page và size")
     @GetMapping("/level")
-    public ResponseEntity<ApiResponse<PagedResponse<KanjiDto>>> getKanjiByLevel(
+    public ResponseEntity<ApiResponse<PagedResponse<KanjiBasicDto>>> getKanjiByLevel(
             @RequestParam String level,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        PagedResponse<KanjiDto> kanjis = kanjiService.getKanjiByLevel(level, page, size);
+        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevel(level, page, size);
         return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
     }
 
