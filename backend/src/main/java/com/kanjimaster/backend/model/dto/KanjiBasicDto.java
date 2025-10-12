@@ -2,6 +2,9 @@ package com.kanjimaster.backend.model.dto;
 
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.KanjiExamples;
+import com.kanjimaster.backend.model.entity.LearnStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -19,4 +22,7 @@ public class KanjiBasicDto {
     String hanViet;
     String level;
     String joyoReading;
+
+    @Enumerated(EnumType.STRING)
+    LearnStatus status;
 }
