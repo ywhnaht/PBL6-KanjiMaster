@@ -1,12 +1,12 @@
 package com.kanjimaster.backend.controller;
 
 import com.kanjimaster.backend.model.dto.*;
+import com.kanjimaster.backend.model.entity.SearchMode;
 import com.kanjimaster.backend.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
