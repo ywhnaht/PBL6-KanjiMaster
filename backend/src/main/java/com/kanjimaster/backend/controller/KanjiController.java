@@ -37,6 +37,15 @@ public class KanjiController {
         return ResponseEntity.ok(ApiResponse.success(kanjiDto, "Kanji found!"));
     }
 
+    @PostMapping("/{kanjiId}")
+    @Operation(summary = "Lấy thông tin Kanji theo ID và cập nhật status thành LEARNING")
+    public ResponseEntity<ApiResponse<KanjiDto>> getKanjiDetailWithStatus(
+            @PathVariable Integer kanjiId,
+            @RequestParam(required = false) String userId) {
+        KanjiDto kanjiDto = kanjiService.getKanjiDetailandView(kanjiId, userId);
+        return ResponseEntity.ok(ApiResponse.success(kanjiDto, "Kanji found!"));
+    }
+
    @GetMapping("/search")
    public ResponseEntity<ApiResponse<KanjiDto>> searchKanji(@RequestParam String key) {
        return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByCharacter(key), "Kanji found"));
@@ -52,16 +61,28 @@ public class KanjiController {
             return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji found"));
     }
 
-    @Operation(summary = "Lấy danh sách kanji theo level kèm phân trang với page và size")
+    @Operation(summary = "Lấy danh sách kanji theo level của user kèm phân trang với page và size")
     @GetMapping("/level")
     public ResponseEntity<ApiResponse<PagedResponse<KanjiBasicDto>>> getKanjiByLevel(
             @RequestParam String level,
+            @RequestParam(required = false) String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevel(level, page, size);
+        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevelWithStatus(level, userId, page, size);
         return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
     }
+
+//    @Operation(summary = "Lấy danh sách kanji theo level của user kèm phân trang với page và size")
+//    @GetMapping("/level")
+//    public ResponseEntity<ApiResponse<PagedResponse<KanjiBasicDto>>> getKanjiByLevelWithStatus(
+//            @RequestParam String level,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "5") int size) {
+//
+//        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevel(level, page, size);
+//        return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
+//    }
 
     @Operation(summary = "Lấy danh sách từ ghép theo kanji id kèm phân trang")
     @GetMapping("/{id}/compounds")
