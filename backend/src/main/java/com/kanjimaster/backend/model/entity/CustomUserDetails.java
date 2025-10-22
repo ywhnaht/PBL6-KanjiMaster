@@ -1,8 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +11,8 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CustomUserDetails implements UserDetails {
+    @Getter
+    String id;
     String email;
     String password;
     Collection<? extends GrantedAuthority> authorities;
