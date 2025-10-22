@@ -6,10 +6,15 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @RestControllerAdvice(basePackages = "com.kanjimaster.backend.controller")
 public class GlobalExceptionHandler {
@@ -42,6 +47,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RedisConnectionFailureException.class)
     public ResponseEntity<ApiResponse<?>> handleRedisConnectionFailureException(RedisConnectionFailureException exception) {
         return createErrorResponse(ErrorCode.REDIS_CONNECTION_FAILURE);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse(ErrorCode.INVALID_INPUT.getMessage());
+
+        return createErrorResponse(ErrorCode.INVALID_INPUT, errorMessage);
     }
 
 //    @ExceptionHandler(RuntimeException.class)
