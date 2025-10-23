@@ -7,7 +7,9 @@ import com.kanjimaster.backend.model.dto.RefreshTokenRequest;
 import com.kanjimaster.backend.model.entity.CustomUserDetails;
 import com.kanjimaster.backend.model.entity.Role;
 import com.kanjimaster.backend.model.entity.User;
+import com.kanjimaster.backend.model.entity.UserProfile;
 import com.kanjimaster.backend.repository.RoleRepository;
+import com.kanjimaster.backend.repository.UserProfileRepository;
 import com.kanjimaster.backend.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
     UserRepository userRepository;
     RoleRepository roleRepository;
+    UserProfileRepository userProfileRepository;
     JwtService jwtService;
     PasswordEncoder passwordEncoder;
     AuthenticationManager authenticationManager;
@@ -42,12 +45,9 @@ public class AuthService {
     String PREFIX = "refreshtoken:";
 
     public String register(RegisterDto registerDto) {
-        if (userRepository.findByEmail(registerDto.getEmail()).isPresent()) {
-            throw new IllegalStateException("Email already in use.");
+        if (userRepository.existsByEmail(registerDto.getEmail())) {
+            throw new IllegalStateException("Email đã được sử dụng.");
         }
-//        if (userRepository.findByUsername(registerDto.getUsername()).isPresent()) {
-//            throw new IllegalStateException("Username already in use.");
-//        }
 
         Role role = roleRepository.findByName("USER").get();
 
@@ -55,14 +55,25 @@ public class AuthService {
 
         User user = User.builder()
                     .email(registerDto.getEmail())
-//                    .username(registerDto.getUsername())
                     .password(passwordEncoder.encode(registerDto.getPassword()))
                     .roles(Collections.singletonList(role))
-                    .createdAt(LocalDateTime.now())
                     .isVerified(true) // bo qua buoc verify
                     .build();
 
+        String defaultAvatarUrl = "https://ui-avatars.com/api/?name="
+                + registerDto.getFullName().replace(" ", "+")
+                + "&background=random";
+
+        UserProfile userProfile = UserProfile.builder()
+                .user(user)
+                .fullName(registerDto.getFullName())
+                .avatarUrl(defaultAvatarUrl)
+                .totalKanjiLearned(0)
+                .streakDays(1)
+                .build();
+
         userRepository.save(user);
+        userProfileRepository.save(userProfile);
 
         return "Vui lòng kiểm tra email để lấy mã OTP.";
     }
