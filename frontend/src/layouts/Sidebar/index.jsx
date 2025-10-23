@@ -8,11 +8,11 @@ export default function Sidebar() {
 
   const menus = [
     { icon: "search", label: "Search", path: "/home" },
-    { icon: "school", label: "JLPT", path: "/JLPT" }, // Giữ nguyên là home
-    { icon: "bookmark", label: "My Word", path: "/bookmark" }, // Giữ nguyên là home
-    { icon: "quiz", label: "Test", path: "/test" }, // Đổi thành path test
-    { icon: "settings", label: "Setting", path: "/setting" }, // Giữ nguyên là home
-    { icon: "block", label: "Block", path: "/block" }, // Giữ nguyên là home
+    { icon: "school", label: "JLPT", path: "/jlpt" },
+    { icon: "bookmark", label: "My Word", path: "/bookmark" },
+    { icon: "quiz", label: "Test", path: "/test" },
+    { icon: "settings", label: "Setting", path: "/setting" },
+    { icon: "block", label: "Block", path: "/block" },
   ];
 
   // Hàm kiểm tra menu item có active không
@@ -33,11 +33,11 @@ export default function Sidebar() {
             isCollapsed ? "justify-center" : ""
           }`}
         >
-          <span className="material-symbols-outlined text-purple-600 text-3xl shrink-0">
+          <span className="material-symbols-outlined text-[#DA7B93] text-3xl shrink-0">
             translate
           </span>
           {!isCollapsed && (
-            <h2 className="text-2xl font-extrabold text-purple-600 whitespace-nowrap transition-all duration-300">
+            <h2 className="text-2xl font-extrabold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent whitespace-nowrap transition-all duration-300">
               Kanji Master
             </h2>
           )}
@@ -61,14 +61,14 @@ export default function Sidebar() {
                 }}
                 className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative ${
                   isActive(menu.path)
-                    ? "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 shadow-sm"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-[#DA7B93]/20 to-[#2F4454]/10 text-[#2F4454] shadow-sm border border-[#DA7B93]/30"
+                    : "text-gray-700 hover:bg-[#2F4454]/5 hover:text-[#2F4454]"
                 } ${isCollapsed ? "justify-center" : ""}`}
                 title={isCollapsed ? menu.label : ""}
               >
                 <span
                   className={`material-symbols-outlined text-xl shrink-0 transition-colors duration-200 ${
-                    isActive(menu.path) ? "text-purple-700" : "text-gray-700"
+                    isActive(menu.path) ? "text-[#DA7B93]" : "text-gray-700 group-hover:text-[#2F4454]"
                   }`}
                 >
                   {menu.icon}
@@ -77,8 +77,8 @@ export default function Sidebar() {
                   <span
                     className={`font-medium whitespace-nowrap transition-all duration-300 ${
                       isActive(menu.path)
-                        ? "text-purple-700"
-                        : "text-gray-700"
+                        ? "text-[#2F4454] font-semibold"
+                        : "text-gray-700 group-hover:text-[#2F4454]"
                     }`}
                   >
                     {menu.label}
@@ -87,9 +87,9 @@ export default function Sidebar() {
 
                 {/* Tooltip khi collapsed */}
                 {isCollapsed && (
-                  <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                  <div className="absolute left-full ml-2 px-3 py-1.5 bg-[#2F4454] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
                     {menu.label}
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#2F4454]"></div>
                   </div>
                 )}
               </a>
@@ -102,18 +102,18 @@ export default function Sidebar() {
       <div className="p-4 border-t border-gray-200 transition-all duration-300">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center gap-3 p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 group"
+          className="w-full flex items-center justify-center gap-3 p-3 rounded-xl bg-[#2F4454]/5 hover:bg-[#2F4454]/10 transition-all duration-200 group"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span
-            className={`material-symbols-outlined transition-transform duration-300 ${
+            className={`material-symbols-outlined transition-transform duration-300 text-[#2F4454] ${
               isCollapsed ? "rotate-180" : ""
             }`}
           >
             {isCollapsed ? "menu" : "menu_open"}
           </span>
           {!isCollapsed && (
-            <span className="font-medium whitespace-nowrap transition-all duration-300">
+            <span className="font-medium whitespace-nowrap transition-all duration-300 text-[#2F4454]">
               Collapse
             </span>
           )}
