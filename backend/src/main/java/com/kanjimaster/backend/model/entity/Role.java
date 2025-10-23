@@ -19,5 +19,5 @@ public class Role {
     @Column(nullable = false, unique = true)
     String name;
 
-    String description;
+//    String description;
 }

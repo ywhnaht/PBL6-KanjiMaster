@@ -12,7 +12,9 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RegisterDto {
-//    String username;
+    @NotBlank(message = "Họ và tên không được để trống")
+    String fullName;
+
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     String email;

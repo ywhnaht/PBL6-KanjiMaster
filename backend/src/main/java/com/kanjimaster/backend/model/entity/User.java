@@ -3,6 +3,8 @@ package com.kanjimaster.backend.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.List;
 
 @Data
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,9 +25,7 @@ public class User {
     String email;
     String password;
 
-    @Column(name = "username")
-    String username;
-
+    @CreatedDate
     @Column(name = "created_at")
     LocalDateTime createdAt;
 
