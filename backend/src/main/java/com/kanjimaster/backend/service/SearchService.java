@@ -4,14 +4,13 @@ import com.kanjimaster.backend.mapper.KanjiMapper;
 import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.Kanji;
+import com.kanjimaster.backend.model.entity.SearchMode;
 import com.kanjimaster.backend.repository.CompoundWordRepository;
 import com.kanjimaster.backend.repository.KanjiRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
