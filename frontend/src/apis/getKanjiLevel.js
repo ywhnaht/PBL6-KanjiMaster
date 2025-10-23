@@ -1,42 +1,37 @@
-// apis/getKanjiLevel.js - THÊM CONSOLE LOG CHI TIẾT
-export const getKanjiLevel = async (axiosPrivate, { level, page = 0, size = 50 }) => {
+import axios from "./axios";
+
+/**
+ * Lấy danh sách kanji theo level (có phân trang)
+ */
+export const getKanjiLevel = async ({ level, userId, page = 0, size = 50 }) => {
   try {
-    const response = await axiosPrivate.get('/api/v1/kanji/level', {
+    console.log(`Calling API for level: ${level}, page: ${page}, size: ${size}`);
+    
+    const res = await axios.get("/api/v1/kanji/level", {
       params: {
         level,
+        ...(userId && { userId }),
         page,
         size,
       },
     });
 
-    // 🎯 RETURN ĐÚNG STRUCTURE - data chính là response.data.data
-    return {
-      success: response.data.success,
-      data: response.data.data, // 🎯 QUAN TRỌNG: response.data.data chứ không phải response.data
-      message: response.data.message || "Kanji data fetched successfully"
-    };
-
-  } catch (error) {
-    console.error(`❌ Error fetching kanji level ${level}:`, error);
+    console.log('API Response structure:', {
+      success: res.data?.success,
+      hasData: !!res.data?.data,
+      itemsCount: res.data?.data?.items?.length || 0,
+      fullResponse: res.data
+    });
     
-
-    // Xử lý lỗi chi tiết
-    if (error.response) {
-      throw {
-        message: error.response.data?.message || 'Failed to fetch kanji data',
-        status: error.response.status,
-        data: error.response.data,
-      };
-    } else if (error.request) {
-      throw {
-        message: 'No response from server',
-        status: null,
-      };
-    } else {
-      throw {
-        message: error.message || 'Unknown error occurred',
-        status: null,
-      };
-    }
+    // Trả về toàn bộ response data, component sẽ xử lý
+    return res.data || {};
+  } catch (error) {
+    console.error("Error fetching kanji level:", error);
+    console.error("Error response:", error.response?.data);
+    return {
+      success: false,
+      message: error.message,
+      data: { items: [] }
+    };
   }
 };

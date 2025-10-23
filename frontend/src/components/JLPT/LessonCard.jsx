@@ -32,7 +32,6 @@ const KanjiButton = React.memo(({ kanji, hanViet, learned, onClick }) => {
           ? "border-[#DA7B93] bg-[#DA7B93]/10 shadow-sm"
           : "border-gray-200 bg-gray-50 hover:border-[#2F4454]/30"
       }`}
-      type="button"
     >
       <div
         className={`text-2xl font-bold text-center mb-1 ${
@@ -68,28 +67,39 @@ const GlobalKanjiModal = React.memo(() => {
     isLoggedIn,
   } = useKanjiDetailStore();
 
-  const kanjiItems = useKanjiStore((state) => state.kanjiItems);
-  const updateKanjiStatus = useKanjiStore((state) => state.updateKanjiStatus);
-
+  // 🆕 THÊM STATE ĐỂ THEO DÕI TRẠNG THÁI HIỆN TẠI
   const [currentStatus, setCurrentStatus] = useState(null);
 
+  // 🆕 CẬP NHẬT currentStatus KHI kanjiDetail THAY ĐỔI - QUAN TRỌNG!
   useEffect(() => {
     if (kanjiDetail) {
+      console.log(
+        "🔄 Modal: Updating currentStatus from kanjiDetail:",
+        kanjiDetail.status
+      );
       setCurrentStatus(kanjiDetail.status);
     }
   }, [kanjiDetail]);
 
+  // 🆕 LẤY TRẠNG THÁI MỚI NHẤT TỪ STORE KHI MODAL MỞ
   useEffect(() => {
     if (isModalOpen && kanjiDetail?.id) {
-      const currentKanji = kanjiItems.find(
+      // 🆕 KIỂM TRA LẠI TRẠNG THÁI TRONG STORE ĐỂ ĐẢM BẢO LUÔN CÓ DATA MỚI NHẤT
+      const kanjiStore = useKanjiStore.getState();
+      const currentKanji = kanjiStore.kanjiItems.find(
         (item) => item.id === kanjiDetail.id
       );
       if (currentKanji && currentKanji.status !== currentStatus) {
+        console.log(
+          "🔄 Modal: Syncing status from store:",
+          currentKanji.status
+        );
         setCurrentStatus(currentKanji.status);
       }
     }
-  }, [isModalOpen, kanjiDetail, kanjiItems, currentStatus]);
+  }, [isModalOpen, kanjiDetail, currentStatus]);
 
+  // Effect để quản lý body scroll
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = "hidden";
@@ -105,6 +115,7 @@ const GlobalKanjiModal = React.memo(() => {
     };
   }, [isModalOpen]);
 
+  // Effect để xử lý ESC key
   useEffect(() => {
     const handleEscKey = (e) => {
       if (e.key === "Escape" && isModalOpen) {
@@ -121,6 +132,7 @@ const GlobalKanjiModal = React.memo(() => {
     };
   }, [isModalOpen, closeKanjiDetail]);
 
+  // Effect để xử lý click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -157,23 +169,27 @@ const GlobalKanjiModal = React.memo(() => {
     e.stopPropagation();
   }, []);
 
+  // 🆕 HANDLE MARK AS MASTERED - CẬP NHẬT TRẠNG THÁI NGAY LẬP TỨC
   const handleMarkAsMastered = useCallback(async () => {
     if (!kanjiDetail?.id) return;
 
+    console.log("🎯 Marking kanji as mastered:", kanjiDetail.id);
+
+    // 🆕 CẬP NHẬT TRẠNG THÁI NGAY LẬP TỨC TRONG UI
     setCurrentStatus("MASTERED");
-    updateKanjiStatus(kanjiDetail.id, "MASTERED");
 
     const result = await markAsMastered(kanjiDetail.id);
 
     if (result.success) {
-      updateKanjiStatus(kanjiDetail.id, "MASTERED");
+      console.log("✅ Successfully marked as MASTERED");
     } else {
       console.error("❌ Failed to mark as mastered:", result.message);
+      // 🆕 NẾU LỖI THÌ KHÔI PHỤC TRẠNG THÁI
       setCurrentStatus(kanjiDetail.status);
-      updateKanjiStatus(kanjiDetail.id, kanjiDetail.status);
     }
-  }, [kanjiDetail, markAsMastered, updateKanjiStatus]);
+  }, [kanjiDetail, markAsMastered]);
 
+  // Memoize kanji data
   const kanjiData = useMemo(() => {
     if (!kanjiDetail) return [];
     return [
@@ -189,6 +205,7 @@ const GlobalKanjiModal = React.memo(() => {
     ];
   }, [kanjiDetail]);
 
+  // Memoize KanjiResult
   const memoizedKanjiResult = useMemo(() => {
     if (!kanjiDetail) return null;
 
@@ -203,21 +220,41 @@ const GlobalKanjiModal = React.memo(() => {
     );
   }, [kanjiDetail, kanjiData]);
 
+  // 🆕 KIỂM TRA XEM KANJI ĐÃ MASTERED CHƯA - DÙNG currentStatus
   const isMastered = useMemo(() => {
+    console.log(
+      "🔍 Modal: Checking isMastered - currentStatus:",
+      currentStatus
+    );
     return currentStatus === "MASTERED";
   }, [currentStatus]);
 
+  // 🆕 RESET currentStatus KHI MODAL ĐÓNG
   useEffect(() => {
     if (!isModalOpen) {
       setCurrentStatus(null);
     }
   }, [isModalOpen]);
 
+  // 🆕 DEBUG: LOG KHI CÓ THAY ĐỔI
+  useEffect(() => {
+    if (kanjiDetail && isModalOpen) {
+      console.log("📊 Modal Debug:", {
+        kanjiId: kanjiDetail.id,
+        kanji: kanjiDetail.kanji,
+        detailStatus: kanjiDetail.status,
+        currentStatus: currentStatus,
+        isMastered: isMastered,
+        shouldShowButton: !isMastered && isLoggedIn(),
+      });
+    }
+  }, [kanjiDetail, currentStatus, isMastered, isModalOpen, isLoggedIn]);
+
   if (!isModalOpen) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 z-[99999] flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -233,7 +270,7 @@ const GlobalKanjiModal = React.memo(() => {
 
       <motion.div
         ref={modalRef}
-        className="relative bg-white rounded-xl shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto z-[100000]"
+        className="relative bg-white rounded-xl shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto z-[10000]"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
@@ -248,7 +285,6 @@ const GlobalKanjiModal = React.memo(() => {
           onClick={closeKanjiDetail}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm z-10 transition-colors hover:bg-gray-100"
           aria-label="Đóng modal"
-          type="button"
         >
           ✕
         </button>
@@ -269,7 +305,6 @@ const GlobalKanjiModal = React.memo(() => {
               <button
                 onClick={closeKanjiDetail}
                 className="px-6 py-2 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-lg hover:from-[#DA7B93] hover:to-[#2F4454] transition-all duration-300"
-                type="button"
               >
                 Đóng
               </button>
@@ -286,7 +321,6 @@ const GlobalKanjiModal = React.memo(() => {
               <button
                 onClick={closeKanjiDetail}
                 className="px-6 py-2 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-lg hover:from-[#DA7B93] hover:to-[#2F4454] transition-all duration-300"
-                type="button"
               >
                 Đóng
               </button>
@@ -297,24 +331,27 @@ const GlobalKanjiModal = React.memo(() => {
             <>
               {memoizedKanjiResult}
 
+              {/* 🆕 LEARNING STATUS - CHỈ HIỂN THỊ NÚT KHI CHƯA MASTERED */}
               <div className="mt-6 p-4 border-t border-gray-200">
                 <div className="flex items-center justify-end">
+                  {/* 🆕 ĐẢM BẢO CHỈ HIỂN THỊ KHI CHƯA MASTERED */}
                   {!isMastered && isLoggedIn() && (
                     <button
                       onClick={handleMarkAsMastered}
                       className="px-4 py-2 bg-[#2F4454] text-white rounded-lg hover:bg-[#1E2E39] transition-colors duration-300"
-                      type="button"
                     >
                       Đánh dấu đã học
                     </button>
                   )}
 
+                  {/* 🆕 THÔNG BÁO KHI CHƯA ĐĂNG NHẬP VÀ CHƯA MASTERED */}
                   {!isMastered && !isLoggedIn() && (
                     <div className="text-sm text-[#2F4454] bg-[#2F4454]/5 px-3 py-2 rounded-lg border border-[#2F4454]/10">
                       Đăng nhập để lưu tiến độ
                     </div>
                   )}
 
+                  {/* 🆕 HIỂN THỊ THÔNG BÁO ĐÃ HỌC KHI MASTERED */}
                   {isMastered && (
                     <div className="flex items-center text-[#DA7B93] font-semibold bg-[#DA7B93]/10 px-4 py-2 rounded-lg border border-[#DA7B93]/20">
                       <span>Đã học thuộc</span>
@@ -333,22 +370,34 @@ const GlobalKanjiModal = React.memo(() => {
 GlobalKanjiModal.displayName = "GlobalKanjiModal";
 
 // Main Component
-function LessonCard({ lesson, onLessonClick, isActive }) {
+export default function LessonCard({ lesson }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const kanjiItems = useKanjiStore((state) => state.kanjiItems);
+  const isLoggedIn = useKanjiStore(
+    useCallback((state) => state.isLoggedIn(), [])
+  );
   const isKanjiLearned = useKanjiStore((state) => state.isKanjiLearned);
   const { openKanjiDetail } = useKanjiDetailStore();
 
-  const isLoggedIn = useKanjiDetailStore((state) => state.isLoggedIn);
+  // 🆕 THEO DÕI THAY ĐỔI TRONG STORE ĐỂ TỰ ĐỘNG RE-RENDER
+  const kanjiItems = useKanjiStore((state) => state.kanjiItems);
 
+  // Tối ưu handleKanjiClick với debug log
   const handleKanjiClick = useCallback(
     (kanji) => {
       const kanjiDetail = lesson.kanjiDetails?.find(
-        (item) => item.kanji === kanji || item.character === kanji
+        (item) => item.kanji === kanji
       );
 
       if (kanjiDetail?.id) {
+        console.group(`🎯 Kanji Clicked: ${kanji}`);
+        console.log("📋 Basic Info:");
+        console.log("  - ID:", kanjiDetail.id);
+        console.log("  - Kanji:", kanjiDetail.kanji);
+        console.log("  - Status:", kanjiDetail.status);
+        console.log("  - Is MASTERED?:", kanjiDetail.status === "MASTERED");
+        console.groupEnd();
+
         openKanjiDetail(kanjiDetail.id);
       } else {
         console.warn(`Không tìm thấy ID cho kanji: ${kanji}`);
@@ -357,12 +406,14 @@ function LessonCard({ lesson, onLessonClick, isActive }) {
     [lesson.kanjiDetails, openKanjiDetail]
   );
 
+  // 🆕 TÍNH LẠI learnedCount KHI STORE THAY ĐỔI
   const learnedCount = useMemo(() => {
     if (!lesson.kanjiDetails || !Array.isArray(lesson.kanjiDetails)) return 0;
 
     return lesson.kanjiDetails.filter((item) => {
       if (!item?.id) return false;
 
+      // 🆕 TÌM STATUS MỚI NHẤT TỪ STORE
       const currentKanji = kanjiItems.find(
         (storeItem) => storeItem.id === item.id
       );
@@ -372,13 +423,13 @@ function LessonCard({ lesson, onLessonClick, isActive }) {
     }).length;
   }, [lesson.kanjiDetails, kanjiItems]);
 
+  // 🆕 TÍNH LẠI kanjiList KHI STORE THAY ĐỔI
   const kanjiList = useMemo(() => {
-    if (!lesson.kanjiDetails) return null; 
-
     return lesson.kanji.map((k, index) => {
-      const kanjiDetail = lesson.kanjiDetails.find(item => item.kanji === k || item.character === k);
+      const kanjiDetail = lesson.kanjiDetails?.[index];
       const hanViet = kanjiDetail?.hanViet || "";
 
+      // 🆕 LẤY STATUS MỚI NHẤT TỪ STORE
       let learned = false;
       if (kanjiDetail?.id) {
         const currentKanji = kanjiItems.find(
@@ -408,51 +459,30 @@ function LessonCard({ lesson, onLessonClick, isActive }) {
     kanjiItems,
   ]);
 
-  const handleLessonToggle = useCallback(() => {
-    if (!isExpanded) {
-      if (onLessonClick && lesson.apiPage !== undefined) {
-        console.log(`🚀 Clicked Lesson ${lesson.lessonNumber}. Calling API Page ${lesson.apiPage}`);
-        onLessonClick(lesson.apiPage);
-      }
-    }
-    
+  const toggleExpanded = useCallback(() => {
     setIsExpanded((prev) => !prev);
-  }, [onLessonClick, lesson.apiPage, lesson.lessonNumber, isExpanded]);
-
-  const baseClasses = "border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow";
-  const activeClasses = isActive ? 'border-indigo-400 shadow-lg' : ''; 
+  }, []);
 
   return (
     <motion.div
-      className={`${baseClasses} ${activeClasses}`}
+      className="border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
     >
       <div
         className="p-4 cursor-pointer flex justify-between items-center"
-        onClick={handleLessonToggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleLessonToggle();
-          }
-        }}
-        role="button"
-        tabIndex={0}
+        onClick={toggleExpanded}
       >
         <div>
-          <h3 className="font-semibold text-lg text-[#2F4454]/90">
+          <h3 className="font-semibold text-[#2F4454] text-lg">
             {lesson.title}
           </h3>
           <p className="text-[#2F4454]/70 text-sm">{lesson.range}</p>
         </div>
         <div className="flex items-center gap-4">
-          {lesson.kanjiDetails && (
-            <div className="text-sm text-[#2F4454] font-medium">
-              {learnedCount}/{lesson.kanji.length} đã thuộc
-            </div>
-          )}
+          <div className="text-sm text-[#2F4454]">
+            {learnedCount}/{lesson.kanji.length} đã thuộc
+          </div>
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
@@ -473,27 +503,18 @@ function LessonCard({ lesson, onLessonClick, isActive }) {
             className="border-t border-gray-100 overflow-hidden"
           >
             <div className="p-4">
-              {!lesson.kanjiDetails && (
-                <div className="mb-3 p-3 bg-gray-100 border border-gray-200 rounded-lg text-center">
-                  <p className="text-gray-600 text-sm">Đang tải chi tiết kanji...</p>
+              {!isLoggedIn && (
+                <div className="mb-3 p-3 bg-[#2F4454]/5 border border-[#2F4454]/10 rounded-lg">
+                  <p className="text-[#2F4454] text-sm text-center">
+                    👀 Bạn đang xem ở chế độ khách. Đăng nhập để lưu tiến độ học
+                    tập.
+                  </p>
                 </div>
               )}
-              
-              {lesson.kanjiDetails && (
-                <>
-                  {!isLoggedIn() && (
-                    <div className="mb-3 p-3 bg-[#2F4454]/5 border border-[#2F4454]/10 rounded-lg">
-                      <p className="text-[#2F4454] text-sm text-center">
-                        👀 Bạn đang xem ở chế độ khách. Đăng nhập để lưu tiến độ học tập.
-                      </p>
-                    </div>
-                  )}
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
-                    {kanjiList}
-                  </div>
-                </>
-              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+                {kanjiList}
+              </div>
             </div>
           </motion.div>
         )}
@@ -504,4 +525,3 @@ function LessonCard({ lesson, onLessonClick, isActive }) {
 
 // Export Global Modal để sử dụng ở cấp cao nhất
 export { GlobalKanjiModal };
-export default LessonCard;

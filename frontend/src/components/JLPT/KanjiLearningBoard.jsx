@@ -13,24 +13,8 @@ const KanjiLearningBoard = ({
   loading,
   hasData,
   pagination,
-  onRefresh,
-  onLessonClick,
-  currentApiPage,
 }) => {
   const isLoggedIn = useKanjiStore((state) => state.isLoggedIn());
-  
-  // 🎯 SỬA: Lấy progressSummary và helper functions từ store
-  const progressSummary = useKanjiStore((state) => state.progressSummary);
-  const getLearnedCountByLevel = useKanjiStore((state) => state.getLearnedCountByLevel);
-  const getTotalLearnedCount = useKanjiStore((state) => state.getTotalLearnedCount);
-
-  // Xác định trạng thái loading: Chỉ loading khi đang tải trang API KHÁC với trang hiện tại
-  const isLoadingCurrentPage = loading && pagination.currentPage === currentApiPage;
-
-  // 🎯 SỬA: Tính toán learnedCount từ progressSummary
-  const learnedCount = getLearnedCountByLevel(currentLevel);
-  const totalKanji = currentLevelData.total || 0;
-  const progress = totalKanji > 0 ? Math.round((learnedCount / totalKanji) * 100) : 0;
 
   const LevelNavigation = () => (
     <div className="flex items-center justify-between w-full max-w-6xl mx-auto p-8">
@@ -40,7 +24,6 @@ const KanjiLearningBoard = ({
             onClick={() => setCurrentLevel(level.id)}
             className="relative flex flex-col items-center group"
             disabled={loading}
-            type="button"
           >
             <div
               className={`w-16 h-16 flex items-center justify-center rounded-full font-bold text-lg transition-all duration-500 relative
@@ -48,7 +31,7 @@ const KanjiLearningBoard = ({
                   currentLevel === level.id
                     ? "text-white scale-110 shadow-2xl"
                     : "bg-white text-gray-700 hover:bg-[#2F4454]/5 hover:text-[#2F4454] shadow-md hover:shadow-lg"
-                } ${loading && currentLevel !== level.id ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {/* Background gradient cho active state */}
               {currentLevel === level.id && (
@@ -92,10 +75,10 @@ const KanjiLearningBoard = ({
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Hãy chọn Level để bắt đầu bài học
+            Chưa có dữ liệu kanji cho level {currentLevel}
           </h3>
           <p className="text-gray-500">
-            Cố gắng hoàn thành các bài học để học hết kanji trong level bạn chọn!
+            Hãy thử chọn level khác hoặc kiểm tra lại kết nối.
           </p>
         </div>
         <LevelNavigation />
@@ -116,16 +99,17 @@ const KanjiLearningBoard = ({
             <div className="text-sm text-gray-600">
               Tiến độ:{" "}
               <span className="font-semibold text-[#2F4454]">
-                {progress}%
+                {currentLevelData.progress}%
               </span>{" "}
-              ({learnedCount}/{totalKanji} kanji)
+              ({currentLevelData.learnedCount || 0}/{currentLevelData.total}{" "}
+              kanji)
             </div>
           </div>
           <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
             <motion.div
               className="bg-gradient-to-r from-[#2F4454] to-[#DA7B93] h-3 rounded-full shadow-inner"
               initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
+              animate={{ width: `${currentLevelData.progress}%` }}
               transition={{ duration: 1 }}
             />
           </div>
@@ -138,44 +122,39 @@ const KanjiLearningBoard = ({
             {currentLevelData.title}
           </h2>
           <p className="text-gray-600 mt-2">
-            {totalKanji} kanji — Đăng nhập để bắt đầu học
+            {currentLevelData.total} kanji — Đăng nhập để bắt đầu học
           </p>
         </div>
       )}
 
-      {isLoadingCurrentPage && (
+      {loading && (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#DA7B93]/30 border-t-[#DA7B93]"></div>
-          <span className="ml-2 text-gray-600">Đang tải dữ liệu bài học...</span>
+          <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
         </div>
       )}
 
-      {!isLoadingCurrentPage && hasData && (
+      {!loading && hasData && (
         <>
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-[#2F4454] mb-4">
-              Danh sách Bài học (Trang {currentLevelData.lessons.length > 0 ? Math.ceil((currentApiPage + 1) / 10) : 1})
+              Tổng số bài học: {Math.ceil(currentLevelData.total / 10)}
             </h3>
 
             {filteredLessons.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="text-6xl mb-4">📚</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  Chưa có bài học nào được hiển thị
+                  Chưa có bài học nào
                 </h3>
                 <p className="text-gray-500">
-                  Hãy chọn Lesson đầu tiên để tải dữ liệu.
+                  Hãy kiểm tra lại level hoặc thử level khác.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {filteredLessons.map((lesson) => (
-                  <LessonCard 
-                    key={lesson.id} 
-                    lesson={lesson} 
-                    onLessonClick={onLessonClick}
-                    isActive={lesson.apiPage === currentApiPage}
-                  />
+                  <LessonCard key={lesson.id} lesson={lesson} />
                 ))}
               </div>
             )}

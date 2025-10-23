@@ -1,83 +1,21 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { getKanjiLevel } from "../apis/getKanjiLevel";
-import { useAuthStore } from "./useAuthStore";
-import Cookies from "js-cookie";
-
-// 🎯 API function cho progress summary
-const getProgressSummary = async (axios) => {
-  try {
-    // API endpoint: /api/v1/users/progress/summary
-    const response = await axios.get('/api/v1/users/progress/summary');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching progress summary:', error);
-    throw error;
-  }
-};
-
-const cookiesStorage = {
-  getItem: (name) => {
-    try {
-      const cookieValue = Cookies.get(name);
-      return cookieValue ? JSON.parse(cookieValue) : null;
-    } catch (error) {
-      console.error("Error reading cookie:", error);
-      return null;
-    }
-  },
-  setItem: (name, value) => {
-    try {
-      Cookies.set(name, JSON.stringify(value), {
-        expires: 7,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
-    } catch (error) {
-      console.error("Error setting cookie:", error);
-    }
-  },
-  removeItem: (name) => {
-    try {
-      Cookies.remove(name);
-    } catch (error) {
-      console.error("Error removing cookie:", error);
-    }
-  },
-};
+import useAuthStore from "./useAuthStore";
 
 const useKanjiStore = create(
   persist(
     (set, get) => ({
       // --- Kanji state ---
       kanjiItems: [],
-      allKanjiCache: {},
       pagination: {
-        currentPage: -1,
+        currentPage: 0,
         totalPages: 0,
         totalItems: 0,
         pageSize: 10,
       },
       loading: false,
       error: null,
-
-      // 🎯 Lưu thêm userId và level để quản lý cache theo user
-      currentUserId: null,
-      currentLevel: null,
-
-      // 🎯 State cho level đang active (chỉ UI)
-      activeLevel: "N5",
-
-      // 🎯 State mới cho progress summary
-      progressSummary: {
-        N1: 0,
-        N2: 0,
-        N3: 0,
-        N4: 0,
-        N5: 0
-      },
-      summaryLoading: false,
-      summaryError: null,
 
       // 🎯 Helper kiểm tra đăng nhập
       isLoggedIn: () => {
@@ -102,211 +40,73 @@ const useKanjiStore = create(
       },
 
       // --- Kanji actions ---
-      // 🎯 SỬA: Tách hàm setActiveLevel để thay đổi level UI mà không fetch data
-      setActiveLevel: (level) => {
-        set({ activeLevel: level });
-      },
-
-      // 🎯 ACTION: Fetch progress summary
-      fetchSummary: async (axios) => {
-        set({ summaryLoading: true, summaryError: null });
-        
-        try {
-          console.log("🎯 Fetching progress summary...");
-          
-          const response = await getProgressSummary(axios);
-          
-          console.log("✅ Progress summary response:", response);
-
-          if (response.success && response.data) {
-            set({
-              progressSummary: {
-                N1: response.data.N1 || 0,
-                N2: response.data.N2 || 0,
-                N3: response.data.N3 || 0,
-                N4: response.data.N4 || 0,
-                N5: response.data.N5 || 0
-              },
-              summaryError: null
-            });
-
-            return {
-              success: true,
-              data: response.data,
-              message: response.message || "Progress summary fetched successfully"
-            };
-          } else {
-            throw new Error(response.message || "Failed to fetch progress summary");
-          }
-        } catch (error) {
-          console.error("❌ Failed to fetch progress summary:", error);
-          
-          const errorMessage = error.response?.data?.message || 
-                             error.message || 
-                             "Failed to fetch progress summary";
-
-          set({ 
-            summaryError: errorMessage,
-            progressSummary: {
-              N1: 0,
-              N2: 0,
-              N3: 0,
-              N4: 0,
-              N5: 0
-            }
-          });
-
-          return {
-            success: false,
-            error: errorMessage,
-            data: null
-          };
-        } finally {
-          set({ summaryLoading: false });
-        }
-      },
-
-      // 🎯 ACTION: Clear summary data
-      clearSummary: () => set({
-        progressSummary: {
-          N1: 0,
-          N2: 0,
-          N3: 0,
-          N4: 0,
-          N5: 0
-        },
-        summaryError: null,
-        summaryLoading: false
-      }),
-
-      // 🎯 Helper để lấy learned count theo level
-      getLearnedCountByLevel: (level) => {
-        const state = get();
-        return state.progressSummary[level] || 0;
-      },
-
-      // 🎯 Helper để lấy tổng số kanji đã học
-      getTotalLearnedCount: () => {
-        const state = get();
-        const summary = state.progressSummary;
-        return summary.N1 + summary.N2 + summary.N3 + summary.N4 + summary.N5;
-      },
-
-      // 🎯 SỬA: Fetch kanji với cache thông minh hơn
-      fetchKanjiByLevel: async ({
-        axios,
-        level,
-        page = 0,
-        size = 10,
-        forceRefresh = false,
-      }) => {
+      fetchKanjiByLevel: async ({ level, page = 0, size = 50 }) => {
         set({ loading: true, error: null });
         try {
-          const state = get();
-          const currentUser = useAuthStore.getState().user;
-          const userId = currentUser?.id || null;
-          const apiLevel = String(level);
+          const userId = get().getUserId();
 
-          console.log(`🎯 Fetching kanji - Level: ${apiLevel}, Page: ${page}, Size: ${size}`);
-
-          // 🎯 CHỈ CLEAR CACHE KHI THỰC SỰ CẦN THIẾT (user thay đổi)
-          if (state.currentUserId !== userId) {
-            console.log(`🔄 User changed from ${state.currentUserId} to ${userId}, clearing cache`);
-            set({
-              currentUserId: userId,
-              allKanjiCache: {},
-            });
-          }
-
-          // 🎯 KIỂM TRA CACHE CHO TRANG CỤ THỂ
-          const cacheKey = `${apiLevel}_${page}`;
-          const cachedData = state.allKanjiCache[cacheKey];
-
-          if (!forceRefresh && cachedData) {
-            console.log(`📦 Using cached data for level ${apiLevel}, page ${page}`);
-            
-            set({
-              kanjiItems: cachedData.items,
-              pagination: {
-                currentPage: page,
-                totalPages: cachedData.totalPages,
-                totalItems: cachedData.totalItems,
-                pageSize: cachedData.pageSize,
-              },
-              currentLevel: apiLevel,
-              error: null,
-            });
-
-            return {
-              items: cachedData.items,
-              pagination: state.pagination,
-              success: true,
-              message: "Using cached data for this page",
-            };
-          }
-
-          // 🎯 GỌI API VỚI AXIOSPRIVATE
-          const response = await getKanjiLevel(axios, {
-            level: apiLevel,
+          const response = await getKanjiLevel({
+            level,
+            userId: userId || null,
             page,
             size,
           });
 
-          console.log(`✅ API Response for level ${apiLevel}, page ${page}:`, response);
+          console.log(`Fetch kanji for level ${level}:`, response);
 
           let items = [];
           let paginationData = {};
 
+          // 🎯 Xử lý response structure từ API
           if (response.success && response.data) {
             items = response.data.items || [];
             paginationData = {
               currentPage: response.data.currentPage ?? page,
-              totalPages: response.data.totalPages ?? 1,
-              totalItems: response.data.totalItems ?? items.length,
+              totalPages: response.data.totalPages ?? 0,
+              totalItems: response.data.totalItems ?? 0,
               pageSize: response.data.pageSize ?? size,
             };
-            
-            // Cập nhật allKanjiCache
-            const newCache = { ...state.allKanjiCache };
-            newCache[cacheKey] = {
-              items: items,
-              totalPages: paginationData.totalPages,
-              totalItems: paginationData.totalItems,
-              pageSize: paginationData.pageSize,
-            };
-
-            set({
-              kanjiItems: items,
-              pagination: paginationData,
-              currentLevel: apiLevel,
-              allKanjiCache: newCache,
-              error: null,
-            });
-
-            return {
-              items,
-              pagination: paginationData,
-              success: true,
-              message: response.message || "Data fetched successfully",
-            };
           } else {
-            throw new Error(response.message || "API returned failure.");
+            console.warn("API response indicates failure:", response);
+            items = [];
+            paginationData = {
+              currentPage: page,
+              totalPages: 0,
+              totalItems: 0,
+              pageSize: size,
+            };
           }
+
+          console.log(`Processed ${items.length} items for level ${level}`);
+
+          set({
+            kanjiItems: items,
+            pagination: paginationData,
+          });
+
+          return {
+            items,
+            pagination: paginationData,
+            success: response.success,
+            message: response.message,
+          };
         } catch (error) {
-          console.error("❌ Failed to fetch kanji:", error);
-          const errorMessage = error.response?.data?.message || error.message || "Failed to fetch kanji data";
+          console.error("Failed to fetch kanji:", error);
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch kanji data";
 
           set({
             error: errorMessage,
             kanjiItems: [],
             pagination: {
-              currentPage: page,
+              currentPage: 0,
               totalPages: 0,
               totalItems: 0,
-              pageSize: size,
+              pageSize: 10,
             },
           });
-          
           return {
             items: [],
             pagination: {},
@@ -323,188 +123,131 @@ const useKanjiStore = create(
         if (!kanji) return false;
 
         const state = get();
-        const authState = useAuthStore.getState();
-        const currentUser = authState.user;
-
-        if (state.currentUserId !== currentUser?.id || !state.currentLevel) {
-          return false;
-        }
-
         const kanjiItem = state.kanjiItems.find(
-          (item) => item && (item.kanji === kanji || item.character === kanji)
+          (item) => item && item.kanji === kanji
         );
 
         return kanjiItem ? kanjiItem.status === "MASTERED" : false;
       },
 
-      // 🎯 Lấy trạng thái của một kanji cụ thể
-      getKanjiStatus: (kanji) => {
-        if (!kanji) return "NOT_LEARNED";
-        
-        const state = get();
-        const authState = useAuthStore.getState();
-        const currentUser = authState.user;
+      // Fetch all kanji by level (pagination)
+      fetchAllKanjiByLevel: async ({ level, size = 100 }) => {
+        set({ loading: true, error: null });
+        try {
+          let allItems = [];
+          let currentPage = 0;
+          let hasMore = true;
 
-        if (state.currentUserId !== currentUser?.id || !state.currentLevel) {
-          return "NOT_LEARNED";
-        }
+          const userId = get().getUserId();
 
-        const kanjiItem = state.kanjiItems.find(
-          (item) => item && (item.kanji === kanji || item.character === kanji)
-        );
+          while (hasMore) {
+            const response = await getKanjiLevel({
+              level,
+              userId: userId || null,
+              page: currentPage,
+              size,
+            });
 
-        return kanjiItem?.status || "NOT_LEARNED";
-      },
-      
-      // 🎯 Cập nhật trạng thái kanji trong store
-      updateKanjiStatus: (kanjiId, newStatus) => {
-        set((state) => {
-          const authState = useAuthStore.getState();
-          const currentUser = authState.user;
+            console.log(
+              `Fetching page ${currentPage} for level ${level}:`,
+              response
+            );
 
-          if (state.currentUserId !== currentUser?.id) {
-            console.warn("❌ Cannot update kanji status: user mismatch");
-            return state;
+            let items = [];
+            let totalPages = 0;
+
+            if (response.success && response.data) {
+              items = response.data.items || [];
+              totalPages = response.data.totalPages || 0;
+            }
+
+            if (items.length > 0) {
+              allItems = [...allItems, ...items];
+              currentPage++;
+              hasMore = currentPage < totalPages && items.length === size;
+            } else {
+              hasMore = false;
+            }
           }
 
+          console.log(
+            `Fetched total ${allItems.length} items for level ${level}`
+          );
+
+          set({
+            kanjiItems: allItems,
+            pagination: {
+              currentPage: 0,
+              totalPages: 1,
+              totalItems: allItems.length,
+              pageSize: allItems.length,
+            },
+          });
+
+          return allItems;
+        } catch (error) {
+          console.error("Failed to fetch all kanji:", error);
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch kanji data";
+
+          set({
+            error: errorMessage,
+            kanjiItems: [],
+          });
+          return [];
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      // 🆕 THÊM HOẶC CẬP NHẬT ACTION NÀY
+      updateKanjiStatus: (kanjiId, newStatus) => {
+        set((state) => {
+          // Cập nhật trong kanjiItems
           const updatedKanjiItems = state.kanjiItems.map((item) =>
             item.id === kanjiId ? { ...item, status: newStatus } : item
           );
-          
-          // Cập nhật cache
-          const cacheKey = `${state.currentLevel}_${state.pagination.currentPage}`;
-          const currentCache = state.allKanjiCache[cacheKey];
-          
-          let newCache = { ...state.allKanjiCache };
 
-          if(currentCache) {
-            const updatedCacheItems = currentCache.items.map((item) =>
-                item.id === kanjiId ? { ...item, status: newStatus } : item
-            );
-            newCache[cacheKey] = { ...currentCache, items: updatedCacheItems };
-          }
-
-          console.log(`🔄 Updated kanji ${kanjiId} status to ${newStatus}`);
+          console.log(
+            `🔄 Updated kanji ${kanjiId} status to ${newStatus} in store`,
+            {
+              before: state.kanjiItems.find((item) => item.id === kanjiId)
+                ?.status,
+              after: newStatus,
+              totalItems: updatedKanjiItems.length,
+            }
+          );
 
           return {
             kanjiItems: updatedKanjiItems,
-            allKanjiCache: newCache,
           };
         });
-      },
-
-      // 🎯 Cập nhật nhiều kanji cùng lúc
-      updateMultipleKanjiStatus: (updates) => {
-        set((state) => {
-          const authState = useAuthStore.getState();
-          const currentUser = authState.user;
-
-          if (state.currentUserId !== currentUser?.id) {
-            console.warn("❌ Cannot update multiple kanji statuses: user mismatch");
-            return state;
-          }
-
-          const updatedKanjiItems = state.kanjiItems.map((item) => {
-            const update = updates.find((update) => update.kanjiId === item.id);
-            return update ? { ...item, status: update.newStatus } : item;
-          });
-          
-          // Cập nhật cache
-          const cacheKey = `${state.currentLevel}_${state.pagination.currentPage}`;
-          const currentCache = state.allKanjiCache[cacheKey];
-          let newCache = { ...state.allKanjiCache };
-
-          if(currentCache) {
-            const updatedCacheItems = currentCache.items.map((item) => {
-                const update = updates.find((update) => update.kanjiId === item.id);
-                return update ? { ...item, status: update.newStatus } : item;
-            });
-            newCache[cacheKey] = { ...currentCache, items: updatedCacheItems };
-          }
-
-          console.log(`✅ Updated ${updates.length} kanji statuses for user ${currentUser?.id}`);
-
-          return {
-            kanjiItems: updatedKanjiItems,
-            allKanjiCache: newCache,
-          };
-        });
-      },
-
-      // 🎯 Force refresh data
-      forceRefresh: () => {
-        set((state) => ({
-          kanjiItems: [],
-          pagination: {
-            currentPage: -1,
-            totalPages: 0,
-            totalItems: 0,
-            pageSize: state.pagination.pageSize || 10,
-          },
-          allKanjiCache: {},
-        }));
-      },
-
-      // 🎯 Kiểm tra cache validity
-      isCacheValid: (level, page) => {
-        const state = get();
-        const authState = useAuthStore.getState();
-        const currentUser = authState.user;
-
-        return (
-          state.currentUserId === currentUser?.id &&
-          state.currentLevel === String(level) &&
-          state.pagination.currentPage === page &&
-          state.kanjiItems.length > 0
-        );
       },
 
       // Clear error
       clearError: () => set({ error: null }),
 
-      // 🎯 SỬA: Clear kanji items khi user logout (thêm clear summary)
+      // Clear kanji items
       clearKanjiItems: () =>
         set({
           kanjiItems: [],
-          allKanjiCache: {},
-          pagination: { currentPage: -1, totalPages: 0, totalItems: 0, pageSize: 10 },
-          error: null,
-          currentUserId: null,
-          currentLevel: null,
-          activeLevel: "N5",
-          progressSummary: { N1: 0, N2: 0, N3: 0, N4: 0, N5: 0 }, // 🎯 THÊM
-          summaryError: null, // 🎯 THÊM
-        }),
-
-      // 🎯 SỬA: Reset toàn bộ store (thêm summary)
-      resetStore: () =>
-        set({
-          kanjiItems: [],
-          allKanjiCache: {},
-          pagination: { currentPage: -1, totalPages: 0, totalItems: 0, pageSize: 10 },
-          loading: false,
-          error: null,
-          currentUserId: null,
-          currentLevel: null,
-          activeLevel: "N5",
-          progressSummary: { N1: 0, N2: 0, N3: 0, N4: 0, N5: 0 }, // 🎯 THÊM
-          summaryLoading: false, // 🎯 THÊM
-          summaryError: null, // 🎯 THÊM
+          pagination: {
+            currentPage: 0,
+            totalPages: 0,
+            totalItems: 0,
+            pageSize: 10,
+          },
         }),
     }),
     {
       name: "kanji-storage",
-      storage: createJSONStorage(() => cookiesStorage),
+      // 🎯 CẦN LƯU TRỮ ĐỂ TRÁNH GỌI API NHIỀU LẦN
       partialize: (state) => ({
         kanjiItems: state.kanjiItems,
         pagination: state.pagination,
-        currentUserId: state.currentUserId,
-        currentLevel: state.currentLevel,
-        activeLevel: state.activeLevel,
-        allKanjiCache: state.allKanjiCache,
-        progressSummary: state.progressSummary, // 🎯 THÊM
       }),
-      version: 4, // 🎯 TĂNG version do thêm progressSummary
     }
   )
 );

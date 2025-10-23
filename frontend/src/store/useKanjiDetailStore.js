@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { getKanjiDetail } from "../apis/getKanjiDetail";
 import { updateKanjiStatus } from "../apis/updateKanjiStatus";
-import { useAuthStore } from "./useAuthStore";
+import useAuthStore from "./useAuthStore";
 
 // 🆕 BIẾN GLOBAL ĐỂ TRÁNH CIRCULAR DEPENDENCY
 let kanjiStoreRef = null;
@@ -10,16 +10,6 @@ let kanjiStoreRef = null;
 // 🆕 FUNCTION ĐỂ SET KANJI STORE REFERENCE
 export const setKanjiStoreRef = (store) => {
   kanjiStoreRef = store;
-};
-
-// 🆕 HÀM HELPER ĐỂ LẤY TOKEN
-const getAuthToken = () => {
-  try {
-    return useAuthStore.getState().accessToken;
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-    return null;
-  }
 };
 
 const useKanjiDetailStore = create((set, get) => ({
@@ -40,12 +30,23 @@ const useKanjiDetailStore = create((set, get) => ({
     }
   },
 
+  // 🎯 Lấy user ID từ auth store
+  getUserId: () => {
+    try {
+      const authStore = useAuthStore.getState();
+      return authStore.user?.id || null;
+    } catch (error) {
+      console.error("Error getting user ID:", error);
+      return null;
+    }
+  },
+
   // --- Kanji detail actions ---
   openKanjiDetail: async (kanjiId) => {
     set({ loading: true, error: null, isModalOpen: true });
 
     try {
-      const userId = get().isLoggedIn() ? useAuthStore.getState().user?.id : null;
+      const userId = get().isLoggedIn() ? get().getUserId() : null;
 
       const response = await getKanjiDetail({
         kanjiId,
@@ -79,24 +80,22 @@ const useKanjiDetailStore = create((set, get) => ({
     }
   },
 
-  // 🆕 CẬP NHẬT markAsMastered - VỚI MANUAL TOKEN
+  // 🆕 CẬP NHẬT markAsMastered ĐỂ GỌI REFRESH
   markAsMastered: async (kanjiId) => {
     try {
-      const token = getAuthToken(); // 🎯 LẤY TOKEN TRỰC TIẾP
-      
-      if (!token) {
-        console.warn("❌ No token available, user might be logged out");
-        return { success: false, message: "Authentication required" };
+      const userId = get().getUserId();
+      if (!userId) {
+        console.warn("❌ User not logged in, cannot mark as mastered");
+        return { success: false, message: "User not logged in" };
       }
 
-      console.log(`🎯 Marking kanji as mastered:`, { 
-        kanjiId,
-        tokenPresent: !!token,
-        tokenPreview: token.substring(0, 20) + '...'
-      });
+      console.log(`🎯 Marking kanji as mastered:`, { userId, kanjiId });
 
-      // 🎯 GỌI API VỚI MANUAL TOKEN
-      const response = await updateKanjiStatus(kanjiId, "MASTERED", token);
+      const response = await updateKanjiStatus({
+        userId,
+        kanjiId,
+        status: "MASTERED",
+      });
 
       if (response.success) {
         console.log("✅ Successfully marked as MASTERED");
@@ -129,6 +128,11 @@ const useKanjiDetailStore = create((set, get) => ({
           console.error("❌ Failed to update kanji store:", error);
         }
 
+        // 🆕 GỌI CALLBACK REFRESH NẾU CÓ
+        if (get().onKanjiStatusChange) {
+          get().onKanjiStatusChange();
+        }
+
         return response;
       } else {
         console.log("❌ Failed to mark as mastered:", response.message);
@@ -138,7 +142,7 @@ const useKanjiDetailStore = create((set, get) => ({
       console.error("🚨 Error marking as mastered:", error);
       return {
         success: false,
-        message: error.message || "Failed to mark as mastered",
+        message: error.message,
       };
     }
   },
