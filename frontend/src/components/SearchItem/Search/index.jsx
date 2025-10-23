@@ -46,13 +46,9 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
     const type = item.type === "KANJI" ? "kanji" : "word";
 
     if (type === "kanji") {
-      // Lấy chi tiết Kanji theo id
       await fetchKanjiDetail(item.id);
     } else {
-      // Lấy chi tiết compound theo id
       const detail = await fetchCompoundDetail(item.id);
-
-      // Sau khi có detail, gọi API Kanji
       if (detail?.id) {
         await fetchCompoundKanji(detail.id);
       }
@@ -71,7 +67,8 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group z-10">
+      {/* Ô tìm kiếm */}
       <input
         type="text"
         value={query}
@@ -81,10 +78,10 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
         className="w-full py-4 px-5 pr-16 border border-gray-300 rounded-2xl 
                    focus:outline-none focus:ring-3 focus:ring-primary-500 
                    focus:border-transparent transition-all duration-300 
-                   shadow-sm group-hover:shadow-md"
+                   shadow-sm group-hover:shadow-md bg-white"
       />
 
-      {/* Icons */}
+      {/* Icons bên phải */}
       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
         {icons.map((icon, i) => (
           <button
@@ -98,10 +95,15 @@ export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) 
         ))}
       </div>
 
-      {/* Suggestion Dropdown */}
+      {/* Dropdown gợi ý */}
       {showDropdown && (query || results.length > 0) && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-[1000]">
-          <ul className="divide-y divide-gray-100">
+        <div
+          className="absolute top-full left-0 mt-2 w-full 
+                     bg-white bg-opacity-100 border border-gray-200 
+                     rounded-xl shadow-2xl overflow-hidden 
+                     z-[5000] pointer-events-auto"
+        >
+          <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
             {isLoading ? (
               <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
             ) : results.length > 0 ? (

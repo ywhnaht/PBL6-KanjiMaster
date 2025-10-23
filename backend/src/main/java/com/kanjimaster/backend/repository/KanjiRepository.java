@@ -3,6 +3,7 @@ package com.kanjimaster.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.kanjimaster.backend.model.dto.KanjiBasicDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,13 @@ import com.kanjimaster.backend.model.entity.Kanji;
 public interface KanjiRepository extends JpaRepository<Kanji, Integer> {
     Optional<Kanji> findByKanji(String character);
     Page<Kanji> findByLevel(String level, Pageable pageable);
+
+    @Query("""
+        select new com.kanjimaster.backend.model.dto.KanjiBasicDto(k.id, k.kanji, k.hanViet, k.level, k.joyoReading, p.status)
+        from Kanji k left join KanjiProgress p on k.id = p.kanji.id and p.user.id = :userId
+        where k.level = :level
+    """)
+    Page<KanjiBasicDto> findKanjiByLevelWithStatus(@Param("level") String level,@Param("userId") String userId, Pageable pageable);
 
     @Query(value = "SELECT * FROM kanji " +
             "WHERE MATCH(han_viet) AGAINST(:hanViet IN NATURAL LANGUAGE MODE)",
