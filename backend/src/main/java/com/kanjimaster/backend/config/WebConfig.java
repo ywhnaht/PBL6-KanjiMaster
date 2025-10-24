@@ -27,15 +27,19 @@ import java.util.List;
 
 @EnableJpaAuditing
 @Configuration
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class WebConfig {
     JwtAuthEntryPoint authEntryPoint;
     JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @NonFinal
-    @Value("${kanji.master.frontend.url}")
     String frontendUrl;
+
+    public WebConfig(JwtAuthEntryPoint authEntryPoint,
+                     JwtAuthenticationFilter jwtAuthenticationFilter,
+                     @Value("${kanji.master.frontend.url}") String frontendUrl) {
+        this.authEntryPoint = authEntryPoint;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.frontendUrl = frontendUrl;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
