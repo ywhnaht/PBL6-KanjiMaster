@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,9 +27,20 @@ public class KanjiProgressService {
     KanjiRepository kanjiRepository;
 
     public Map<String, Long> getProgressSummary(String userId) {
-        List<KanjiCountByLevelDto> progress = kanjiProgressRepository.getLearnedKanjiCountGroupByLevel(userId);
+        Map<String, Long> summary;
 
-        Map<String, Long> summary = progress.stream().collect(Collectors.toMap(KanjiCountByLevelDto::getLevel, KanjiCountByLevelDto::getCount));
+        if (userId != null) {
+            List<KanjiCountByLevelDto> progress = kanjiProgressRepository.getLearnedKanjiCountGroupByLevel(userId);
+
+            summary = progress.stream()
+                    .collect(Collectors.toMap(
+                            KanjiCountByLevelDto::getLevel,
+                            KanjiCountByLevelDto::getCount
+                    ));
+        } else {
+            summary = new HashMap<>();
+        }
+
         List.of("N5", "N4", "N3", "N2", "N1").forEach(level -> {
             summary.putIfAbsent(level, 0L);
         });

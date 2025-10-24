@@ -2,6 +2,7 @@ package com.kanjimaster.backend.controller;
 
 import com.kanjimaster.backend.model.dto.ApiResponse;
 import com.kanjimaster.backend.service.KanjiProgressService;
+import com.kanjimaster.backend.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,19 @@ public class KanjiProgressController {
 
     @GetMapping("/summary")
     @Operation(summary = "Lấy số từ kanji đã học của user theo level")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> getProgressSummary(@RequestParam String userId) {
-        Map<String, Long> result = kanjiProgressService.getProgressSummary(userId);
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getProgressSummary() {
+        String currentUserId = SecurityUtils.getCurrentUserId().orElse(null);
+        Map<String, Long> result = kanjiProgressService.getProgressSummary(currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Successfully retrieved progress summary."));
     }
 
     @PostMapping("/master")
     @Operation(summary = "Đánh dấu từ kanji đã học")
     public ResponseEntity<ApiResponse<Map<String, Serializable>>> masterKanji(
-            @RequestParam String userId,
             @RequestParam Integer kanjiId
     ) {
-        Map<String, Serializable> results = kanjiProgressService.masterKanji(userId, kanjiId);
+        String currentUserId = SecurityUtils.getCurrentUserId().orElse(null);
+        Map<String, Serializable> results = kanjiProgressService.masterKanji(currentUserId, kanjiId);
         return  ResponseEntity.ok(ApiResponse.success(results, "Successfully mastered kanji."));
     }
 }

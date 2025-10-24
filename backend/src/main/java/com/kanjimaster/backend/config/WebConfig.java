@@ -52,7 +52,17 @@ public class WebConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                // API Authen
                                 "/api/auth/**",
+
+                                // API for guest
+                                "/api/v1/search/**",
+                                "/api/v1/kanji/**",
+                                "/api/v1/users/progress/summary",
+                                "/api/v1/suggest/**",
+                                "/api/v1/compound/**",
+
+                                // Swagger UI
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
