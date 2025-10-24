@@ -41,10 +41,6 @@ public class WebConfig {
         this.frontendUrl = frontendUrl;
     }
 
-    @NonFinal
-    @Value("${kanji.master.frontend.url}")
-    String frontendUrl;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -56,17 +52,7 @@ public class WebConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                // API Authen
                                 "/api/auth/**",
-
-                                // API for guest
-                                "/api/v1/search/**",
-                                "/api/v1/kanji/**",
-                                "/api/v1/users/progress/summary",
-                                "/api/v1/suggest/**",
-                                "/api/v1/compound/**",
-
-                                // Swagger UI
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
