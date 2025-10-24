@@ -3,8 +3,6 @@ package com.kanjimaster.backend.controller;
 import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.service.AuthService;
 import com.kanjimaster.backend.service.JwtService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
     AuthService authService;
+    AuthenticationManager authenticationManager;
+    JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(
@@ -49,18 +49,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(result, "Đăng nhập thành công!"));
     }
 
-    @PostMapping("/forget-pass")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestParam String email) {
-        authService.forgetPassword(email);
-        return ResponseEntity.ok(ApiResponse.success(null, "Yêu cầu reset mật khẩu thành công. Vui lòng kiểm tra email."));
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
-        authService.resetPassword(resetPasswordRequest);
-        return ResponseEntity.ok(ApiResponse.success(null, "Reset mật khẩu thành công. Vui lòng đăng nhập lại"));
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<AuthResponse>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         authService.logout(authHeader);
@@ -68,12 +56,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    @Operation(summary = "Làm mới Access Token bằng Refresh Token",
-            description = "Sử dụng header 'x-refresh-token' để gửi Refresh Token. " +
-                    "Bỏ qua nút 'Authorize' (bearerAuth) ở trên khi test API này.",
-            security = {@SecurityRequirement(name = "refreshTokenAuth")})
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(
-            @RequestHeader("x-refresh-token") String  refreshToken) {
-        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshToken), "Làm mới token thành công!"));
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshTokenRequest), "Làm mới token thành công!"));
     }
 }

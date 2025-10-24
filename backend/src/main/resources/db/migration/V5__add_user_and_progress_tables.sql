@@ -57,7 +57,7 @@ INSERT INTO roles (id, name) VALUES (1, 'USER'), (2, 'ADMIN');
 
 
 INSERT INTO users (id, email, password, created_at, is_verified) VALUES
-                                                                  (1, 'huyho@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-09-01 10:00:00', 1),
+                                                                  (1, 'huyho@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-09-01 10:00:00', 0),
                                                                   (2, 'binh.tran@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-08-15 14:30:00', 1),
                                                                   (3, 'chi.le@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-07-20 08:00:00', 0);
 

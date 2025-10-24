@@ -41,6 +41,10 @@ public class WebConfig {
         this.frontendUrl = frontendUrl;
     }
 
+    @NonFinal
+    @Value("${kanji.master.frontend.url}")
+    String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
