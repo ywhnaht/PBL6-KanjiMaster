@@ -30,23 +30,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (path.equals("/api/auth/login") ||
-                path.equals("/api/auth/register") ||
-                path.equals("/api/auth/verify") ||
-                path.equals("/api/auth/refresh")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (path.startsWith("/v3/api-docs") ||
-                path.startsWith("/swagger") ||
-                path.startsWith("/swagger-ui") ||
-                path.startsWith("/webjars")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+//        if (path.equals("/api/auth/login") ||
+//                path.equals("/api/auth/register") ||
+//                path.equals("/api/auth/verify") ||
+//                path.equals("/api/auth/refresh")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+//
+//        if (path.startsWith("/v3/api-docs") ||
+//                path.startsWith("/swagger") ||
+//                path.startsWith("/swagger-ui") ||
+//                path.startsWith("/webjars")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         String token = getTokenFromRequest(request);
+        if (token == null || token.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String email = jwtService.extractEmail(token);
         CustomUserDetails userDetails = userDetailService.loadUserByUsername(email);
 
