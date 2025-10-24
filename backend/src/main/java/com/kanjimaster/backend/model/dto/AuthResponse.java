@@ -1,9 +1,12 @@
 package com.kanjimaster.backend.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.kanjimaster.backend.model.entity.User;
+import com.kanjimaster.backend.model.entity.UserProfile;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,6 +15,5 @@ import lombok.experimental.FieldDefaults;
 public class AuthResponse {
     String accessToken;
     String refreshToken;
-//    User user;
-//    String tokenType;
+    UserProfileDto user;
 }

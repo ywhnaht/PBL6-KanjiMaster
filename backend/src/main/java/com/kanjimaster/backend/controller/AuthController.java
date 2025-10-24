@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,39 +26,38 @@ public class AuthController {
     JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(
+    public ResponseEntity<ApiResponse<Void>> register(
             @Valid @RequestBody RegisterDto registerDto) {
         authService.register(registerDto);
 
-        return ResponseEntity.ok(ApiResponse.success(null, "Success"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt."));
     }
 
-//    @PostMapping("/verify")
-//    public ResponseEntity<ApiResponse<AuthResponse>> verify(
-//            @Valid @RequestBody VerifyRequest verifyRequest) {
-//        if (!authService.verifyOtp(verifyRequest.getOtp())) {
-//            return ResponseEntity.ok(ApiResponse.success(null, ""));
-//        }
-//        return ResponseEntity.ok(ApiResponse.success(null, ""));
-//    }
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<AuthResponse>> verify(
+            @Valid @RequestBody VerifyRequest verifyRequest) {
+        AuthResponse response = authService.verify(verifyRequest);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "Xác thực email thành công. Bạn có thể đăng nhập."));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginDto loginDto) {
         AuthResponse result = authService.login(loginDto);
 
-        return ResponseEntity.ok(ApiResponse.success(result, "Login successfully!"));
+        return ResponseEntity.ok(ApiResponse.success(result, "Đăng nhập thành công!"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<AuthResponse>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         authService.logout(authHeader);
-        return ResponseEntity.ok(ApiResponse.success(null, "Logout successfully!"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Đăng xuất thành công!"));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(
             @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshTokenRequest), "Refresh successfully!"));
+        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshTokenRequest), "Làm mới token thành công!"));
     }
 }

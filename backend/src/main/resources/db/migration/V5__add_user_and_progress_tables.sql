@@ -13,10 +13,10 @@ CREATE TABLE roles (
 
 CREATE TABLE users (
                        id varchar(255) PRIMARY KEY,
-                       username VARCHAR(255) NOT NULL UNIQUE,
                        email VARCHAR(255) NOT NULL UNIQUE,
                        password VARCHAR(255) NOT NULL,
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       is_verified boolean DEFAULT false
 );
 
 CREATE TABLE user_roles (
@@ -56,10 +56,10 @@ create table kanji_progress (
 INSERT INTO roles (id, name) VALUES (1, 'USER'), (2, 'ADMIN');
 
 
-INSERT INTO users (id, username, email, password, created_at) VALUES
-                                                                  (1, 'huythanh', 'huyho@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-09-01 10:00:00'),
-                                                                  (2, 'binh_tran', 'binh.tran@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-08-15 14:30:00'),
-                                                                  (3, 'chi_le', 'chi.le@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-07-20 08:00:00');
+INSERT INTO users (id, email, password, created_at, is_verified) VALUES
+                                                                  (1, 'huyho@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-09-01 10:00:00', 0),
+                                                                  (2, 'binh.tran@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-08-15 14:30:00', 1),
+                                                                  (3, 'chi.le@email.com', '$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe', '2025-07-20 08:00:00', 0);
 
 INSERT INTO user_roles (user_id, role_id) VALUES
                                               (1, 1),

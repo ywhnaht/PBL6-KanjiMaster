@@ -32,6 +32,9 @@ public class User {
     @Column(name = "is_verified")
     boolean isVerified = false;
 
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    UserProfile userProfile;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
             @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
