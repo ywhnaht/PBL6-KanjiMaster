@@ -16,7 +16,7 @@ public class VerifyRequest {
     @Email(message = "Email không đúng định dạng")
     String email;
 
-    @NotBlank(message = "OTP không được để trống")
-    @Size(min = 6, message = "Vui lòng nhập OTP đúng 6 ký tự")
-    String otp;
+//    @NotBlank(message = "OTP không được để trống")
+//    @Size(min = 6, message = "Vui lòng nhập OTP đúng 6 ký tự")
+    String token;
 }

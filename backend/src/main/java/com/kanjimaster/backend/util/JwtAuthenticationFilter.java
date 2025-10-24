@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (path.equals("/api/auth/login") ||
                 path.equals("/api/auth/register") ||
+                path.equals("/api/auth/verify") ||
                 path.equals("/api/auth/refresh")) {
             filterChain.doFilter(request, response);
             return;

@@ -9,12 +9,12 @@ public enum ErrorCode {
 
     // Authentication & Authorization Errors (1xxx)
     USER_EXISTS(1001, "Người dùng với email này đã tồn tại", HttpStatus.BAD_REQUEST),
-    UNVERIFIED_EMAIL(1002, "Tài khoản của bạn chưa được xác thực hoặc đã bị khóa", HttpStatus.FORBIDDEN),
+    UNVERIFIED_EMAIL(1002, "Tài khoản của bạn chưa được xác thực. Vui lòng kiểm tra email và kích hoạt tài khoản.", HttpStatus.FORBIDDEN),
     UNAUTHENTICATED(1003, "Email hoặc mật khẩu không chính xác", HttpStatus.UNAUTHORIZED),
     INVALID_REFRESH_TOKEN(1004, "Refresh token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.", HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND(1005, "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
-    ROLE_NOT_FOUND(1006, "Không tìm thấy vai trò người dùng", HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_OTP(1007, "OTP không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(1006, "Không tìm thấy vai trò người dùng", HttpStatus.NOT_FOUND),
+    INVALID_VERIFICATION_TOKEN(1007, "Mã xác thực không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
     ACCESS_DENIED(1008, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN),
     INVALID_INPUT(1009, "Đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
 
