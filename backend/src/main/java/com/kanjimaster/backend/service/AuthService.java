@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
     UserRepository userRepository;
     RoleRepository roleRepository;
-    UserProfileRepository userProfileRepository;
     JwtService jwtService;
     PasswordEncoder passwordEncoder;
     AuthenticationManager authenticationManager;
@@ -48,6 +47,8 @@ public class AuthService {
     String REFRESH_TOKEN_PREFIX = "refreshtoken:";
     String VERIFY_TOKEN_PREFIX = "verify:";
     String VERIFY_USER_PREFIX = "verify_user:";
+    String RESET_TOKEN_PREFIX = "reset:";
+    String RESET_USER_PREFIX = "reset_user:";
 
     @Transactional
     public void register(RegisterDto registerDto) {
@@ -126,6 +127,36 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .user(userProfileDto)
                 .build();
+    }
+
+    public void forgetPassword(String email) {
+        var user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            String userResetKey = RESET_USER_PREFIX + user.getEmail();
+            String existedToken = redisTemplate.opsForValue().get(userResetKey);
+
+            if (existedToken != null && !existedToken.isEmpty()) {
+                log.warn("Yêu cầu gửi lại mail reset password cho {}, nhưng token cũ vẫn còn hiệu lực. Bỏ qua.", email);
+                return;
+            }
+
+            try {
+                String token = UUID.randomUUID().toString();
+                String resetKey =  RESET_TOKEN_PREFIX + token;
+
+                redisTemplate.opsForValue().set(resetKey, user.getEmail(), 15, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(userResetKey, token, 15, TimeUnit.MINUTES);
+
+                emailService.sendResetPasswordEmail(user.getEmail(), token);
+                log.info("Đã gửi lại email reset pass cho {}", user.getEmail());
+            } catch (Exception e) {
+                log.error("Không thể gửi lại email reset pass cho {}: {}", user.getEmail(), e.getMessage());
+            }
+        }
+    }
+
+    public void resetPassword(String email) {
+
     }
 
     public AuthResponse login(LoginDto loginDto) {
