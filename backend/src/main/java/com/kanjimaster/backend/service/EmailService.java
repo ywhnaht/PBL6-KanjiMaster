@@ -4,4 +4,5 @@ import com.kanjimaster.backend.model.dto.EmailDetail;
 
 public interface EmailService {
     void sendVerificationEmail(String toMail, String token);
+    void sendResetPasswordEmail(String toMail, String token);
 }
