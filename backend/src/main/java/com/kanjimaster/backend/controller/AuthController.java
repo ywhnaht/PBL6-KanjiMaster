@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
     AuthService authService;
-    AuthenticationManager authenticationManager;
-    JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(
@@ -47,6 +45,18 @@ public class AuthController {
         AuthResponse result = authService.login(loginDto);
 
         return ResponseEntity.ok(ApiResponse.success(result, "Đăng nhập thành công!"));
+    }
+
+    @PostMapping("/forget-pass")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody String email) {
+        authService.forgetPassword(email);
+        return ResponseEntity.ok(ApiResponse.success(null, "Yêu cầu reset mật khẩu thành công. Vui lòng kiểm tra email."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        authService.resetPassword(resetPasswordRequest);
+        return ResponseEntity.ok(ApiResponse.success(null, "Reset mật khẩu thành công. Vui lòng đăng nhập lại"));
     }
 
     @PostMapping("/logout")

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -44,11 +45,11 @@ public class AuthService {
     EmailService emailService;
     RedisTemplate<String, String> redisTemplate;
 
+    String VERIFY_TOKEN_PREFIX = "verify:token:";
+    String VERIFY_USER_PREFIX = "verify:user:";
     String REFRESH_TOKEN_PREFIX = "refreshtoken:";
-    String VERIFY_TOKEN_PREFIX = "verify:";
-    String VERIFY_USER_PREFIX = "verify_user:";
-    String RESET_TOKEN_PREFIX = "reset:";
-    String RESET_USER_PREFIX = "reset_user:";
+    String RESET_TOKEN_PREFIX = "reset:token:";
+    String RESET_USER_PREFIX = "reset:user:";
 
     @Transactional
     public void register(RegisterDto registerDto) {
@@ -86,77 +87,55 @@ public class AuthService {
 
     @Transactional
     public AuthResponse verify(VerifyRequest verifyRequest) {
-        String token = verifyRequest.getToken();
-        if (token == null || token.isEmpty()) {
-            throw new AppException(ErrorCode.INVALID_VERIFICATION_TOKEN);
-        }
-
-        String redisKey = VERIFY_TOKEN_PREFIX + token;
-        String email = redisTemplate.opsForValue().get(redisKey);
-        if (email == null) {
-            throw new AppException(ErrorCode.INVALID_VERIFICATION_TOKEN);
-        }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        String userRedisKey =  VERIFY_USER_PREFIX + email;
-        redisTemplate.delete(redisKey);
-        redisTemplate.delete(userRedisKey);
+        String token =  verifyRequest.getToken();
+        User user = validateAndGetUserFromToken(token, VERIFY_TOKEN_PREFIX, ErrorCode.INVALID_VERIFICATION_TOKEN);
+        deleteOneTimeTokens(token, user.getEmail(), VERIFY_TOKEN_PREFIX, VERIFY_USER_PREFIX);
 
         if (!user.isVerified()) {
             user.setVerified(true);
             userRepository.save(user);
-            log.info("Tài khoản đã được xác thực thành công: {}", email);
+            log.info("Tài khoản đã được xác thực thành công: {}", user.getEmail());
         } else {
-            log.info("Tài khoản đã được xác thực trước đó: {}", email);
+            log.info("Tài khoản đã được xác thực trước đó: {}", user.getEmail());
         }
 
-        CustomUserDetails userDetail = userDetailService.loadUserByUsername(email);
+        CustomUserDetails userDetail = userDetailService.loadUserByUsername(user.getEmail());
 
-        String accessToken = jwtService.generateAccessToken(userDetail);
-        String refreshToken = jwtService.generateRefreshToken(userDetail);
-
-        String refreshRedisKey = REFRESH_TOKEN_PREFIX + userDetail.getUsername();
-        redisTemplate.opsForValue().set(refreshRedisKey, refreshToken, 7, TimeUnit.DAYS);
-
-        UserProfileDto userProfileDto = buildUserProfileDto(user);
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .user(userProfileDto)
-                .build();
+        return generateAuthResponse(user, userDetail);
     }
 
     public void forgetPassword(String email) {
         var user = userRepository.findByEmail(email).orElse(null);
-        if (user != null) {
-            String userResetKey = RESET_USER_PREFIX + user.getEmail();
-            String existedToken = redisTemplate.opsForValue().get(userResetKey);
+        if (user == null || !user.isVerified()) {
+            log.warn("Yêu cầu reset pass cho email không tồn tại hoặc chưa xác thực: {}", email);
+            return;
+        }
 
-            if (existedToken != null && !existedToken.isEmpty()) {
-                log.warn("Yêu cầu gửi lại mail reset password cho {}, nhưng token cũ vẫn còn hiệu lực. Bỏ qua.", email);
-                return;
-            }
+        Optional<String> tokenOpt = generateOneTimeToken(email, RESET_TOKEN_PREFIX, RESET_USER_PREFIX, 15);
+        if (tokenOpt.isEmpty()) {
+            log.warn("Yêu cầu gửi lại mail reset password cho {}, nhưng token cũ vẫn còn hiệu lực. Bỏ qua.", email);
+            return;
+        }
 
-            try {
-                String token = UUID.randomUUID().toString();
-                String resetKey =  RESET_TOKEN_PREFIX + token;
-
-                redisTemplate.opsForValue().set(resetKey, user.getEmail(), 15, TimeUnit.MINUTES);
-                redisTemplate.opsForValue().set(userResetKey, token, 15, TimeUnit.MINUTES);
-
-                emailService.sendResetPasswordEmail(user.getEmail(), token);
-                log.info("Đã gửi lại email reset pass cho {}", user.getEmail());
-            } catch (Exception e) {
-                log.error("Không thể gửi lại email reset pass cho {}: {}", user.getEmail(), e.getMessage());
-            }
+        try {
+            emailService.sendResetPasswordEmail(email, tokenOpt.get());
+            log.info("Đã gửi email reset pass cho {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Không thể gửi email reset pass cho {}: {}", user.getEmail(), e.getMessage());
         }
     }
 
-    public void resetPassword(String email) {
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        User user = validateAndGetUserFromToken(resetPasswordRequest.getToken(), RESET_TOKEN_PREFIX, ErrorCode.INVALID_RESET_TOKEN);
+        deleteOneTimeTokens(resetPasswordRequest.getToken(), user.getEmail(), RESET_TOKEN_PREFIX, RESET_USER_PREFIX);
 
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+        String refreshRedisKey = REFRESH_TOKEN_PREFIX + user.getEmail();
+        redisTemplate.delete(refreshRedisKey);
+
+        log.info("Đã reset password và vô hiệu hóa mọi phiên đăng nhập cũ của tài khoản {}", user.getEmail());
     }
 
     public AuthResponse login(LoginDto loginDto) {
@@ -170,19 +149,7 @@ public class AuthService {
             var user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
             var userDetail = userDetailService.loadUserByUsername(user.getEmail());
 
-            String accessToken = jwtService.generateAccessToken(userDetail);
-            String refreshToken = jwtService.generateRefreshToken(userDetail);
-
-            String redisKey = REFRESH_TOKEN_PREFIX + userDetail.getUsername();
-            redisTemplate.opsForValue().set(redisKey, refreshToken, 7, TimeUnit.DAYS);
-
-            UserProfileDto userProfileDto = buildUserProfileDto(user);
-
-            return AuthResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .user(userProfileDto)
-                    .build();
+            return generateAuthResponse(user, userDetail);
         } catch (DisabledException e) {
             User user = userRepository.findByEmail(loginDto.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -224,10 +191,64 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String userEmail = authentication.getName();
-            log.info("Email" + userEmail);
+            log.info("Email {}", userEmail);
             String redisKey = REFRESH_TOKEN_PREFIX + userEmail;
             redisTemplate.delete(redisKey);
         }
+    }
+
+    private AuthResponse generateAuthResponse(User user, CustomUserDetails userDetail) {
+        String accessToken = jwtService.generateAccessToken(userDetail);
+        String refreshToken = jwtService.generateRefreshToken(userDetail);
+
+        String refreshRedisKey = REFRESH_TOKEN_PREFIX + userDetail.getUsername();
+        redisTemplate.opsForValue().set(refreshRedisKey, refreshToken, 7, TimeUnit.DAYS);
+
+        UserProfileDto userProfileDto = buildUserProfileDto(user);
+        return AuthResponse.builder()
+                .user(userProfileDto)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    private void deleteOneTimeTokens(String token, String email, String tokenPrefix, String userPrefix) {
+        String tokenRedisKey = tokenPrefix + token;
+        String userRedisKey = userPrefix + email;
+        redisTemplate.delete(tokenRedisKey);
+        redisTemplate.delete(userRedisKey);
+    }
+
+    private User validateAndGetUserFromToken(String token, String tokenPrefix, ErrorCode errorCode) {
+        if (token == null || token.isEmpty()) {
+            throw new AppException(errorCode);
+        }
+
+        String redisKey = tokenPrefix + token;
+        String email = redisTemplate.opsForValue().get(redisKey);
+
+        if (email == null) {
+            throw new AppException(errorCode);
+        }
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private Optional<String> generateOneTimeToken(String email, String tokenPrefix, String userPrefix, long ttlMinutes) {
+        String userRedisKey = userPrefix + email;
+        String existedToken = redisTemplate.opsForValue().get(userRedisKey);
+
+        if (existedToken != null && !existedToken.isEmpty()) {
+            return Optional.empty();
+        }
+
+        String token = UUID.randomUUID().toString();
+        String tokenRedisKey = tokenPrefix + token;
+        redisTemplate.opsForValue().set(tokenRedisKey, email, ttlMinutes, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(userRedisKey, token, ttlMinutes, TimeUnit.MINUTES);
+
+        return Optional.of(token);
     }
 
     private UserProfileDto buildUserProfileDto(User user) {
@@ -248,24 +269,15 @@ public class AuthService {
     }
 
     private void resendVerificationEmail(User user) {
-        String email = user.getEmail();
-        String userRedisKey = VERIFY_USER_PREFIX + email;
+        Optional<String> tokenOpt = generateOneTimeToken(user.getEmail(), VERIFY_TOKEN_PREFIX, VERIFY_USER_PREFIX, 15);
 
-        String existedToken = redisTemplate.opsForValue().get(VERIFY_USER_PREFIX + email);
-
-        if (existedToken != null) {
-            log.warn("Yêu cầu gửi lại mail cho {}, nhưng token cũ vẫn còn hiệu lực. Bỏ qua.", email);
+        if (tokenOpt.isEmpty()) {
+            log.warn("Yêu cầu gửi lại mail cho {}, nhưng token cũ vẫn còn hiệu lực. Bỏ qua.", user.getEmail());
             return;
         }
 
         try {
-            String token = UUID.randomUUID().toString();
-            String redisKey = VERIFY_TOKEN_PREFIX + token;
-
-            redisTemplate.opsForValue().set(redisKey, user.getEmail(), 15, TimeUnit.MINUTES);
-            redisTemplate.opsForValue().set(userRedisKey, token, 15, TimeUnit.MINUTES);
-
-            emailService.sendVerificationEmail(user.getEmail(), token);
+            emailService.sendVerificationEmail(user.getEmail(), tokenOpt.get());
             log.info("Đã gửi lại email xác thực cho {}", user.getEmail());
         } catch (Exception e) {
             log.error("Không thể gửi lại email xác thực cho {}: {}", user.getEmail(), e.getMessage());
