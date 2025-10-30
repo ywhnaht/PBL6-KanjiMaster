@@ -15,8 +15,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(1005, "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
     ROLE_NOT_FOUND(1006, "Không tìm thấy vai trò người dùng", HttpStatus.NOT_FOUND),
     INVALID_VERIFICATION_TOKEN(1007, "Mã xác thực không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
-    ACCESS_DENIED(1008, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN),
-    INVALID_INPUT(1009, "Đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_RESET_TOKEN(1008, "Mã xác thực không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
+    ACCESS_DENIED(1009, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN),
+    INVALID_INPUT(1010, "Đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
