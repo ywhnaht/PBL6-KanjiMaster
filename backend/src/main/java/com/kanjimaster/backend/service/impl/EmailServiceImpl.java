@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendVerificationEmail(String toEmail, String token) {
         String subject = "[Kanji Master] Vui lòng xác thực email của bạn";
-        String verificationUrl = frontendUrl + "/verify-email?email=" + toEmail + "&token=" + token;
+        String verificationUrl = frontendUrl + "/verify-email?token=" + token;
         String title = "Chào mừng bạn đến với Kanji Master!";
         String message = "Vui lòng nhấp vào nút bên dưới để kích hoạt tài khoản và bắt đầu hành trình học tiếng Nhật của bạn.";
         String buttonText = "Kích hoạt tài khoản";
@@ -52,7 +52,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendResetPasswordEmail(String toEmail, String token) {
         String subject = "[Kanji Master] Yêu cầu khôi phục mật khẩu";
-        String verificationUrl = frontendUrl + "/reset-password?email=" + toEmail + "&token=" + token;
+        String verificationUrl = frontendUrl + "/reset-password?token=" + token;
         String title = "Yêu cầu khôi phục mật khẩu";
         String message = "Vui lòng nhấp vào nút bên dưới để khôi phục lại mật khẩu của bạn.";
         String buttonText = "Khôi phục mật khẩu";
@@ -135,9 +135,7 @@ public class EmailServiceImpl implements EmailService {
                 + "              <!-- Divider -->"
                 + "              <div style=\"border-top: 1px solid #f5e9ee; margin: 32px 0;\"></div>"
                 + "              <!-- Footer -->"
-                + "              <p style=\"color: #6b7280; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;\">"
-                + "                Nếu bạn nhận nhầm email này, vui lòng bỏ qua."
-                + "              </p>"
+
                 + "              <p style=\"color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 12px 0 0; text-align: center;\">"
                 + "                © 2025 Kanji Master. All rights reserved."
                 + "              </p>"
