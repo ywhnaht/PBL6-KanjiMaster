@@ -27,7 +27,7 @@ services:
     image: redis:7.2
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -72,7 +72,7 @@ services:
       context: ./AI/backend
       dockerfile: docker/docker_files/Dockerfile
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
+    command: []
     volumes:
       - ./AI/backend:/code
     ports:
@@ -82,19 +82,8 @@ services:
     networks:
       - kanjimaster-network
 
-  # ============================
-  # AI Application Service (Flask / FastAPI)
-  # ============================
-  app:
-    build:
-      context: ./AI
-      dockerfile: backend/docker/docker_files/Dockerfile_app
-    platform: linux/amd64
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    networks:
-      - kanjimaster-network
+
+
 
 # ============================
 # Volumes & Networks
