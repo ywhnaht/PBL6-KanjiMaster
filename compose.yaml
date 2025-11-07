@@ -1,4 +1,7 @@
 services:
+  # ============================
+  # Database & Cache
+  # ============================
   mysql:
     image: mysql:8.0
     container_name: mysql-db
@@ -14,17 +17,7 @@ services:
     networks:
       - kanjimaster-network
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u",
-          "root",
-          "-p${DB_PASSWORD}",
-        ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       timeout: 20s
       retries: 10
       start_period: 40s
@@ -45,6 +38,9 @@ services:
       retries: 5
       interval: 5s
 
+  # ============================
+  # Spring Boot Backend
+  # ============================
   backend:
     build:
       context: ./backend
@@ -68,6 +64,41 @@ services:
       - kanjimaster-network
     restart: on-failure
 
+  # ============================
+  # AI Python API Service
+  # ============================
+  api:
+    build:
+      context: ./AI/backend
+      dockerfile: docker/docker_files/Dockerfile
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./AI/backend:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./AI/.env
+    networks:
+      - kanjimaster-network
+
+  # ============================
+  # AI Application Service (Flask / FastAPI)
+  # ============================
+  app:
+    build:
+      context: ./AI
+      dockerfile: backend/docker/docker_files/Dockerfile_app
+    platform: linux/amd64
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    networks:
+      - kanjimaster-network
+
+# ============================
+# Volumes & Networks
+# ============================
 volumes:
   redis_data:
   mysql_data:
