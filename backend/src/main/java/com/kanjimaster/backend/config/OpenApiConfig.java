@@ -13,6 +13,7 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         final String securitySchemeName = "bearerAuth";
+        final String refreshTokenSchemeName = "refreshTokenAuth";
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new io.swagger.v3.oas.models.Components()
@@ -20,7 +21,13 @@ public class OpenApiConfig {
                                 .name(securitySchemeName)
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
-                                .bearerFormat("JWT")))
+                                .bearerFormat("JWT"))
+
+                        .addSecuritySchemes(refreshTokenSchemeName, new SecurityScheme()
+                                .name("x-refresh-token")
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.HEADER)
+                                .description("Enter your Refresh Token")))
                 .info(new Info()
                         .title("KanjiMaster API")
                         .description("API documentation for KanjiMaster project")
