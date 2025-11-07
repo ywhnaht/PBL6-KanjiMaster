@@ -3,6 +3,8 @@ package com.kanjimaster.backend.controller;
 import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.service.AuthService;
 import com.kanjimaster.backend.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -66,8 +68,12 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Operation(summary = "Làm mới Access Token bằng Refresh Token",
+            description = "Sử dụng header 'x-refresh-token' để gửi Refresh Token. " +
+                    "Bỏ qua nút 'Authorize' (bearerAuth) ở trên khi test API này.",
+            security = {@SecurityRequirement(name = "refreshTokenAuth")})
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(
-            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshTokenRequest), "Làm mới token thành công!"));
+            @RequestHeader("x-refresh-token") String  refreshToken) {
+        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshToken), "Làm mới token thành công!"));
     }
 }

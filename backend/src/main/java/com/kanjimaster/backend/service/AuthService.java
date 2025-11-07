@@ -159,8 +159,7 @@ public class AuthService {
         }
     }
 
-    public AuthResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.getRefreshToken();
+    public AuthResponse refreshToken(String refreshToken) {
         String userEmail = jwtService.extractEmail(refreshToken);
         CustomUserDetails userDetails = userDetailService.loadUserByUsername(userEmail);
 
