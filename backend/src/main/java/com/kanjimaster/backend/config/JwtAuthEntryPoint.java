@@ -1,6 +1,7 @@
 package com.kanjimaster.backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kanjimaster.backend.exception.ErrorCode;
 import com.kanjimaster.backend.model.dto.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        ApiResponse<Void> errorResponse = ApiResponse.error("Yêu cầu xác thực không thành công: " + authException.getMessage(), "INVALID_TOKEN");
+        ApiResponse<Void> errorResponse = ApiResponse.error("Yêu cầu xác thực không thành công: " + authException.getMessage(), ErrorCode.INVALID_ACCESS_TOKEN.name());
 
         objectMapper.writeValue(response.getOutputStream(), errorResponse);
     }
