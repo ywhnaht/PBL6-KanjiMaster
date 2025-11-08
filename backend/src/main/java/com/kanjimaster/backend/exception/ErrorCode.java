@@ -18,6 +18,7 @@ public enum ErrorCode {
     INVALID_RESET_TOKEN(1008, "Mã xác thực không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
     ACCESS_DENIED(1009, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN),
     INVALID_INPUT(1010, "Đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_ACCESS_TOKEN(1011, "Access token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
