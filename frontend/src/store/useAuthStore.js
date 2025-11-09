@@ -1,100 +1,59 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import {create} from 'zustand';
+import Cookies from 'js-cookie';
 
-const useAuthStore = create(
-  persist(
-    (set, get) => ({
-      accessToken: null,
-      user: null,
-      isLoading: false,
+const syncCookies = (state) => {
+  const { accessToken, refreshToken, user } = state;
 
-      // 🔐 AUTH ACTIONS
-      // Đăng nhập - lưu cả token và user
-      login: (userData, token) => {
-        set({
-          user: userData,
-          accessToken: token,
-          isLoading: false
-        });
-        console.log("✅ Đăng nhập thành công:", userData?.email);
-      },
+  if (accessToken) Cookies.set('accessToken', accessToken);
+  else Cookies.remove('accessToken');
 
-      // Đăng xuất - xóa tất cả
-      logout: () => {
-        set({
-          user: null,
-          accessToken: null,
-          isLoading: false
-        });
-        console.log("✅ Đã đăng xuất");
-      },
+  if (refreshToken) Cookies.set('refreshToken', refreshToken);
+  else Cookies.remove('refreshToken');
 
-      // Cập nhật thông tin user
-      updateUser: (userData) => {
-        set({ user: { ...get().user, ...userData } });
-        console.log("✅ Cập nhật thông tin user");
-      },
+  if (user) Cookies.set('user', JSON.stringify(user));
+  else Cookies.remove('user');
+};
 
-      // 🎯 HELPER METHODS
-      // Kiểm tra đã đăng nhập chưa
-      isLoggedIn: () => {
-        const { accessToken, user } = get();
-        return !!(accessToken && user);
-      },
+export const useAuthStore = create((set, get) => ({
+  accessToken: Cookies.get('accessToken') || null,
+  refreshToken: Cookies.get('refreshToken') || null,
+  user: (() => {
+    const stored = Cookies.get('user');
+    if (!stored) return null;
+    const u = JSON.parse(stored);
+    return u;
+  })(),
 
-      // Lấy user ID
-      getUserId: () => {
-        return get().user?.id || null;
-      },
+  login: ({ accessToken, refreshToken, user }) => {
+    const profileUser = {
+      ...user
+    };
+    set({ accessToken, refreshToken, user: profileUser });
+    syncCookies(get());
+  },
 
-      // Lấy thông tin user
-      getUserInfo: () => {
-        return get().user || {};
-      },
+  logout: () => {
+    set({ accessToken: null, refreshToken: null, user: null });
+    syncCookies(get());
+  },
+  
+    updateUser: (updates) => {
+    set((state) => {
+      const merged = { ...state.user, ...updates };
+ 
+      if (updates.password) merged.password = updates.password;
+      if (updates.email) merged.email = updates.email;
+      if (updates.full_name) merged.full_name = updates.full_name;
 
-      // Lấy token
-      getToken: () => {
-        return get().accessToken;
-      },
+      return { user: merged };
+    });
+ 
+    syncCookies(get());
+    return get().user;
+  },
 
-      // ⚡ LOADING STATES
-      // Bắt đầu loading
-      setLoading: (loading) => set({ isLoading: loading }),
-
-      // Clear toàn bộ state (for debugging)
-      clearAuth: () => {
-        set({
-          user: null,
-          accessToken: null,
-          isLoading: false
-        });
-        console.log("✅ Đã clear auth state");
-      }
-    }),
-    {
-      name: "auth-storage", // Tên key trong localStorage
-      
-      // Chỉ lưu những field cần thiết
-      partialize: (state) => ({
-        accessToken: state.accessToken,
-        user: state.user,
-        // KHÔNG lưu isLoading vì không cần thiết
-      }),
-
-      // Xử lý khi load từ localStorage
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          console.log("🔄 Đã load auth state từ localStorage");
-          
-          // Kiểm tra token hết hạn (nếu cần)
-          // if (state.accessToken && isTokenExpired(state.accessToken)) {
-          //   state.accessToken = null;
-          //   state.user = null;
-          // }
-        }
-      },
-    }
-  )
-);
-
-export default useAuthStore;
+  setTokens: ({ accessToken, refreshToken }) => {
+    set({ accessToken, refreshToken });
+    syncCookies(get());
+  },
+}));
