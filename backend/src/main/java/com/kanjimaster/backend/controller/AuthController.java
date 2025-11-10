@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/forget-pass")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody String email) {
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestParam String email) {
         authService.forgetPassword(email);
         return ResponseEntity.ok(ApiResponse.success(null, "Yêu cầu reset mật khẩu thành công. Vui lòng kiểm tra email."));
     }
