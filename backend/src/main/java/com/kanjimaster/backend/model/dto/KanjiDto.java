@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.KanjiExamples;
 import lombok.*;
@@ -12,6 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class KanjiDto {
     Integer id;

@@ -8,6 +8,7 @@ import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.service.CompoundWordService;
 import com.kanjimaster.backend.service.TranslationService;
 
+import com.kanjimaster.backend.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,9 +42,9 @@ public class KanjiController {
     @PostMapping("/{kanjiId}")
     @Operation(summary = "Lấy thông tin Kanji theo ID và cập nhật status thành LEARNING")
     public ResponseEntity<ApiResponse<KanjiDto>> getKanjiDetailWithStatus(
-            @PathVariable Integer kanjiId,
-            @RequestParam(required = false) String userId) {
-        KanjiDto kanjiDto = kanjiService.getKanjiDetailandView(kanjiId, userId);
+            @PathVariable Integer kanjiId) {
+        String currentUserId = SecurityUtils.getCurrentUserId().orElse(null);
+        KanjiDto kanjiDto = kanjiService.getKanjiDetailandView(kanjiId, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(kanjiDto, "Kanji found!"));
     }
 
@@ -65,11 +67,11 @@ public class KanjiController {
     @GetMapping("/level")
     public ResponseEntity<ApiResponse<PagedResponse<KanjiBasicDto>>> getKanjiByLevel(
             @RequestParam String level,
-            @RequestParam(required = false) String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevelWithStatus(level, userId, page, size);
+        String currentUserId = SecurityUtils.getCurrentUserId().orElse(null);
+        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevelWithStatus(level, currentUserId, page, size);
         return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
     }
 

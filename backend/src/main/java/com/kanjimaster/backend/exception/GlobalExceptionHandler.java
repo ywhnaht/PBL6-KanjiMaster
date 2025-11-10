@@ -4,32 +4,83 @@ import com.kanjimaster.backend.model.dto.ApiResponse;
 
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 @RestControllerAdvice(basePackages = "com.kanjimaster.backend.controller")
 public class GlobalExceptionHandler {
+    @ExceptionHandler
+    public ResponseEntity<ApiResponse<?>> handleAppException(AppException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return createErrorResponse(errorCode);
+    }
+
+    @ExceptionHandler(value = BadCredentialsException.class)
+    ResponseEntity<ApiResponse<?>> handleBadCredentialsException(BadCredentialsException exception) {
+        return createErrorResponse(ErrorCode.UNAUTHENTICATED);
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    ResponseEntity<ApiResponse<?>> handleAccessDeniedException(AccessDeniedException exception) {
+        return createErrorResponse(ErrorCode.ACCESS_DENIED);
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    ResponseEntity<ApiResponse<?>> handleUncategorizedException(Exception exception) {
+        return createErrorResponse(ErrorCode.UNCATEGORIZED_EXCEPTION, exception.getMessage());
+    }
+
     @ExceptionHandler(KanjiNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleKanjiNotFoundException(KanjiNotFoundException exception) {
-        ApiResponse<?> response = ApiResponse.error(exception.getMessage());
-        return ResponseEntity.status(404).body(response);
+        return createErrorResponse(ErrorCode.KANJI_NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(RedisConnectionFailureException.class)
     public ResponseEntity<ApiResponse<?>> handleRedisConnectionFailureException(RedisConnectionFailureException exception) {
-        ApiResponse<?> response = ApiResponse.error("Redis connection failure " + exception.getMessage());
-        return ResponseEntity.status(500).body(response);
+        return createErrorResponse(ErrorCode.REDIS_CONNECTION_FAILURE);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException exception) {
-        ApiResponse<?> response = ApiResponse.error(exception.getMessage());
-        return ResponseEntity.status(400).body(response);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse(ErrorCode.INVALID_INPUT.getMessage());
+
+        return createErrorResponse(ErrorCode.INVALID_INPUT, errorMessage);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGenericException(Exception exception) {
-        ApiResponse<?> response = ApiResponse.error("Internal server error!");
-        return ResponseEntity.status(500).body(response);
+//    @ExceptionHandler(RuntimeException.class)
+//    public ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException exception) {
+//        ApiResponse<?> response = ApiResponse.error(exception.getMessage());
+//        return ResponseEntity.status(400).body(response);
+//    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiResponse<?>> handleDisabledUser(DisabledException ex) {
+        ErrorCode errorCode = ErrorCode.UNVERIFIED_EMAIL;
+        ApiResponse<?> response = ApiResponse.error(errorCode.getMessage(), errorCode.name());
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
+
+    private ResponseEntity<ApiResponse<?>> createErrorResponse(ErrorCode errorCode) {
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(ApiResponse.error(errorCode.getMessage(), errorCode.name()));
+    }
+
+    private ResponseEntity<ApiResponse<?>> createErrorResponse(ErrorCode errorCode, String customMessage) {
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(ApiResponse.error(customMessage, errorCode.name()));
     }
 }

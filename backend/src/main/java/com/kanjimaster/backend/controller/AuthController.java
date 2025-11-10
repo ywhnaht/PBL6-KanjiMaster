@@ -1,0 +1,79 @@
+package com.kanjimaster.backend.controller;
+
+import com.kanjimaster.backend.model.dto.*;
+import com.kanjimaster.backend.service.AuthService;
+import com.kanjimaster.backend.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/auth")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class AuthController {
+    AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<Void>> register(
+            @Valid @RequestBody RegisterDto registerDto) {
+        authService.register(registerDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt."));
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<AuthResponse>> verify(
+            @Valid @RequestBody VerifyRequest verifyRequest) {
+        AuthResponse response = authService.verify(verifyRequest);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "Xác thực email thành công. Bạn có thể đăng nhập."));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginDto loginDto) {
+        AuthResponse result = authService.login(loginDto);
+
+        return ResponseEntity.ok(ApiResponse.success(result, "Đăng nhập thành công!"));
+    }
+
+    @PostMapping("/forget-pass")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestParam String email) {
+        authService.forgetPassword(email);
+        return ResponseEntity.ok(ApiResponse.success(null, "Yêu cầu reset mật khẩu thành công. Vui lòng kiểm tra email."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        authService.resetPassword(resetPasswordRequest);
+        return ResponseEntity.ok(ApiResponse.success(null, "Reset mật khẩu thành công. Vui lòng đăng nhập lại"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<AuthResponse>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        authService.logout(authHeader);
+        return ResponseEntity.ok(ApiResponse.success(null, "Đăng xuất thành công!"));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Làm mới Access Token bằng Refresh Token",
+            description = "Sử dụng header 'x-refresh-token' để gửi Refresh Token. " +
+                    "Bỏ qua nút 'Authorize' (bearerAuth) ở trên khi test API này.",
+            security = {@SecurityRequirement(name = "refreshTokenAuth")})
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @RequestHeader("x-refresh-token") String  refreshToken) {
+        return ResponseEntity.ok(ApiResponse.success(authService.refreshToken(refreshToken), "Làm mới token thành công!"));
+    }
+}
