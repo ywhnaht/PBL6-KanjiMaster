@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DrawBoard from "../DrawBoard";
 import useSearchStore from "../../../store/useSearchStore";
 
-export default function Search({ placeholder = "日本, nihon, Nhật Bản" }) {
+export default function Search({ placeholder = "日本, nihon, ひらがな" }) {
     const navigate = useNavigate();
     const {
         query,
