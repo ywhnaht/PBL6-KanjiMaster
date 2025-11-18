@@ -3,7 +3,6 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from PIL import Image, ImageDraw
-from .utils import get_vit_model
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 
