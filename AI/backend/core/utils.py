@@ -1,138 +1,105 @@
-# vit_version_of_code2.py
+# effnet_version_of_code.py
 import os
 import json
-import pickle
-from collections import Counter, OrderedDict
-
-import cv2
 import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
-from torchvision import transforms, models
-from torchvision.models import ViT_B_16_Weights
+import torch.nn.functional as F
+from torchvision import models, transforms
+import cv2
 import threading
-from huggingface_hub import hf_hub_download
 
-# ==== LOAD FILES FROM HUGGING FACE HUB ====
-REPO_ID = "TuanVu219/Vit_Model"
+# =========================================================
+# CONFIG
+# =========================================================
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+IMG_SIZE = 224   # giống training
+TOPK = 5
 
-vit_ckpt_path = hf_hub_download(repo_id=REPO_ID, filename="vit_checkpoint.pth")
+# Path đến checkpoint và labels
+CKPT_PATH = os.path.join(os.path.dirname(__file__), "best_effnet_ema.pth")
+LABELS_JSON = os.path.join(os.path.dirname(__file__), "class_names.json")
 
-# ==== LOAD CLASS NAMES ====
-with open("core/class_names.json", "r", encoding="utf-8") as f:
+# =========================================================
+# LOAD LABELS
+# =========================================================
+with open(LABELS_JSON, "r", encoding="utf-8") as f:
     labels = json.load(f)
+
 idx2label = {i: l for i, l in enumerate(labels)}
 num_classes = len(labels)
 
-# ==== DEVICE ====
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Device:", device)
-
-# ==== BUILD ViT MODEL (match training head) ====
-def build_vit_model(num_classes: int, pretrained=True, device=None):
-    if pretrained:
-        vit = models.vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
-    else:
-        vit = models.vit_b_16(weights=None)
-    # get input features of original head
-    try:
-        in_features = vit.heads.head.in_features
-    except Exception:
-        # fall back if torchvision version different
-        in_features = vit.heads.in_features if hasattr(vit.heads, "in_features") else vit.heads.head.in_features
-
-    vit.heads.head = nn.Sequential(
-        nn.Linear(in_features, 512),
-        nn.ReLU(inplace=True),
-        nn.BatchNorm1d(512),
+# =========================================================
+# BUILD EfficientNet-B3 MODEL
+# =========================================================
+def build_efficientnet_b3(num_classes, pretrained=True, device=None):
+    model = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.IMAGENET1K_V1 if pretrained else None)
+    in_features = model.classifier[1].in_features
+    model.classifier = nn.Sequential(
         nn.Dropout(0.3),
-        nn.Linear(512, num_classes)
+        nn.Linear(in_features, num_classes)
     )
-    if device is not None:
-        vit.to(device)
-    return vit
+    if device:
+        model.to(device)
+    return model
 
-# ==== ROBUST CHECKPOINT LOADER ====
-def load_checkpoint_to_model(model, ckpt_path, use_ema_if_available=True, map_location=None):
-    """
-    Load checkpoint robustly:
-     - ckpt can be state_dict
-     - or dict with keys 'model' or 'ema'
-    Will try to use EMA if available and requested.
-    """
-    map_location = map_location or device
-    print("Loading checkpoint:", ckpt_path)
-    ckpt = torch.load(ckpt_path, map_location=map_location, weights_only=False)
-
-    # choose correct dict
-    if isinstance(ckpt, dict):
-        if use_ema_if_available and 'ema' in ckpt:
-            sd = ckpt['ema']
-            print("🔁 Loading 'ema' weights from checkpoint")
-        elif 'model' in ckpt:
-            sd = ckpt['model']
-            print("🔁 Loading 'model' weights from checkpoint")
-        else:
-            sd = ckpt
-            print("🔁 Loading raw state_dict from checkpoint (dict without 'model'/'ema')")
+# =========================================================
+# LOAD CHECKPOINT
+# =========================================================
+def load_checkpoint_to_model(model, ckpt_path, device):
+    if not os.path.exists(ckpt_path):
+        raise FileNotFoundError(f"❌ Checkpoint not found: {ckpt_path}")
+    print("🔁 Loading EMA checkpoint...")
+    ckpt = torch.load(ckpt_path, map_location=device)
+    if isinstance(ckpt, dict) and "ema" in ckpt:
+        sd = ckpt["ema"]
+    elif isinstance(ckpt, dict) and "model" in ckpt:
+        sd = ckpt["model"]
     else:
         sd = ckpt
 
-    # strip "module." if present
+    # strip "module." nếu có
     new_sd = {}
     for k, v in sd.items():
         if k.startswith("module."):
-            new_sd[k.replace("module.", "", 1)] = v
+            new_sd[k[7:]] = v
         else:
             new_sd[k] = v
 
-    # try load with strict=False to allow head mismatches
-    try:
-        model.load_state_dict(new_sd, strict=False)
-        print("✅ state_dict loaded (strict=False).")
-    except Exception as e:
-        print("Warning: load_state_dict with strict=False raised:", e)
-        # last resort: try to partially load keys
-        model_dict = model.state_dict()
-        loaded_keys = {k: v for k, v in new_sd.items() if k in model_dict and v.size() == model_dict[k].size()}
-        model_dict.update(loaded_keys)
-        model.load_state_dict(model_dict)
-        print("✅ Partial keys loaded into model.")
-
+    model.load_state_dict(new_sd, strict=True)
     model.to(device)
     model.eval()
+    print("✅ EMA model loaded.")
     return model
 
-# ==== INSTANTIATE MODEL & LOAD WEIGHTS ====
-_model=None
-_model_lock=threading.Lock()
-# ** UPDATE THIS PATH TO YOUR ViT CHECKPOINT **
-def get_vit_model():
+# =========================================================
+# MODEL SINGLETON (thread-safe)
+# =========================================================
+_model = None
+_model_lock = threading.Lock()
+
+def get_effnet_model():
     global _model
     if _model is None:
         with _model_lock:
             if _model is None:
-                print("🔹 Loading ViT model (only once)...")
-                model=build_vit_model(num_classes=num_classes, pretrained=True, device=device)
-                ckpt_path = vit_ckpt_path
-                if os.path.exists(ckpt_path):
-                    model=load_checkpoint_to_model(model, ckpt_path, use_ema_if_available=True, map_location=device)
-                else:
-                    print("⚠️ ViT checkpoint not found at:", ckpt_path)
-                model.to(device)
-                model.eval()
-                _model=model
+                print("🔹 Loading EfficientNet-B3 model (only once)...")
+                model = build_efficientnet_b3(num_classes=num_classes, pretrained=True, device=DEVICE)
+                model = load_checkpoint_to_model(model, CKPT_PATH, DEVICE)
+                _model = model
     return _model
-                
 
-# ==== TRANSFORM / PREPROCESS ====
-IMG_SIZE = 224
-transform = transforms.Compose([
+# =========================================================
+# TRANSFORM / PREPROCESS
+# =========================================================
+preprocess_transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
 ])
 
 def preprocess_canvas_image(img):
@@ -140,21 +107,25 @@ def preprocess_canvas_image(img):
     if img.mode != "RGB":
         img = img.convert("RGB")
     img = img.resize((IMG_SIZE, IMG_SIZE))
-    return transform(img).unsqueeze(0).to(device)
+    return preprocess_transform(img).unsqueeze(0).to(DEVICE)
 
-# ==== RECOGNITION (top-k) ====
-def recognize_char(img, k=5):
+# =========================================================
+# RECOGNITION
+# =========================================================
+def recognize_char(img, k=TOPK):
     """Nhận diện ký tự và trả về top-k nhãn dự đoán"""
-    model=get_vit_model()
+    model = get_effnet_model()
     x = preprocess_canvas_image(img)
     with torch.no_grad():
         logits = model(x)
-        probs = torch.softmax(logits, dim=1)[0]
+        probs = F.softmax(logits, dim=1)[0]
         top_probs, top_idxs = torch.topk(probs, k)
     results = [(idx2label[top_idxs[i].item()], float(top_probs[i].item())) for i in range(k)]
     return results  # list [(label, prob), ...]
 
-# ==== MERGE BOXES / RECOGNIZE & MERGE (giữ logic như code2) ====
+# =========================================================
+# MERGE BOXES
+# =========================================================
 def merge_boxes(boxes, min_dist=10):
     merged = []
     for (x, y, w, h) in sorted(boxes, key=lambda b: b[0]):
@@ -173,7 +144,7 @@ def merge_boxes(boxes, min_dist=10):
                 merged.append([x, y, w, h])
     return merged
 
-def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=None, k=5):
+def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=None, k=TOPK):
     n = len(boxes)
     merged_boxes = []
     i = 0
@@ -209,7 +180,7 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
                 preds = cache[key]
             else:
                 crop = Image.fromarray(gray[y1:y2c, x1:x2c]).convert("RGB")
-                preds = recognize_char(crop, k=k)  # list [(label, prob), ...]
+                preds = recognize_char(crop, k=k)
                 cache[key] = preds
 
             top_label, top_p = preds[0]
@@ -235,8 +206,10 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
 
     return merged_boxes  # [(box, predictions)]
 
-# ==== SEGMENT CHARACTERS ====
-def segment_characters_from_image(img, k=5):
+# =========================================================
+# SEGMENT CHARACTERS
+# =========================================================
+def segment_characters_from_image(img, k=TOPK):
     gray = np.array(img.convert("L"))
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     kernel = np.ones((2, 2), np.uint8)
@@ -248,25 +221,27 @@ def segment_characters_from_image(img, k=5):
     merged = recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, k=k)
     return merged  # [(box, predictions)]
 
-# ==== STROKES -> IMAGE ====
-def strokes_to_image(strokes, canvas_size=600):
+# =========================================================
+# STROKES -> IMAGE
+# =========================================================
+def strokes_to_image(strokes, canvas_size=600, filename="output.png"):
     img = np.zeros((canvas_size, canvas_size, 3), dtype=np.uint8)
     for stroke in strokes:
         for i in range(1, len(stroke)):
             x1, y1 = stroke[i - 1]
             x2, y2 = stroke[i]
-            # Ép kiểu an toàn
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), thickness=25, lineType=cv2.LINE_AA)
+    pil_img = Image.fromarray(img)
+    folder_path = os.path.dirname(os.path.abspath(__file__))
+    save_path = os.path.join(folder_path, filename)
+    pil_img.save(save_path)
+    print(f"✅ Image saved to {save_path}")
     return Image.fromarray(img)
 
-# ==== Các hàm hỗ trợ n-gram / JMdict (giữ nguyên từ code2) ====
+# =========================================================
+# HỖ TRỢ KIỂM TRA KANJI
+# =========================================================
 def is_kanji(word):
     """Kiểm tra từ toàn bộ là Kanji"""
     return all('\u4e00' <= c <= '\u9fff' for c in word)
-
-
-
-
-
-# Nếu muốn dùng trong callback (ví dụ notebook/web), có thể gọi segment_characters_from_image/strokes_to_image
