@@ -51,7 +51,7 @@ def load_checkpoint_to_model(model, ckpt_path, device):
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"❌ Checkpoint not found: {ckpt_path}")
     print("🔁 Loading EMA checkpoint...")
-    ckpt = torch.load(ckpt_path, map_location=device)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     if isinstance(ckpt, dict) and "ema" in ckpt:
         sd = ckpt["ema"]
     elif isinstance(ckpt, dict) and "model" in ckpt:
