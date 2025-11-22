@@ -33,15 +33,7 @@ public interface CompoundWordRepository extends JpaRepository<CompoundWords, Int
             " ORDER BY c.frequency DESC")
     Page<CompoundWords> findByKanjiId(@Param("kanjiId") Integer kanjiId, Pageable pageable);
 
-    @Query("SELECT c " +
-            "FROM CompoundWords c " +
-            "WHERE c.word LIKE %:word% " +
-            "ORDER BY c.frequency DESC")
-    Page<CompoundWords> findByWordContaining(String word, Pageable pageable);
-
-    List<CompoundWords> findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(String word, String meaning, String hiragana);
-
-    Page<CompoundWords> findByMeaningContainingAndIdNot(String keyword, Integer id, Pageable pageable);
+    List<CompoundWords> findByWordContainingOrMeaningContainingOrHiraganaContaining(String word, String meaning, String hiragana, Pageable pageable);
 
     @Query("""
         select distinct c
