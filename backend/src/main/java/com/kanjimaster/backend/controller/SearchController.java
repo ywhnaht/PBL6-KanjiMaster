@@ -25,8 +25,6 @@ public class SearchController {
     public ResponseEntity<ApiResponse<Object>> search(
             @RequestParam String q,
             @RequestParam(defaultValue = "full") String mode,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "8") int limit) {
 
         SearchMode searchMode = SearchMode.from(mode);
