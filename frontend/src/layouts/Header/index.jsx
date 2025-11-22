@@ -42,7 +42,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
   return (
     <header
       className={`relative z-[10000] bg-white/80 backdrop-blur-md shadow-sm h-18 flex items-center justify-between px-8 border-b border-gray-200 transition-all duration-300 ${
-        isModalOpen ? "brightness-38" : ""
+        isModalOpen ? "brightness-100" : ""
       }`}
     >
       <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">

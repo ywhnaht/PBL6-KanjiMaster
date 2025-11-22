@@ -37,6 +37,14 @@ export default function QuizSetup({
   }, [propLevel, propNumberOfQuestions]);
 
   useEffect(() => {
+  if (propNumberOfQuestions && propNumberOfQuestions !== numberOfQuestions) {
+    // Reset timer khi số câu hỏi thay đổi (quiz mới)
+    setTimeRemaining(0);
+    setIsTimerActive(false);
+  }
+}, [propNumberOfQuestions, numberOfQuestions]);
+
+  useEffect(() => {
     let interval;
     if (isMinimized && isTimerActive && timeRemaining > 0) {
       interval = setInterval(() => {
@@ -279,20 +287,6 @@ export default function QuizSetup({
                   Quiz Info
                 </h2>
               </div>
-
-              {/* 🎯 THÊM: Hiển thị trạng thái đăng nhập */}
-              {isAuthenticated && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center justify-center gap-2 text-green-700">
-                    <span className="material-symbols-outlined text-sm">
-                      check_circle
-                    </span>
-                    <span className="text-sm font-medium">
-                      Đã đăng nhập: {user?.full_name || user?.email}
-                    </span>
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-[#2F4454]/10 to-[#DA7B93]/10 p-4 rounded-xl">
