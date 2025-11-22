@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 
-const WEBSOCKET_URL = "wss://kanjiserver-production.up.railway.app/ws/recognize/";
+const WEBSOCKET_URL = "ws://localhost:8080/ws/recognize/";
 const THROTTLE_TIME = 50;
 
 export default function DrawBoard({ onClose, onSearchComplete }) {
