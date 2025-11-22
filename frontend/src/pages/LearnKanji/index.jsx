@@ -461,10 +461,9 @@ function LearnKanjiContent() {
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
-            isModalOpen={!!activeModal}
           />
           <main className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-[1500px] mx-auto">
+            <div className="max-w-[1800px] mx-auto">
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">😵</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -508,7 +507,6 @@ function LearnKanjiContent() {
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
-            isModalOpen={!!activeModal}
           />
           <main className="flex-1 overflow-y-auto p-8">
             <div className="max-w-[1500px] mx-auto">
@@ -536,7 +534,6 @@ function LearnKanjiContent() {
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
-            isModalOpen={!!activeModal}
           />
           <main className="flex-1 overflow-y-auto p-8">
             <div className="max-w-[1500px] mx-auto">

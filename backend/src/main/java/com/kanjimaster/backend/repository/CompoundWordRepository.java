@@ -42,4 +42,19 @@ public interface CompoundWordRepository extends JpaRepository<CompoundWords, Int
     List<CompoundWords> findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(String word, String meaning, String hiragana);
 
     Page<CompoundWords> findByMeaningContainingAndIdNot(String keyword, Integer id, Pageable pageable);
+
+    @Query("""
+        select distinct c
+        from CompoundWords c join CompoundKanji ck
+        on c.id = ck.compoundWord.id and c.example is not null
+        where ck.kanji.level = :level
+        order by function('rand') limit :limit
+    """)
+    List<CompoundWords> findRandomCompoundsByKanjiLevel(@Param("level") String level, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM compound_words " +
+            "WHERE hiragana LIKE CONCAT('%', :suffix) " +
+            "AND id != :originalId " +
+            "ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    List<CompoundWords> findDistractorsBySuffix(@Param("suffix") String suffix, @Param("originalId") Integer originalId, @Param("limit") int limit);
 }

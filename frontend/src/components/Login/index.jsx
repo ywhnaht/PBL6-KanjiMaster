@@ -112,7 +112,7 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
       {!showForgetPassword && (
         // 🎯 SỬA: Thêm onClick để xử lý click bên ngoài
         <div 
-          className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4 z-[10001]"
           onClick={handleOverlayClick} // 🎯 CLICK OVERLAY ĐÓNG MODAL
         >
           {/* 🎯 SỬA: Thêm stopPropagation để ngăn click trong modal lan ra ngoài */}
