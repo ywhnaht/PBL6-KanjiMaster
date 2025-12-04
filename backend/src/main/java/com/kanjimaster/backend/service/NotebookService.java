@@ -15,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,7 +85,9 @@ public class NotebookService {
                 .entityType(notebookEntry.getEntityType())
                 .user(user)
                 .notebook(notebook)
-                .reviewCount(0)
+                .lastReviewed(LocalDateTime.now())
+                .nextReviewDate(LocalDate.now().plusDays(3))
+                .reviewCount(1)
                 .build();
 
         if (notebookEntry.getEntityType().equals(NotebookEntryType.KANJI)) {

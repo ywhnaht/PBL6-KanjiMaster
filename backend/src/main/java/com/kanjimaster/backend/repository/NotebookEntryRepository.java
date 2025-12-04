@@ -1,6 +1,8 @@
 package com.kanjimaster.backend.repository;
 
 import com.kanjimaster.backend.model.entity.NotebookEntry;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +36,9 @@ public interface NotebookEntryRepository extends JpaRepository<NotebookEntry, In
     void deleteByIdAndUserId(Integer id, String userId);
     void deleteAllByIdInAndUserId(List<Integer> ids, String userId);
 
+    @Query("SELECT ne FROM NotebookEntry ne " +
+            "WHERE ne.user.id = :userId " +
+            "AND (ne.nextReviewDate IS NULL OR ne.nextReviewDate <= CURRENT_DATE) " +
+            "ORDER BY ne.nextReviewDate ASC")
+    Page<NotebookEntry> findDueEntries(@Param("userId") String userId, Pageable pageable);
 }
