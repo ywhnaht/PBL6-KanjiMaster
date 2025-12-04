@@ -18,5 +18,6 @@ public class CompoundWordDetailDto {
     String example;
     String exampleMeaning;
 
+    List<Integer> saveNotebookIds;
     List<CompoundWordDto> relatedWords;
 }

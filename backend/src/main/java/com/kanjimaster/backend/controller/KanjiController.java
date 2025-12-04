@@ -30,12 +30,12 @@ import java.util.Optional;
 public class KanjiController {
     KanjiService kanjiService;
     CompoundWordService compoundWordService;
-    TranslationService translationService;
 
     @GetMapping("/{id}")
     @Operation(summary = "Lấy thông tin Kanji theo ID")
     public ResponseEntity<ApiResponse<KanjiDto>> getKanjiById(@PathVariable Integer id) {
-        KanjiDto kanjiDto = kanjiService.getKanjiById(id);
+        String currentUserId = SecurityUtils.getCurrentUserId().orElse(null);
+        KanjiDto kanjiDto = kanjiService.getKanjiById(id, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(kanjiDto, "Kanji found!"));
     }
 
@@ -47,11 +47,6 @@ public class KanjiController {
         KanjiDto kanjiDto = kanjiService.getKanjiDetailandView(kanjiId, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(kanjiDto, "Kanji found!"));
     }
-
-   @GetMapping("/search")
-   public ResponseEntity<ApiResponse<KanjiDto>> searchKanji(@RequestParam String key) {
-       return ResponseEntity.ok(ApiResponse.success(kanjiService.getKanjiByCharacter(key), "Kanji found"));
-   }
 
     @Operation(summary = "Tìm kanji bằng hán việt")
     @GetMapping("/search/han")
@@ -74,17 +69,6 @@ public class KanjiController {
         PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevelWithStatus(level, currentUserId, page, size);
         return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
     }
-
-//    @Operation(summary = "Lấy danh sách kanji theo level của user kèm phân trang với page và size")
-//    @GetMapping("/level")
-//    public ResponseEntity<ApiResponse<PagedResponse<KanjiBasicDto>>> getKanjiByLevelWithStatus(
-//            @RequestParam String level,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "5") int size) {
-//
-//        PagedResponse<KanjiBasicDto> kanjis = kanjiService.getKanjiByLevel(level, page, size);
-//        return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji Found"));
-//    }
 
     @Operation(summary = "Lấy danh sách từ ghép theo kanji id kèm phân trang")
     @GetMapping("/{id}/compounds")

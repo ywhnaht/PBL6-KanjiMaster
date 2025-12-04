@@ -8,7 +8,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.TimeZone;
 
-@EnableWebMvc
 @EnableAsync
 @SpringBootApplication
 public class BackendApplication {

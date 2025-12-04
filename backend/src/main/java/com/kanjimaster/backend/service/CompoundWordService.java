@@ -8,6 +8,7 @@ import com.kanjimaster.backend.model.dto.CompoundWordDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.repository.CompoundWordRepository;
+import com.kanjimaster.backend.repository.NotebookEntryRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,6 +27,7 @@ public class CompoundWordService {
     CompoundWordRepository compoundWordRepository;
     TranslationService translationService;
     CompoundWordMapper compoundWordMapper;
+    NotebookEntryRepository notebookEntryRepository;
 
     public CompoundWords translateIfNull(CompoundWords compoundWords) {
         String meaning = compoundWords.getMeaning();
@@ -52,7 +54,7 @@ public class CompoundWordService {
         return compoundWords;
     }
 
-    public CompoundWordDetailDto getById(Integer id) {
+    public CompoundWordDetailDto getById(Integer id, String userId) {
         CompoundWords words = compoundWordRepository.findById(id).orElseThrow(() -> new RuntimeException("Compound not found"));
         translateIfNull(words);
 
@@ -65,17 +67,15 @@ public class CompoundWordService {
                 .map(this::translateIfNull)
                 .collect(Collectors.toList());
 
-        return compoundWordMapper.toDetailDto(words, filteredRelated);
-    }
+        List<Integer> savedNotebookIds = new ArrayList<>();
+        if (userId != null) {
+            savedNotebookIds = notebookEntryRepository.findNotebookIdsByCompoundId(userId, id);
+        }
 
-    public CompoundWords getCompoundWordByWord(String word) {
-        CompoundWords words = compoundWordRepository.findByWordOrHiragana(word, word).orElseThrow(() -> new RuntimeException("Compound word not found!"));
-        translateIfNull(words);
-        return words;
+        return compoundWordMapper.toDetailDto(words, filteredRelated, savedNotebookIds);
     }
 
     public PagedResponse<CompoundWords> getCompoundWordByMeaning(String meaning, int page, int size) {
-//        String key = "%" + meaning + "%";
         Page<CompoundWords> wordsPage = compoundWordRepository.findByMeaningFullText(meaning, PageRequest.of(page, size));
         Page<CompoundWords> update = wordsPage.map(this::translateIfNull);
         return PagedMapper.map(update);

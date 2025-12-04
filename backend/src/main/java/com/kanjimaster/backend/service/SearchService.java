@@ -47,8 +47,8 @@ public class SearchService {
         return CompletableFuture.completedFuture(result);
     }
 
-    @Cacheable(value = "seach_suggest", key = "#query + '-' + #mode + '-' + #limit", unless = "#result == null")
-    public SearchSuggestResponse searchSuggest(String query, SearchMode mode, int limit) {
+    @Cacheable(value = "seach_suggest", key = "#query + '-' + #mode + '-' + #limit + '-' + #userId", unless = "#result == null")
+    public SearchSuggestResponse searchSuggest(String query, SearchMode mode, int limit, String userId) {
         String q = (query == null) ? "" : query.trim();
 
         if (q.isEmpty()) {
@@ -101,9 +101,9 @@ public class SearchService {
         if (mode == SearchMode.FULL) {
             if (result != null) {
                 if (result.getType().equals("KANJI")) {
-                    initialResult = kanjiService.getKanjiById(result.getId());
+                    initialResult = kanjiService.getKanjiById(result.getId(), userId);
                 } else if (result.getType().equals("COMPOUND")) {
-                    initialResult = compoundWordService.getById(result.getId());
+                    initialResult = compoundWordService.getById(result.getId(), userId);
                 }
             }
         }
