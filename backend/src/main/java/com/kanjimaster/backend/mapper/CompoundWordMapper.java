@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Context;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface CompoundWordMapper {
@@ -29,12 +30,16 @@ public interface CompoundWordMapper {
         return dto;
     }
 
-    default CompoundWordDetailDto toDetailDto(CompoundWords mainWord, List<CompoundWords> relatedWords) {
+    default CompoundWordDetailDto toDetailDto(CompoundWords mainWord,
+                                              List<CompoundWords> relatedWords,
+                                              List<Integer> savedIds) {
         if (mainWord == null) {
             return null;
         }
 
         CompoundWordDetailDto detailDto = toDetailDto(mainWord);
+
+        detailDto.setSaveNotebookIds(Objects.requireNonNullElseGet(savedIds, List::of));
 
         // Dùng lại phương thức toDtoList để map danh sách các từ liên quan
         if (relatedWords != null) {

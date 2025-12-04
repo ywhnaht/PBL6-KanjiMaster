@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Context;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mapper(
         componentModel = "spring",
@@ -20,11 +21,17 @@ public interface KanjiMapper {
 
     List<KanjiDto> toDtoList(List<Kanji> entities);
 
-    default KanjiDto toDtoWithCompoundWords(Kanji kanji, List<CompoundWords> compoundWords, @Context CompoundWordMapper compoundWordMapper) {
+    default KanjiDto toDtoWithCompoundWords(Kanji kanji,
+                                            List<CompoundWords> compoundWords,
+                                            List<Integer> saveIds,
+                                            @Context CompoundWordMapper compoundWordMapper) {
         if (kanji == null) {
             return null;
         }
         KanjiDto dto = toDto(kanji);
+
+        dto.setSaveNotebookIds(Objects.requireNonNullElseGet(saveIds, List::of));
+
         if (compoundWords != null) {
             dto.setCompoundWords(compoundWordMapper.toDtoList(compoundWords));
         }

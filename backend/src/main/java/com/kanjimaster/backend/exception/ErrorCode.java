@@ -19,9 +19,14 @@ public enum ErrorCode {
     ACCESS_DENIED(1009, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN),
     INVALID_INPUT(1010, "Đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_ACCESS_TOKEN(1011, "Access token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED),
+    NOTEBOOK_EXISTS(1012, "Notebook với tên này đã tồn tại", HttpStatus.BAD_REQUEST),
+    NOTEBOOK_NOT_FOUND(1013, "Notebook không tồn tại", HttpStatus.NOT_FOUND),
+    NOTEBOOK_UNAUTHORIZED(1014, "Bạn không có quyền truy cập notebook này", HttpStatus.UNAUTHORIZED),
+    ENTRY_NOT_FOUND(1013, "NotebookEntry không tồn tại", HttpStatus.NOT_FOUND),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
+    COMPOUND_NOT_FOUND(2002, "Không tìm thấy Compound", HttpStatus.NOT_FOUND),
 
     // Infrastructure Errors (3xxx)
     REDIS_CONNECTION_FAILURE(3001, "Không thể kết nối đến máy chủ Redis", HttpStatus.INTERNAL_SERVER_ERROR);

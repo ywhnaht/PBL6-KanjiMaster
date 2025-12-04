@@ -3,6 +3,7 @@ package com.kanjimaster.backend.controller;
 import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.model.entity.SearchMode;
 import com.kanjimaster.backend.service.SearchService;
+import com.kanjimaster.backend.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,9 @@ public class SearchController {
             @RequestParam(defaultValue = "full") String mode,
             @RequestParam(defaultValue = "8") int limit) {
 
+        String userId = SecurityUtils.getCurrentUserId().orElse(null);
         SearchMode searchMode = SearchMode.from(mode);
-        Object data = searchService.searchSuggest(q, searchMode, limit);
+        Object data = searchService.searchSuggest(q, searchMode, limit, userId);
 
         boolean empty = (data instanceof SearchSuggestResponse ss && ss.getResults().isEmpty());
 

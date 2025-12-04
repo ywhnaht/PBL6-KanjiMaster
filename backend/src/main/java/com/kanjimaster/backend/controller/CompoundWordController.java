@@ -6,6 +6,7 @@ import com.kanjimaster.backend.model.entity.Kanji;
 import com.kanjimaster.backend.service.CompoundWordService;
 import com.kanjimaster.backend.service.KanjiService;
 import com.kanjimaster.backend.service.TranslationService;
+import com.kanjimaster.backend.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +29,12 @@ public class CompoundWordController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CompoundWordDetailDto>> getById(@PathVariable Integer id) {
-        CompoundWordDetailDto compoundWord = compoundWordService.getById(id);
+        String userId = SecurityUtils.getCurrentUserId().orElse(null);
+        CompoundWordDetailDto compoundWord = compoundWordService.getById(id,  userId);
         if (compoundWord != null)
             return ResponseEntity.ok(ApiResponse.success(compoundWord, "Compound found!"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Compound not found!"));
     }
-
-//    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<CompoundWords>> getCompoundWordByWord(@RequestParam String word) {
-//        return ResponseEntity.ok(ApiResponse.success(compoundWordService.getCompoundWordByWord(word), "Compound word found!"));
-//    }
 
     @GetMapping("/translate")
     public ResponseEntity<ApiResponse<PagedResponse<CompoundWords>>> getCompoundWordByMeaning(
@@ -54,7 +51,8 @@ public class CompoundWordController {
     @Operation(summary = "Lấy 2 từ kanji bằng id từ ghép")
     @GetMapping("/{id}/kanji")
     public ResponseEntity<ApiResponse<List<KanjiDto>>> getKanjiByCompoundId(@PathVariable Integer id) {
-        List<KanjiDto> kanjis = kanjiService.getKanjiByCompoundId(id);
+        String userId = SecurityUtils.getCurrentUserId().orElse(null);
+        List<KanjiDto> kanjis = kanjiService.getKanjiByCompoundId(id, userId);
         if (!kanjis.isEmpty())
             return ResponseEntity.ok(ApiResponse.success(kanjis, "Kanji found!"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Kanji not found!"));

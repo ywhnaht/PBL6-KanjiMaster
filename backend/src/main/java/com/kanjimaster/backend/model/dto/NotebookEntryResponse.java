@@ -1,0 +1,25 @@
+package com.kanjimaster.backend.model.dto;
+
+import com.kanjimaster.backend.model.entity.CompoundWords;
+import com.kanjimaster.backend.model.entity.Kanji;
+import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class NotebookEntryResponse {
+    Integer entryId;
+    NotebookEntryType entityType;
+    Integer entityId;
+    String text;
+    String meaning;
+    Integer reviewCount;
+    LocalDateTime createdAt;
+}
