@@ -10,13 +10,13 @@ import _ from "lodash";
 const useSearchStore = create((set, get) => ({
   query: "",
   results: [],
+  searchResults: [], // 🆕 Lưu toàn bộ kết quả từ API search (với type)
   wordDetail: null,
   kanjiDetail: null,
   isLoading: false,
   compoundPage: 0,
   compoundTotalPages: 0,
   suggestCache: {},
-  // THÊM: state mới để lưu ID hiện tại
   currentWordId: null,
   currentKanjiId: null,
   compoundKanjis: [],
@@ -25,7 +25,6 @@ const useSearchStore = create((set, get) => ({
   setResults: (results) => set({ results }),
   setLoading: (isLoading) => set({ isLoading }),
   setCompoundPage: (page) => set({ compoundPage: page }),
-  // THÊM: các function mới
   setCurrentWordId: (id) => set({ currentWordId: id }),
   setCurrentKanjiId: (id) => set({ currentKanjiId: id }),
   
@@ -33,6 +32,7 @@ const useSearchStore = create((set, get) => ({
     set({
       query: "",
       results: [],
+      searchResults: [], // 🆕
       wordDetail: null,
       kanjiDetail: null,
       isLoading: false,
@@ -47,14 +47,19 @@ const useSearchStore = create((set, get) => ({
   // --- fetchSuggest với debounce ---
   fetchSuggest: _.debounce(async (searchValue) => {
     if (!searchValue.trim()) {
-      set({ results: [], isLoading: false });
+      set({ results: [], searchResults: [], isLoading: false });
       return [];
     }
 
     const { suggestCache } = get();
     if (suggestCache[searchValue]) {
-      set({ results: suggestCache[searchValue], isLoading: false });
-      return suggestCache[searchValue];
+      const cached = suggestCache[searchValue];
+      set({ 
+        results: cached, 
+        searchResults: cached, // 🆕 Lưu full results
+        isLoading: false 
+      });
+      return cached;
     }
 
     set({ isLoading: true });
@@ -62,13 +67,14 @@ const useSearchStore = create((set, get) => ({
       const res = await getSearch(searchValue);
       set((state) => ({
         results: res,
+        searchResults: res, // 🆕 Lưu full results
         isLoading: false,
         suggestCache: { ...state.suggestCache, [searchValue]: res },
       }));
       return res;
     } catch (error) {
       console.error("fetchSuggest error:", error);
-      set({ results: [], isLoading: false });
+      set({ results: [], searchResults: [], isLoading: false });
       return [];
     }
   }, 500),
@@ -88,7 +94,6 @@ const useSearchStore = create((set, get) => ({
         data.initials.svgUrl = data.initials.svgLink;
       }
 
-      // THÊM: lưu kanjiId khi fetch thành công
       set({ 
         kanjiDetail: data, 
         wordDetail: null, 
@@ -126,7 +131,6 @@ const useSearchStore = create((set, get) => ({
         relatedWords: data.relatedWords || [],
       };
 
-      // THÊM: lưu wordId khi fetch thành công
       set({ 
         wordDetail, 
         kanjiDetail: null, 
@@ -143,7 +147,7 @@ const useSearchStore = create((set, get) => ({
 
   // --- fetch chi tiết Compound -> Kanji ---
   fetchCompoundKanji: async (id) => {
-    console.log("🔥 fetchCompoundKanji called with id:", id); // log id
+    console.log("🔥 fetchCompoundKanji called with id:", id);
     if (!id) {
       console.warn("❌ fetchCompoundKanji: id is undefined or null");
       return [];
@@ -152,7 +156,7 @@ const useSearchStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const kanjis = await getCompoundKanji(id);
-      console.log("✅ Kanji fetched:", kanjis); // log kết quả
+      console.log("✅ Kanji fetched:", kanjis);
       set({ compoundKanjis: kanjis, isLoading: false });
       return kanjis;
     } catch (error) {

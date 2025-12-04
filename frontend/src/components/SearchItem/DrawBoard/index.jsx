@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 
-const WEBSOCKET_URL = "wss://kanjiserver-production.up.railway.app/ws/recognize/";
+const WEBSOCKET_URL = "ws://localhost:8080/ws/recognize/";
 const THROTTLE_TIME = 50;
 
 export default function DrawBoard({ onClose, onSearchComplete }) {
@@ -11,11 +11,17 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
     const currentStroke = useRef([]);
     const lastPoint = useRef(null);
     const lastSentTimeRef = useRef(0);
+    
+    // Lưu tất cả các nét đã vẽ (không xóa khi undo)
+    const allStrokes = useRef([]);
+    // Số lượng nét hiện tại đang hiển thị
+    const displayedStrokeCount = useRef(0);
 
     // eslint-disable-next-line no-unused-vars
     const [wsStatus, setWsStatus] = useState("Đang kết nối...");
     const [predictions, setPredictions] = useState([]);
     const [hasDrawn, setHasDrawn] = useState(false);
+    const [canUndo, setCanUndo] = useState(false);
 
     const displayPredictions = useCallback((predictionsData) => {
         if (!predictionsData || predictionsData.length === 0) {
@@ -46,12 +52,56 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
 
         comboScores.sort((a, b) => b.prob - a.prob);
 
-        const topResults = comboScores.slice(0, 5).map(c => ({
+        // eslint-disable-next-line no-undef
+        const topResults = comboSScore.slice(0, 5).map(c => ({
             chars: c.chars,
             probPercent: (c.prob * 100).toFixed(1)
         }));
 
         setPredictions(topResults);
+    }, []);
+
+    const redrawCanvas = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !ctxRef.current) return;
+
+        // Xóa canvas
+        ctxRef.current.fillStyle = "#FFFFFF";
+        ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Chỉ vẽ các nét đang được hiển thị
+        const strokesToDraw = allStrokes.current.slice(0, displayedStrokeCount.current);
+        
+        strokesToDraw.forEach(stroke => {
+            if (stroke.length > 0) {
+                ctxRef.current.beginPath();
+                ctxRef.current.moveTo(stroke[0][0], stroke[0][1]);
+
+                for (let i = 1; i < stroke.length; i++) {
+                    ctxRef.current.lineTo(stroke[i][0], stroke[i][1]);
+                }
+                ctxRef.current.stroke();
+                ctxRef.current.closePath();
+            }
+        });
+    }, []);
+
+    const sendAllStrokes = useCallback(() => {
+        const strokesToSend = allStrokes.current.slice(0, displayedStrokeCount.current);
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && strokesToSend.length > 0) {
+            const canvas = canvasRef.current;
+            const message = {
+                action: "strokes",
+                strokes: strokesToSend,
+                canvas_size: { width: canvas.width, height: canvas.height },
+            };
+            wsRef.current.send(JSON.stringify(message));
+        } else if (displayedStrokeCount.current === 0) {
+            // Nếu không còn nét nào, gửi clear
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({ action: "clear" }));
+            }
+        }
     }, []);
 
     const clearCanvas = useCallback(() => {
@@ -61,8 +111,11 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
             ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
 
             currentStroke.current = [];
+            allStrokes.current = [];
+            displayedStrokeCount.current = 0;
             setPredictions([]);
             setHasDrawn(false);
+            setCanUndo(false);
 
             if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                 wsRef.current.send(JSON.stringify({ action: "clear" }));
@@ -70,18 +123,20 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
         }
     }, []);
 
-    const sendStroke = useCallback(() => {
-        const stroke = currentStroke.current;
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && stroke.length > 0) {
-            const canvas = canvasRef.current;
-            const message = {
-                action: "stroke",
-                stroke: stroke,
-                canvas_size: { width: canvas.width, height: canvas.height },
-            };
-            wsRef.current.send(JSON.stringify(message));
+    const undoStroke = useCallback(() => {
+        if (displayedStrokeCount.current > 0) {
+            // Giảm số lượng nét hiển thị đi 1 (chỉ ảnh hưởng đến hiển thị)
+            displayedStrokeCount.current--;
+            setCanUndo(displayedStrokeCount.current > 0);
+            setHasDrawn(displayedStrokeCount.current > 0);
+
+            // Vẽ lại canvas với số nét mới
+            redrawCanvas();
+
+            // Gửi tất cả các nét còn lại lên server
+            sendAllStrokes();
         }
-    }, []);
+    }, [redrawCanvas, sendAllStrokes]);
 
     const handlePredictionClick = useCallback((text) => {
         if (text) {
@@ -127,7 +182,6 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
                     displayPredictions(data.predictions);
                 }
             } catch (e) {
-                // Giữ lại lỗi console để debug
                 console.error("Lỗi xử lý tin nhắn:", e);
             }
         };
@@ -200,7 +254,20 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
                 }
             }
 
-            sendStroke();
+            // Lưu nét vẽ mới vào allStrokes
+            if (currentStroke.current.length > 0) {
+                // Nếu đã undo trước đó, xóa các nét cũ không hiển thị
+                if (displayedStrokeCount.current < allStrokes.current.length) {
+                    allStrokes.current = allStrokes.current.slice(0, displayedStrokeCount.current);
+                }
+                
+                allStrokes.current.push([...currentStroke.current]);
+                displayedStrokeCount.current = allStrokes.current.length;
+                setCanUndo(true);
+            }
+
+            // Gửi tất cả các nét lên server
+            sendAllStrokes();
         }
     };
 
@@ -265,9 +332,10 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
                         <span className="material-symbols-outlined">delete</span>
                     </button>
                     <button
-                        className="p-2 rounded-full text-gray-400 cursor-not-allowed"
-                        title="Hoàn tác (Chưa hỗ trợ)"
-                        disabled
+                        onClick={undoStroke}
+                        disabled={!canUndo}
+                        className={`p-2 rounded-full transition-colors ${canUndo ? 'hover:bg-gray-100 cursor-pointer' : 'text-gray-400 cursor-not-allowed'}`}
+                        title="Quay lại nét vẽ"
                     >
                         <span className="material-symbols-outlined">undo</span>
                     </button>

@@ -1,15 +1,17 @@
-import React, { useState, useCallback } from "react"; // Thêm useCallback
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DrawBoard from "../DrawBoard";
 import useSearchStore from "../../../store/useSearchStore";
 
 export default function Search({ placeholder = "日本, nihon, ひらがな" }) {
     const navigate = useNavigate();
+    const dropdownRef = useRef(null);
     const {
         query,
         results,
         setQuery,
         fetchSuggest,
+        // eslint-disable-next-line no-unused-vars
         reset,
         fetchCompoundDetail,
         fetchKanjiDetail,
@@ -22,12 +24,28 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
 
     const icons = ["keyboard", "draw", "mic", "document_scanner"];
 
-    // 🔥 Tách logic gọi API gợi ý ra thành hàm riêng
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        if (showDropdown) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [showDropdown]);
+
     const triggerSuggestSearch = useCallback(async (value) => {
         setShowDropdown(true);
 
         if (value.trim() === "") {
-            reset();
+            // 🆕 Chỉ ẩn dropdown khi input rỗng, không reset dữ liệu
+            setShowDropdown(false);
             return;
         }
 
@@ -36,32 +54,24 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
         } catch (error) {
             console.error("❌ Lỗi khi gọi API:", error);
         }
-    }, [fetchSuggest, reset]);
+    }, [fetchSuggest]);
 
     const handleChange = async (e) => {
         const value = e.target.value;
         setQuery(value);
-        await triggerSuggestSearch(value); // Gọi hàm tìm gợi ý
+        await triggerSuggestSearch(value);
     };
     
-    // 🔥 HÀM MỚI: Xử lý khi DrawBoard hoàn tất
     const handleDrawComplete = useCallback(async (text) => {
-        setQuery(text); // Cập nhật state query (input)
-        
-        // Kích hoạt tìm kiếm gợi ý bằng giá trị mới
+        setQuery(text);
         await triggerSuggestSearch(text);
-        
-        // Mở dropdown để hiển thị kết quả gợi ý
         setShowDropdown(true); 
     }, [setQuery, triggerSuggestSearch]);
 
-
     const handleSelect = async (item) => {
-        setQuery(item.text);
         setShowDropdown(false);
-        setShowDrawBoard(false); // Đóng DrawBoard khi chọn từ dropdown
+        setShowDrawBoard(false);
 
-        // Xác định type
         const type = item.type === "KANJI" ? "kanji" : "word";
 
         if (type === "kanji") {
@@ -85,7 +95,7 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
     };
 
     return (
-        <div className="relative group z-10">
+        <div className="relative group z-10" ref={dropdownRef}>
             {/* Ô tìm kiếm */}
             <input
                 type="text"
@@ -104,7 +114,12 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
                 {icons.map((icon, i) => (
                     <button
                         key={i}
-                        onClick={() => icon === "draw" && setShowDrawBoard(!showDrawBoard)}
+                        onClick={() => {
+                            if (icon === "draw") {
+                                setShowDrawBoard(!showDrawBoard);
+                                setShowDropdown(false);
+                            }
+                        }}
                         className="w-10 h-10 flex items-center justify-center rounded-full 
                                 hover:bg-gray-100 transition-all duration-300 hover:scale-110"
                     >
@@ -155,7 +170,6 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
             {/* DrawBoard */}
             {showDrawBoard && (
                 <DrawBoard
-                    // 🔥 SỬA: Truyền hàm handleDrawComplete vào prop onSearchComplete
                     onSearchComplete={handleDrawComplete} 
                     onClose={() => setShowDrawBoard(false)}
                 />
