@@ -1,9 +1,9 @@
 INSERT INTO notebooks (user_id, name, description, created_at)
 VALUES
-('cad1dddc-8499-4d93-8ed8-b75c9f1d13d6', 'Kanji N5 Cấp Tốc', 'Bộ từ vựng ôn thi JLPT N5 trong 30 ngày', NOW()),
-('cad1dddc-8499-4d93-8ed8-b75c9f1d13d6', 'Từ vựng đời sống', 'Những từ ghép hay gặp trong anime và manga', NOW()),
+('1', 'Kanji N5 Cấp Tốc', 'Bộ từ vựng ôn thi JLPT N5 trong 30 ngày', NOW()),
+('1', 'Từ vựng đời sống', 'Những từ ghép hay gặp trong anime và manga', NOW()),
 
-('47f1f12c-619a-4046-9057-e4374fcaa695', 'Kanji Khó Nhớ', 'Danh sách các chữ hay viết sai', NOW());
+('2', 'Kanji Khó Nhớ', 'Danh sách các chữ hay viết sai', NOW());
 
 INSERT INTO notebook_entries (notebook_id, user_id, entity_type, kanji_id, compound_id, review_count, last_reviewed, next_review_date)
 SELECT id, user_id, 'KANJI', 1, NULL, 5, DATE_SUB(NOW(), INTERVAL 1 DAY), CURDATE()
