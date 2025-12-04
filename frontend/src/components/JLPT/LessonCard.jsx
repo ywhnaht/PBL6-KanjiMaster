@@ -199,6 +199,7 @@ const GlobalKanjiModal = React.memo(() => {
         examples={kanjiDetail.kanjiExamples || []}
         query={kanjiDetail.kanji}
         hideHeader={true}
+        hideRelatedResults={true}  // 🆕 THÊM PROP NÀY
       />
     );
   }, [kanjiDetail, kanjiData]);

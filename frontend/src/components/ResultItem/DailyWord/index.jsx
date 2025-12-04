@@ -8,6 +8,7 @@ export default function DailyWord({ history = [] }) {
     { kanji: "施設", reading: "しせつ", meaning: "cơ sở; cơ sở vật chất" },
     { kanji: "た", reading: "", meaning: "thể quá khứ" },
   ];
+  console.log("History data:", history);
 
   return (
     <>
@@ -66,7 +67,7 @@ export default function DailyWord({ history = [] }) {
                   key={i}
                   className="px-3 py-1 bg-[#2F4454]/5 rounded-full text-sm text-[#2F4454] hover:bg-[#DA7B93]/10 hover:text-[#DA7B93] transition-all border border-[#2F4454]/10"
                 >
-                  {item}
+                  {typeof item === 'string' ? item : item.kanji}
                 </button>
               ))}
             </div>

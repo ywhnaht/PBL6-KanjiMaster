@@ -6,9 +6,9 @@ export default function WordResult({
   word,
   hiragana,
   meaning,
-  examples = [], // đã map sẵn từ SearchResult
+  examples = [],
   relatedWords = [],
-  query = "", // Thêm prop query từ component cha
+  query = "",
 }) {
   const navigate = useNavigate();
   const {
@@ -16,42 +16,39 @@ export default function WordResult({
     fetchKanjiDetail,
     fetchCompoundDetail,
     fetchCompoundKanji,
-    setQuery, // Thêm để cập nhật input
-    setCurrentWordId, // Thêm để lưu wordId
+    setQuery,
+    setCurrentWordId,
+    query: queryFromStore, // 🆕 Lấy query từ store
   } = useSearchStore();
 
-  // Sử dụng query từ prop hoặc fallback sang word
-  const displayQuery = query || word || "-";
+  // 🔧 Ưu tiên query từ store (giá trị gốc người dùng gõ)
+  const displayQuery = queryFromStore || query || word || "-";
 
   const handleNavigate = async (id, type, newWord = "") => {
     if (!id) return;
 
-    // Cập nhật input với từ mới nếu có
     if (newWord) {
       setQuery(newWord);
     }
 
     if (type === "kanji") {
-      await fetchKanjiDetail(id); // lấy chi tiết Kanji
+      await fetchKanjiDetail(id);
     } else {
-      await fetchCompoundDetail(id); // lấy chi tiết từ ghép
-      await fetchCompoundKanji(id); // lấy Kanji cấu thành
-      setCurrentWordId(id); // Lưu wordId hiện tại
+      await fetchCompoundDetail(id);
+      await fetchCompoundKanji(id);
+      setCurrentWordId(id);
     }
 
     navigate(`/search/${type}/${id}`);
   };
 
-  // Hàm xử lý click vào từ liên quan
   const handleRelatedWordClick = (relatedWord) => {
     if (!relatedWord?.id) return;
 
-    // Cập nhật input với từ liên quan
     if (relatedWord.word) {
       setQuery(relatedWord.word);
     }
 
-    // Lưu wordId và fetch chi tiết
     setCurrentWordId(relatedWord.id);
     handleNavigate(relatedWord.id, "word", relatedWord.word);
   };
@@ -127,17 +124,14 @@ export default function WordResult({
                     key={ex.id || i}
                     className="border-l-4 border-blue-200 pl-4 py-2"
                   >
-                    {/* Câu gốc (tiếng Nhật) */}
                     <p className="text-lg font-medium text-gray-800">
                       {ex.sentence || ex.example}
                     </p>
-                    {/* Nghĩa tiếng Việt */}
                     {ex.meaning && (
                       <p className="text-gray-500 text-sm italic">
                         {ex.meaning}
                       </p>
                     )}
-                    {/* Nghĩa tiếng Anh (nếu có) */}
                     {ex.meaningEn && (
                       <p className="text-gray-400 text-sm">{ex.meaningEn}</p>
                     )}
