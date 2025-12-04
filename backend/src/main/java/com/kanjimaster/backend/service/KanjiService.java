@@ -11,6 +11,7 @@ import com.kanjimaster.backend.model.dto.KanjiDto;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.entity.*;
 import com.kanjimaster.backend.repository.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -114,5 +115,10 @@ public class KanjiService {
         }).toList();
 
         return result;
+    }
+
+    @Cacheable("kanji_total_counts")
+    public long countByLevel(String level) {
+        return kanjiRepository.countByLevel(level);
     }
 }

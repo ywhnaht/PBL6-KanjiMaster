@@ -23,6 +23,7 @@ public enum ErrorCode {
     NOTEBOOK_NOT_FOUND(1013, "Notebook không tồn tại", HttpStatus.NOT_FOUND),
     NOTEBOOK_UNAUTHORIZED(1014, "Bạn không có quyền truy cập notebook này", HttpStatus.UNAUTHORIZED),
     ENTRY_NOT_FOUND(1013, "NotebookEntry không tồn tại", HttpStatus.NOT_FOUND),
+    UNAUTHORIZED(1014, "Yêu cầu xác thực không thành công", HttpStatus.UNAUTHORIZED),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
