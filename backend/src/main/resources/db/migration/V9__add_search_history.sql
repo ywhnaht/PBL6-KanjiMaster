@@ -19,5 +19,5 @@ CREATE TABLE search_history (
                                 INDEX idx_search_history_user (user_id, search_timestamp DESC)
 );
 
-CREATE INDEX idx_srs_review2
+CREATE INDEX idx_srs_review3
     ON notebook_entries (user_id, next_review_date);
