@@ -12,7 +12,9 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public abstract class NotebookMapper {
+    @Mapping(target = "totalEntries", expression = "java(calculateTotalEntries(notebook))")
     public abstract NotebookDto toNotebookDto(Notebook notebook);
+
     public abstract List<NotebookDto> toNotebookDtoList(List<Notebook> notebooks);
 
     @Mapping(target = "totalEntries", expression = "java(calculateTotalEntries(notebook))")
@@ -28,6 +30,7 @@ public abstract class NotebookMapper {
     @Mapping(target = "entryId", source = "id")
     @Mapping(target = "text", ignore = true)
     @Mapping(target = "meaning", ignore = true)
+    @Mapping(target = "entityReading", ignore = true)
     @Mapping(target = "entityId", ignore = true)
     public abstract NotebookEntryResponse toEntryResponse(NotebookEntry entry);
 
@@ -38,12 +41,14 @@ public abstract class NotebookMapper {
 
             target.setText(source.getKanji().getKanji());
             target.setMeaning(source.getKanji().getHanViet());
+            target.setEntityReading(source.getKanji().getJoyoReading());
         }
         else if (source.getEntityType() == NotebookEntryType.COMPOUND && source.getCompoundWords() != null) {
             target.setEntityId(source.getCompoundWords().getId());
 
             target.setText(source.getCompoundWords().getWord());
             target.setMeaning(source.getCompoundWords().getMeaning());
+            target.setEntityReading(source.getCompoundWords().getReading());
         }
     }
 

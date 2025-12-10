@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +82,34 @@ public class NotebookService {
             throw new AppException(ErrorCode.NOTEBOOK_UNAUTHORIZED);
         }
 
+        boolean exists = notebook.getNotebookEntries().stream().anyMatch(ne -> {
+            if (notebookEntry.getEntityType() == NotebookEntryType.KANJI) {
+                return ne.getEntityType() == NotebookEntryType.KANJI &&
+                        ne.getKanji() != null &&
+                        ne.getKanji().getId().equals(notebookEntry.getEntityId());
+            } else {
+                return ne.getEntityType() == NotebookEntryType.COMPOUND &&
+                        ne.getCompoundWords() != null &&
+                        ne.getCompoundWords().getId().equals(notebookEntry.getEntityId());
+            }
+        });
+
+        if (exists) {
+            String entryName = "";
+
+            if (notebookEntry.getEntityType() == NotebookEntryType.KANJI) {
+                entryName = kanjiRepository.findById(notebookEntry.getEntityId())
+                        .map(Kanji::getKanji)
+                        .orElse("Kanji ID " + notebookEntry.getEntityId());
+            } else {
+                entryName = compoundWordRepository.findById(notebookEntry.getEntityId())
+                        .map(CompoundWords::getWord)
+                        .orElse("Word ID " + notebookEntry.getEntityId());
+            }
+
+            throw new AppException(ErrorCode.ENTRY_EXISTS, entryName, notebook.getName());
+        }
+
         NotebookEntry newNotebookEntry = NotebookEntry.builder()
                 .entityType(notebookEntry.getEntityType())
                 .user(user)
@@ -91,7 +120,8 @@ public class NotebookService {
                 .build();
 
         if (notebookEntry.getEntityType().equals(NotebookEntryType.KANJI)) {
-            Kanji kanji = kanjiRepository.findById(notebookEntry.getEntityId()).orElseThrow(() -> new AppException(ErrorCode.KANJI_NOT_FOUND));
+            Kanji kanji = kanjiRepository.findById(notebookEntry.getEntityId())
+                    .orElseThrow(() -> new AppException(ErrorCode.KANJI_NOT_FOUND));
             newNotebookEntry.setKanji(kanji);
         }
         else if (notebookEntry.getEntityType().equals(NotebookEntryType.COMPOUND)) {

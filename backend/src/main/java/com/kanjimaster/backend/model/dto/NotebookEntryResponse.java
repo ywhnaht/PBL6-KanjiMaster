@@ -18,6 +18,7 @@ public class NotebookEntryResponse {
     Integer entryId;
     NotebookEntryType entityType;
     Integer entityId;
+    String entityReading;
     String text;
     String meaning;
     Integer reviewCount;

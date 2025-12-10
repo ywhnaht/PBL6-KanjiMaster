@@ -20,6 +20,7 @@ public class NotebookDto {
     Integer id;
     String name;
     String description;
+    Integer totalEntries;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }
