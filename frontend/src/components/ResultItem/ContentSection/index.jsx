@@ -2,10 +2,17 @@ import React from "react";
 import DailyWord from "../DailyWord";
 import SearchResult from "../SearchResult";
 
-export default function ContentSection({ query, type, results = [], history = [] }) {
+export default function ContentSection({ 
+  query, 
+  type, 
+  results = [], 
+  history = [],
+  axiosPrivateHook,
+  isAuthenticated,
+  accessToken
+}) {
   const firstResult = results[0];
 
-  // Chuẩn hóa data word
   const wordData = {
     word: firstResult?.word || query,
     reading: firstResult?.reading || "",
@@ -32,7 +39,6 @@ export default function ContentSection({ query, type, results = [], history = []
     ],
   };
 
-  // Tách query thành từng kanji (ví dụ 恋愛 => ["恋", "愛"])
   const kanjiList = (firstResult?.kanji || query || "")
     .split("")
     .map((char) => {
@@ -77,13 +83,19 @@ export default function ContentSection({ query, type, results = [], history = []
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <div className="space-y-6">
         {!query ? (
-          <DailyWord history={history} />
+          // 🎯 DailyWord nhận đầy đủ props
+          <DailyWord 
+            history={history}
+            axiosPrivateHook={axiosPrivateHook}
+            isAuthenticated={isAuthenticated}
+            accessToken={accessToken}
+          />
         ) : (
           <SearchResult
             type={type}
             query={query}
             wordData={wordData}
-            kanjiData={kanjiList} // 👈 truyền danh sách kanji
+            kanjiData={kanjiList}
             examples={wordData.examples}
             compounds={wordData.compounds}
             relatedResults={wordData.relatedResults}

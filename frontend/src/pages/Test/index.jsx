@@ -5,7 +5,7 @@ import QuizSetup from "../../components/Quiz/QuizSetup";
 import QuizContainer from "../../components/Quiz/QuizContainer";
 import LoginModal from "../../components/Login";
 import useQuizStore from "../../store/useQuizStore";
-import { useAuthStore } from "../../store/useAuthStore"; // 🎯 THÊM: Import useAuthStore
+import { useAuthStore } from "../../store/useAuthStore";
 
 const Test = () => {
   const [showQuizSetup, setShowQuizSetup] = useState(true);
