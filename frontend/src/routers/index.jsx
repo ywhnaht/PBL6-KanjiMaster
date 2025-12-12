@@ -1,18 +1,24 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
-import Test from "../pages/Test"; // Import component Test
+import Test from "../pages/Test";
 import LearnKanji from "../pages/LearnKanji";
 import VerificationPage from "../pages/VerificationPage";
 import ResetPasswordPage from "../pages/ResetPassword";
 import Notebook from "../pages/Notebook";
 import NBDetail from "../pages/NBDetail";
+import BattlePage from "../pages/Battle";
+import LeaderboardPage from "../pages/Leaderboard";
+import BattleHistoryPage from "../pages/BattleHistory";
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/home" element={<Home />} />
-      <Route path="/test" element={<Test />} /> {/* Thêm route cho Test */}
+      <Route path="/test" element={<Test />} />
       <Route path="/jlpt" element={<LearnKanji />} />
+      <Route path="/battle" element={<BattlePage />} />
+      <Route path="/leaderboard" element={<LeaderboardPage />} />
+      <Route path="/battle-history" element={<BattleHistoryPage />} />
       <Route path="/verify-email" element={<VerificationPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/notebook" element={<Notebook />} />
