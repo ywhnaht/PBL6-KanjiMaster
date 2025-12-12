@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +23,7 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     User user;

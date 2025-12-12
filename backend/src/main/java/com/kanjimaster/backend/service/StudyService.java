@@ -3,7 +3,7 @@ package com.kanjimaster.backend.service;
 import com.kanjimaster.backend.model.dto.StudySessionDto;
 import com.kanjimaster.backend.model.entity.Kanji;
 import com.kanjimaster.backend.model.entity.NotebookEntry;
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import com.kanjimaster.backend.repository.KanjiRepository;
 import com.kanjimaster.backend.repository.NotebookEntryRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 

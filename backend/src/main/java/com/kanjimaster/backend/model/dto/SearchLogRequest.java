@@ -1,6 +1,6 @@
 package com.kanjimaster.backend.model.dto;
 
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import lombok.Data;
 
 @Data

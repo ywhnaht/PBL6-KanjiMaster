@@ -4,7 +4,7 @@ import com.kanjimaster.backend.mapper.PagedMapper;
 import com.kanjimaster.backend.mapper.SearchHistoryMapper;
 import com.kanjimaster.backend.model.dto.PagedResponse;
 import com.kanjimaster.backend.model.dto.SearchHistoryDto;
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import com.kanjimaster.backend.model.entity.SearchHistory;
 import com.kanjimaster.backend.model.entity.User;
 import com.kanjimaster.backend.repository.SearchHistoryRepository;

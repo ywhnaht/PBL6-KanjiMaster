@@ -3,6 +3,7 @@ package com.kanjimaster.backend.service;
 import com.kanjimaster.backend.exception.KanjiNotFoundException;
 import com.kanjimaster.backend.model.dto.KanjiCountByLevelDto;
 import com.kanjimaster.backend.model.entity.*;
+import com.kanjimaster.backend.model.enums.LearnStatus;
 import com.kanjimaster.backend.repository.KanjiProgressRepository;
 import com.kanjimaster.backend.repository.KanjiRepository;
 import com.kanjimaster.backend.repository.UserRepository;

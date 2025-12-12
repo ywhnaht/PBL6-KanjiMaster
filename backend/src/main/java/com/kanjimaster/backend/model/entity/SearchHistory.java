@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;

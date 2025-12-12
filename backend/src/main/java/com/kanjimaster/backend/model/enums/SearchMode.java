@@ -1,4 +1,4 @@
-package com.kanjimaster.backend.model.entity;
+package com.kanjimaster.backend.model.enums;
 
 public enum SearchMode {
     SUGGEST,

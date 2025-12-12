@@ -1,7 +1,7 @@
 package com.kanjimaster.backend.mapper;
 
 import com.kanjimaster.backend.model.dto.SearchHistoryDto;
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import com.kanjimaster.backend.model.entity.SearchHistory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

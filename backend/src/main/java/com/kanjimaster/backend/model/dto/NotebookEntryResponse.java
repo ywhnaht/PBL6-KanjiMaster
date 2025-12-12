@@ -1,12 +1,9 @@
 package com.kanjimaster.backend.model.dto;
 
-import com.kanjimaster.backend.model.entity.CompoundWords;
-import com.kanjimaster.backend.model.entity.Kanji;
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data

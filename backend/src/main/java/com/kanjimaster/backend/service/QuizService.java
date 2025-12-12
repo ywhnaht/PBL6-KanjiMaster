@@ -5,6 +5,7 @@ import com.kanjimaster.backend.exception.ErrorCode;
 import com.kanjimaster.backend.model.dto.QuizItem;
 import com.kanjimaster.backend.model.dto.QuizResultDto;
 import com.kanjimaster.backend.model.entity.*;
+import com.kanjimaster.backend.model.enums.QuestionType;
 import com.kanjimaster.backend.repository.*;
 import com.kanjimaster.backend.util.QuizUtils;
 import lombok.AccessLevel;
@@ -17,9 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor

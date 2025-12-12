@@ -1,8 +1,8 @@
 package com.kanjimaster.backend.controller;
 
 import com.kanjimaster.backend.model.dto.*;
-import com.kanjimaster.backend.model.entity.NotebookEntryType;
-import com.kanjimaster.backend.model.entity.SearchMode;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
+import com.kanjimaster.backend.model.enums.SearchMode;
 import com.kanjimaster.backend.service.SearchHistoryService;
 import com.kanjimaster.backend.service.SearchService;
 import com.kanjimaster.backend.util.SecurityUtils;

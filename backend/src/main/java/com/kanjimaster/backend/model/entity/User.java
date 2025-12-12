@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
     String email;
+    
+    @JsonIgnore
     String password;
 
     @CreatedDate
@@ -32,9 +35,11 @@ public class User {
     @Column(name = "is_verified")
     boolean isVerified = false;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     UserProfile userProfile;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
             @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))

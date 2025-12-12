@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.config;
 
+import com.kanjimaster.backend.websocket.BattleWebSocketHandler;
 import com.kanjimaster.backend.websocket.RecognitionWebSocketHandler;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +17,15 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class WebSocketConfig implements WebSocketConfigurer {
     RecognitionWebSocketHandler recognitionWebSocketHandler;
+    BattleWebSocketHandler battleWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(recognitionWebSocketHandler, "/ws/recognize/")
+                .setAllowedOriginPatterns("*");
+        
+        // Battle WebSocket endpoint
+        registry.addHandler(battleWebSocketHandler, "/ws/battle")
                 .setAllowedOriginPatterns("*");
     }
 }
