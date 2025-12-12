@@ -62,6 +62,9 @@ public class WebConfig {
                                 "/api/v1/users/progress/summary",
                                 "/api/v1/suggest/**",
                                 "/api/v1/compound/**",
+                                
+                                // Battle leaderboard - public
+                                "/api/battle/leaderboard",
 
                                 // Swagger UI
                                 "/v3/api-docs/**",

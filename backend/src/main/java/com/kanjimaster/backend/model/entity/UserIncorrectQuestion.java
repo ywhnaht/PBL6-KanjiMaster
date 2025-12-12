@@ -1,5 +1,6 @@
 package com.kanjimaster.backend.model.entity;
 
+import com.kanjimaster.backend.model.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

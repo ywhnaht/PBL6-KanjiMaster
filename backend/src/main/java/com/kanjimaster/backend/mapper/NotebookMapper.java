@@ -5,7 +5,7 @@ import com.kanjimaster.backend.model.dto.NotebookDto;
 import com.kanjimaster.backend.model.dto.NotebookEntryResponse;
 import com.kanjimaster.backend.model.entity.Notebook;
 import com.kanjimaster.backend.model.entity.NotebookEntry;
-import com.kanjimaster.backend.model.entity.NotebookEntryType; // Đảm bảo đã import Enum này
+import com.kanjimaster.backend.model.enums.NotebookEntryType; // Đảm bảo đã import Enum này
 import org.mapstruct.*;
 
 import java.util.List;

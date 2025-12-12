@@ -1,10 +1,9 @@
 package com.kanjimaster.backend.service;
 
-import com.kanjimaster.backend.mapper.KanjiMapper;
 import com.kanjimaster.backend.model.dto.*;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.Kanji;
-import com.kanjimaster.backend.model.entity.SearchMode;
+import com.kanjimaster.backend.model.enums.SearchMode;
 import com.kanjimaster.backend.repository.CompoundWordRepository;
 import com.kanjimaster.backend.repository.KanjiRepository;
 import lombok.AccessLevel;

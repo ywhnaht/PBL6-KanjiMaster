@@ -97,13 +97,46 @@ public class JwtService {
         }
     }
 
-    private Claims extractAllClaims(String token) {
+    // NEW: Validate token without UserDetails
+    public boolean validateToken(String token) {
+        try {
+            if (isTokenExpired(token)) {
+                return false;
+            }
+            if (isTokenInBlacklist(token)) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // NEW: Extract userId from token (email is used as userId)
+    public String extractUserId(String token) {
+        return extractEmail(token);
+    }
+
+    // NEW: Make extractAllClaims public for custom claim extraction
+    public Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
                 .verifyWith((SecretKey) getSignInKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    // NEW: Build token with extra claims
+    public String buildTokenWithClaims(Map<String, Object> extraClaims, String subject, long expiration) {
+        return Jwts.builder()
+                .claims(extraClaims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SignatureAlgorithm.HS256, getSignInKey())
+                .setId(UUID.randomUUID().toString())
+                .compact();
     }
 
     private Key getSignInKey() {

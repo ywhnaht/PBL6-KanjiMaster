@@ -1,6 +1,6 @@
 package com.kanjimaster.backend.model.dto;
 
-import com.kanjimaster.backend.model.entity.QuestionType;
+import com.kanjimaster.backend.model.enums.QuestionType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -1,0 +1,19 @@
+package com.kanjimaster.backend.model.dto.battle;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class BattleStatsDto {
+    long totalBattles;
+    long totalWins;
+    long totalLosses;
+    long totalDraws;
+    double winRate;
+    int highestScore;
+    String favoriteLevel;
+}

@@ -11,6 +11,8 @@ export default function Sidebar() {
     { icon: "school", label: "JLPT", path: "/jlpt" },
     { icon: "bookmark", label: "My Word", path: "/notebook" },
     { icon: "quiz", label: "Test", path: "/test" },
+    { icon: "swords", label: "Battle", path: "/battle" },
+    { icon: "emoji_events", label: "Leaderboard", path: "/leaderboard" },
     { icon: "settings", label: "Setting", path: "/setting" },
     { icon: "block", label: "Block", path: "/block" },
   ];
@@ -62,6 +64,8 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative ${
                   isActive(menu.path)
                     ? "bg-gradient-to-r from-[#DA7B93]/20 to-[#2F4454]/10 text-[#2F4454] shadow-sm border border-[#DA7B93]/30"
+                    : menu.highlight
+                    ? "text-gray-700 hover:bg-gradient-to-r hover:from-[#DA7B93]/10 hover:to-[#2F4454]/10 hover:text-[#2F4454] border border-[#DA7B93]/20"
                     : "text-gray-700 hover:bg-[#2F4454]/5 hover:text-[#2F4454]"
                 } ${isCollapsed ? "justify-center" : ""}`}
                 title={isCollapsed ? menu.label : ""}

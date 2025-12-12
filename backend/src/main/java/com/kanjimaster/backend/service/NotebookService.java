@@ -8,6 +8,7 @@ import com.kanjimaster.backend.model.dto.NotebookDetailDto;
 import com.kanjimaster.backend.model.dto.NotebookDto;
 import com.kanjimaster.backend.model.dto.NotebookEntryRequest;
 import com.kanjimaster.backend.model.entity.*;
+import com.kanjimaster.backend.model.enums.NotebookEntryType;
 import com.kanjimaster.backend.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
