@@ -9,7 +9,7 @@ export default function Sidebar() {
   const menus = [
     { icon: "search", label: "Search", path: "/home" },
     { icon: "school", label: "JLPT", path: "/jlpt" },
-    { icon: "bookmark", label: "My Word", path: "/bookmark" },
+    { icon: "bookmark", label: "My Word", path: "/notebook" },
     { icon: "quiz", label: "Test", path: "/test" },
     { icon: "settings", label: "Setting", path: "/setting" },
     { icon: "block", label: "Block", path: "/block" },

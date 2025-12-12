@@ -26,6 +26,8 @@ public class KanjiDto {
     String radical;
     String strokes;
     String svgLink;
+
+    List<Integer> saveNotebookIds;
     List<CompoundWordDto> compoundWords;
     List<KanjiExampleDto> kanjiExamples;
 }

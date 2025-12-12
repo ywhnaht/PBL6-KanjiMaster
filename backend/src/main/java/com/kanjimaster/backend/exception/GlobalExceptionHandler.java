@@ -2,8 +2,10 @@ package com.kanjimaster.backend.exception;
 
 import com.kanjimaster.backend.model.dto.ApiResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
@@ -11,17 +13,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.nio.file.AccessDeniedException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
 @RestControllerAdvice(basePackages = "com.kanjimaster.backend.controller")
+@Slf4j
 public class GlobalExceptionHandler {
-    @ExceptionHandler
+    @ExceptionHandler(value = AppException.class)
     public ResponseEntity<ApiResponse<?>> handleAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
-        return createErrorResponse(errorCode);
+        return createErrorResponse(errorCode, exception);
     }
 
     @ExceptionHandler(value = BadCredentialsException.class)
@@ -36,7 +34,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse<?>> handleUncategorizedException(Exception exception) {
-        return createErrorResponse(ErrorCode.UNCATEGORIZED_EXCEPTION, exception.getMessage());
+        log.error("Uncategorized error occurred: ", exception);
+        return createErrorResponse(ErrorCode.UNCATEGORIZED_EXCEPTION);
     }
 
     @ExceptionHandler(KanjiNotFoundException.class)
@@ -76,6 +75,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
                 .body(ApiResponse.error(errorCode.getMessage(), errorCode.name()));
+    }
+
+    private ResponseEntity<ApiResponse<?>> createErrorResponse(ErrorCode errorCode, AppException exception) {
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(ApiResponse.error(exception.getMessage(), errorCode.name()));
     }
 
     private ResponseEntity<ApiResponse<?>> createErrorResponse(ErrorCode errorCode, String customMessage) {

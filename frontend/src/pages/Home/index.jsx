@@ -6,7 +6,8 @@ import ContentSection from "../../components/ResultItem/ContentSection";
 import SearchSection from "../../components/SearchItem/SearchSection";
 import LoginModal from "../../components/Login";
 import RegisterModal from "../../components/Register";
-import { useAuthStore } from "../../store/useAuthStore"; // 🎯 THÊM: Import useAuthStore
+import { useAuthStore } from "../../store/useAuthStore";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // dictionary mẫu
 const dictionary = [
@@ -27,18 +28,19 @@ const dictionary = [
 export default function Home() {
   const { type, value } = useParams();
   const navigate = useNavigate();
+  const axiosPrivateHook = useAxiosPrivate();
 
   const [activeModal, setActiveModal] = useState(null);
   const [results, setResults] = useState([]);
   const [history, setHistory] = useState(["優勝", "施設"]);
   
-  // 🎯 THÊM: State cho modal chào mừng
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [welcomeCountdown, setWelcomeCountdown] = useState(3);
   
-  const { user } = useAuthStore(); // 🎯 THÊM: Lấy thông tin user
+  // 🎯 THÊM: Lấy cả isAuthenticated, user, accessToken
+  const { user, isAuthenticated, accessToken } = useAuthStore();
 
-  // 🎯 THÊM: Effect cho countdown modal chào mừng
+  // 🎯 THÊM: Countdown timer cho welcome modal
   useEffect(() => {
     let interval;
     if (showWelcomeModal && welcomeCountdown > 0) {
@@ -47,11 +49,12 @@ export default function Home() {
       }, 1000);
     } else if (welcomeCountdown === 0) {
       setShowWelcomeModal(false);
-      setWelcomeCountdown(3); // Reset cho lần sau
+      setWelcomeCountdown(3);
     }
     return () => clearInterval(interval);
   }, [showWelcomeModal, welcomeCountdown]);
 
+  // 🎯 THÊM: Search filter logic
   useEffect(() => {
     if (value) {
       const filtered = dictionary.filter(
@@ -78,15 +81,15 @@ export default function Home() {
   const handleOpenRegister = () => setActiveModal('register');
   const handleCloseModal = () => setActiveModal(null);
 
-  // 🎯 SỬA: Cập nhật handler login success
   const handleLoginSuccess = () => {
     handleCloseModal();
-    // Hiển thị modal chào mừng
     setShowWelcomeModal(true);
     setWelcomeCountdown(3);
+    console.log("✅ Login successful, showing welcome modal");
+    // 🎯 THÊM: Log auth state để debug
+    console.log("🔐 Auth state after login:", { isAuthenticated, user: user?.fullName, accessToken: !!accessToken });
   };
 
-  // 🎯 THÊM: Component Modal chào mừng
   const WelcomeModal = () => {
     if (!showWelcomeModal) return null;
 
@@ -142,7 +145,6 @@ export default function Home() {
 
   return (
     <div id="webcrumbs">
-      {/* SỬA: Tăng brightness lên 95 và bỏ transition để tránh lag */}
       <div className={`flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 ${
         activeModal ? 'brightness-95' : 'brightness-100'
       }`}>
@@ -154,17 +156,22 @@ export default function Home() {
           />
           <main className="flex-1 overflow-y-auto p-8">
             <SearchSection currentType={type} onSelect={handleSearch} />
+            
+            {/* 🎯 SỬA: Truyền axios + isAuthenticated + accessToken xuống ContentSection */}
             <ContentSection
               query={value || ""}
               type={type}
               results={results}
               history={history}
+              axiosPrivateHook={axiosPrivateHook}
+              isAuthenticated={isAuthenticated}
+              accessToken={accessToken}
             />
           </main>
         </div>
       </div>
 
-      {/* SỬA: Giảm opacity backdrop và bỏ backdrop-blur để tăng performance */}
+      {/* Modal Backdrop + Login/Register */}
       {activeModal && (
         <div className="fixed inset-0 z-[9999] bg-black/10 transition-all duration-200">
           <div className="relative z-[10000] w-full h-full flex items-center justify-center">
@@ -172,7 +179,7 @@ export default function Home() {
               <LoginModal
                 onClose={handleCloseModal}
                 onSwitchToRegister={() => setActiveModal('register')}
-                onLoginSuccess={handleLoginSuccess} // 🎯 SỬA: Dùng handler mới
+                onLoginSuccess={handleLoginSuccess}
               />
             )}
 
@@ -186,7 +193,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🎯 THÊM: Welcome Modal */}
+      {/* Welcome Modal - hiển thị sau khi đăng nhập */}
       <WelcomeModal />
     </div>
   );
