@@ -25,8 +25,9 @@ class BattleWebSocket {
       const response = await getBattleToken(axiosPrivate);
       this.battleToken = response.data.token;
 
-      // Connect WebSocket with battle token
-      this.ws = new WebSocket(`ws://localhost:8080/ws/battle?token=${this.battleToken}`);
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host; // kanjimaster.xyz hoặc localhost
+      this.ws = new WebSocket(`${wsProtocol}//${wsHost}/ws/battle?token=${this.battleToken}`);
 
       this.ws.onopen = () => {
         console.log('✅ Battle WebSocket connected');
