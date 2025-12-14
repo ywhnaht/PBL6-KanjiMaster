@@ -23,15 +23,12 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: './',
+  base: '/',  // ✅ HOẶC không có dòng base
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        // 🆕 XÓA HOẶC SỬA REWRITE
-        // rewrite: (path) => path.replace(/^\/api/, '/api'), // Giữ nguyên
-        // Hoặc đơn giản xóa dòng rewrite
       },
     },
   },
