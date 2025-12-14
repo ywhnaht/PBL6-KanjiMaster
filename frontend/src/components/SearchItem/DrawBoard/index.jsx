@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 
-const WS_URL = "ws://web-production-a4fdd2.up.railway.app/ws/recognize/";
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsHost = window.location.host;
+const WS_URL = `${wsProtocol}//${wsHost}/ws/recognize/`;
 const THROTTLE_TIME = 50;
 
 export default function DrawBoard({ onClose, onSearchComplete }) {

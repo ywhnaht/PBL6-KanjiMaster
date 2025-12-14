@@ -47,7 +47,9 @@ export const useBattleWebSocket = () => {
       setBattleToken(token);
 
       // Create WebSocket connection
-      const websocket = new WebSocket(`ws://localhost:8080/ws/battle?token=${token}`);
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host;
+      const websocket = new WebSocket(`${wsProtocol}//${wsHost}/ws/battle?token=${token}`);
       wsRef.current = websocket;
 
       websocket.onopen = () => {
