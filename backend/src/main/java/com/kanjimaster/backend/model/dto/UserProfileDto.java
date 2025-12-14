@@ -14,6 +14,7 @@ public class UserProfileDto {
     String email;
     String fullName;
     String avatarUrl;
+    String bio;
     Integer totalKanjiLearned;
     Integer streakDays;
 }
