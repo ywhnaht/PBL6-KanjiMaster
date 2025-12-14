@@ -261,14 +261,11 @@ const useNotebookStore = create(
       },
 
       // 🎯 SỬA: getSearchSuggestions - chỉ dùng level parameter
-      getSearchSuggestions: async (axios, level = 5) => {
+      getSearchSuggestions: async (axios) => {
         set({ error: null });
         try {
-          console.log("💡 Fetching search suggestions:", { level });
           
-          const response = await axios.get("/api/v1/suggest/today", {
-            params: { level }, // 🎯 SỬA: Chỉ truyền level, không phải page/limit
-          });
+          const response = await axios.get("/api/v1/suggest/today");
 
           console.log("✅ Search suggestions response:", response.data);
 

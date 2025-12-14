@@ -24,7 +24,7 @@ public class StudyController {
 
     @GetMapping("/today")
     public ResponseEntity<ApiResponse<List<StudySessionDto>>> getTodaySession(
-            @RequestParam(required = false, defaultValue = "5") String level
+            @RequestParam(required = false) String level
     ) {
         String userId = SecurityUtils.getCurrentUserId().orElse(null);
 
