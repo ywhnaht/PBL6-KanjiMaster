@@ -49,10 +49,6 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
-
-    env_file:
-      - .env
-
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
