@@ -90,6 +90,17 @@ export default function Header({ onOpenLogin, isModalOpen }) {
           {/* 🔔 Notification Bell */}
           {isLoggedIn && <NotificationDropdown />}
 
+          {/* 👑 Admin Panel - Only visible for ADMIN users */}
+          {isLoggedIn && user?.roles?.some(role => role.name === 'ADMIN') && (
+            <button
+              onClick={() => navigate("/admin/dashboard")}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-500 to-rose-400 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-200"
+            >
+              <span className="text-lg">👑</span>
+              <span>Admin Panel</span>
+            </button>
+          )}
+
           {/* 🔥 Streak Counter */}
           {isLoggedIn && (
             <div
