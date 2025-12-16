@@ -57,7 +57,7 @@ export default function BattleHistoryPage() {
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: vi });
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: vi });
     } catch {
       return dateString;
     }

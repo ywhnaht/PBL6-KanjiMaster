@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
-export default function NotificationToast({ notification, onClose }) {
+function NotificationToast({ notification, onClose }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const isDark = useDarkModeStore((state) => state.isDark);
 
   useEffect(() => {
     if (notification) {
@@ -17,9 +19,10 @@ export default function NotificationToast({ notification, onClose }) {
 
       return () => {
         clearTimeout(timer);
-        setIsVisible(false);
-        setIsClosing(false);
       };
+    } else {
+      setIsVisible(false);
+      setIsClosing(false);
     }
   }, [notification]);
 
@@ -27,6 +30,7 @@ export default function NotificationToast({ notification, onClose }) {
     setIsClosing(true);
     setTimeout(() => {
       setIsVisible(false);
+      setIsClosing(false);
       onClose();
     }, 300); // Match animation duration
   };
@@ -71,7 +75,11 @@ export default function NotificationToast({ notification, onClose }) {
           : 'translate-x-full opacity-0'
       }`}
     >
-      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm min-w-[320px] backdrop-blur-sm">
+      <div className={`rounded-xl shadow-2xl border p-4 max-w-sm min-w-[320px] backdrop-blur-sm transition-all ${
+        isDark
+          ? 'bg-slate-800 border-slate-700'
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="flex items-start gap-3">
           {/* Icon */}
           <div
@@ -86,10 +94,14 @@ export default function NotificationToast({ notification, onClose }) {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-[#2F4454] truncate">
+            <h4 className={`text-sm font-semibold truncate ${
+              isDark ? 'text-slate-100' : 'text-[#2F4454]'
+            }`}>
               {notification.title}
             </h4>
-            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+            <p className={`text-xs mt-1 line-clamp-2 ${
+              isDark ? 'text-slate-400' : 'text-gray-600'
+            }`}>
               {notification.message}
             </p>
           </div>
@@ -97,9 +109,13 @@ export default function NotificationToast({ notification, onClose }) {
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+              isDark
+                ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200'
+                : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+            }`}
           >
-            <span className="material-symbols-outlined text-gray-400 text-lg">
+            <span className="material-symbols-outlined text-lg">
               close
             </span>
           </button>
@@ -108,3 +124,5 @@ export default function NotificationToast({ notification, onClose }) {
     </div>
   );
 }
+
+export default memo(NotificationToast);

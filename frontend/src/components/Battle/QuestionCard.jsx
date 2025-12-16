@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const QuestionCard = ({ 
   question, 
@@ -10,6 +11,8 @@ const QuestionCard = ({
   showResult,
   result
 }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
+  
   if (!question) return null;
   
   const isAnswerDisabled = selectedAnswer !== null || showResult;
@@ -20,19 +23,33 @@ const QuestionCard = ({
       key={`question-${currentQuestionIndex}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#DA7B93]/20"
+      className={`rounded-2xl shadow-xl overflow-hidden border transition-colors duration-300 ${
+        isDark
+          ? 'bg-slate-800 border-slate-700'
+          : 'bg-white border-[#DA7B93]/20'
+      }`}
     >
-      <div className="p-6 border-b border-gray-100">
+      <div className={`p-6 border-b transition-colors duration-300 ${
+        isDark ? 'border-slate-700' : 'border-gray-100'
+      }`}>
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="inline-block px-3 py-1 bg-gradient-to-r from-[#2F4454]/10 to-[#DA7B93]/10 text-[#2F4454] rounded-full text-sm font-medium border border-[#DA7B93]/20">
+            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${
+              isDark
+                ? 'bg-slate-700/50 text-slate-200 border-slate-600'
+                : 'bg-gradient-to-r from-[#2F4454]/10 to-[#DA7B93]/10 text-[#2F4454] border-[#DA7B93]/20'
+            }`}>
               Kanji Battle
             </span>
-            <span className="text-sm text-gray-500 font-medium">
+            <span className={`text-sm font-medium transition-colors duration-300 ${
+              isDark ? 'text-slate-400' : 'text-gray-500'
+            }`}>
               Câu {currentQuestionIndex + 1}/{totalQuestions}
             </span>
           </div>
-          <h2 className="text-lg md:text-xl font-bold text-[#2F4454] mb-2">
+          <h2 className={`text-lg md:text-xl font-bold mb-2 transition-colors duration-300 ${
+            isDark ? 'text-slate-100' : 'text-[#2F4454]'
+          }`}>
             {question.questionText}
           </h2>
         </div>
@@ -40,10 +57,16 @@ const QuestionCard = ({
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-gradient-to-r from-[#2F4454]/5 to-[#DA7B93]/5 rounded-lg p-4"
+          className={`rounded-lg p-4 transition-colors duration-300 ${
+            isDark
+              ? 'bg-slate-700/50'
+              : 'bg-gradient-to-r from-[#2F4454]/5 to-[#DA7B93]/5'
+          }`}
         >
           <div
-            className="text-xl md:text-2xl text-center font-medium text-[#2F4454]"
+            className={`text-xl md:text-2xl text-center font-medium transition-colors duration-300 ${
+              isDark ? 'text-slate-200' : 'text-[#2F4454]'
+            }`}
             dangerouslySetInnerHTML={{ __html: question.sentence }}
           />
         </motion.div>
@@ -61,20 +84,32 @@ const QuestionCard = ({
             
             if (showResult && result) {
               if (isCorrect) {
-                optionClass = 'bg-green-100 border-2 border-green-500 text-green-800';
+                optionClass = isDark 
+                  ? 'bg-green-900/30 border-2 border-green-700 text-green-300' 
+                  : 'bg-green-100 border-2 border-green-500 text-green-800';
                 icon = <span className="material-symbols-outlined text-green-600">check_circle</span>;
               } else if (isSelected && !isCorrect) {
-                optionClass = 'bg-red-100 border-2 border-red-500 text-red-800';
+                optionClass = isDark 
+                  ? 'bg-red-900/30 border-2 border-red-700 text-red-300' 
+                  : 'bg-red-100 border-2 border-red-500 text-red-800';
                 icon = <span className="material-symbols-outlined text-red-600">cancel</span>;
               } else {
-                optionClass = 'bg-gray-100 border-2 border-gray-200 text-gray-500';
+                optionClass = isDark 
+                  ? 'bg-slate-700 border-2 border-slate-600 text-slate-400' 
+                  : 'bg-gray-100 border-2 border-gray-200 text-gray-500';
               }
             } else if (isSelected) {
-              optionClass = 'bg-[#DA7B93]/20 border-2 border-[#DA7B93] text-[#2F4454]';
+              optionClass = isDark 
+                ? 'bg-slate-600 border-2 border-[#DA7B93] text-slate-100' 
+                : 'bg-[#DA7B93]/20 border-2 border-[#DA7B93] text-[#2F4454]';
             } else if (isAnswerDisabled) {
-              optionClass = 'bg-gray-100 border-2 border-gray-200 text-gray-500';
+              optionClass = isDark 
+                ? 'bg-slate-700 border-2 border-slate-600 text-slate-400' 
+                : 'bg-gray-100 border-2 border-gray-200 text-gray-500';
             } else {
-              optionClass = 'bg-white border-2 border-gray-200 hover:border-[#DA7B93] hover:bg-[#DA7B93]/5 cursor-pointer';
+              optionClass = isDark 
+                ? 'bg-slate-700 border-2 border-slate-600 hover:border-[#DA7B93] hover:bg-slate-600 text-slate-100 cursor-pointer' 
+                : 'bg-white border-2 border-gray-200 hover:border-[#DA7B93] hover:bg-[#DA7B93]/5 text-gray-800 cursor-pointer';
             }
             
             return (
@@ -103,20 +138,32 @@ const QuestionCard = ({
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className={`p-4 border-t ${
+          className={`p-4 border-t transition-colors duration-300 ${
             isTimeout
-              ? 'bg-yellow-50 border-yellow-100' 
+              ? isDark
+                ? 'bg-yellow-900/30 border-yellow-700/50'
+                : 'bg-yellow-50 border-yellow-100'
               : result.correct
-                ? 'bg-green-50 border-green-100' 
+                ? isDark
+                  ? 'bg-green-900/30 border-green-700/50'
+                  : 'bg-green-50 border-green-100'
+                : isDark
+                ? 'bg-red-900/30 border-red-700/50'
                 : 'bg-red-50 border-red-100'
           }`}
         >
           <div className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 transition-colors duration-300 ${
               isTimeout
-                ? 'bg-yellow-100 text-yellow-600'
+                ? isDark
+                  ? 'bg-yellow-900/50 text-yellow-400'
+                  : 'bg-yellow-100 text-yellow-600'
                 : result.correct
-                  ? 'bg-green-100 text-green-600' 
+                  ? isDark
+                    ? 'bg-green-900/50 text-green-400'
+                    : 'bg-green-100 text-green-600'
+                  : isDark
+                  ? 'bg-red-900/50 text-red-400'
                   : 'bg-red-100 text-red-600'
             }`}>
               {isTimeout ? (
@@ -128,11 +175,17 @@ const QuestionCard = ({
               )}
             </div>
             <div>
-              <p className={`font-medium ${
+              <p className={`font-medium transition-colors duration-300 ${
                 isTimeout
-                  ? 'text-yellow-800'
+                  ? isDark
+                    ? 'text-yellow-300'
+                    : 'text-yellow-800'
                   : result.correct
-                    ? 'text-green-800' 
+                    ? isDark
+                      ? 'text-green-300'
+                      : 'text-green-800'
+                    : isDark
+                    ? 'text-red-300'
                     : 'text-red-800'
               }`}>
                 {isTimeout
@@ -141,7 +194,9 @@ const QuestionCard = ({
                     ? 'Chính xác!' 
                     : 'Sai rồi!'}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className={`text-sm transition-colors duration-300 ${
+                isDark ? 'text-slate-400' : 'text-gray-600'
+              }`}>
                 {isTimeout
                   ? '+0 điểm (hết thời gian)'
                   : result.correct
@@ -149,7 +204,9 @@ const QuestionCard = ({
                     : `Đáp án đúng: ${question.options[result.correctAnswerIndex]}`}
               </p>
               {result.explanation && (
-                <p className="text-xs text-gray-500 mt-1">{result.explanation}</p>
+                <p className={`text-xs mt-1 transition-colors duration-300 ${
+                  isDark ? 'text-slate-500' : 'text-gray-500'
+                }`}>{result.explanation}</p>
               )}
             </div>
           </div>

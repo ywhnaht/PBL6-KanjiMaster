@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
 import useNotificationStore from "../../store/useNotificationStore";
@@ -20,12 +20,33 @@ export default function Header({ onOpenLogin, isModalOpen }) {
   const isDark = useDarkModeStore((state) => state.isDark);
   const toggleDarkMode = useDarkModeStore((state) => state.toggleDarkMode);
 
+  // ✅ State để quản lý menu dropdown
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
   React.useEffect(() => {
     const { accessToken, user } = authStore;
     if (accessToken && user) {
       fetchProfile(axiosPrivateHook);
     }
   }, [authStore.accessToken, authStore.user]);
+
+  // ✅ Đóng menu khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const checkLoggedIn = () => {
     const { accessToken, user } = authStore;
@@ -62,7 +83,6 @@ export default function Header({ onOpenLogin, isModalOpen }) {
       >
         {/* Logo */}
         <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
-          Kanji Master
         </h1>
 
         {/* Right Section */}
@@ -73,7 +93,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
           {/* 🔥 Streak Counter */}
           {isLoggedIn && (
             <div
-              className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-sm border transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-sm border transition-all duration-300 ml-[-15px] ${
                 isDark
                   ? "bg-[#DA7B93]/10 border-[#DA7B93]/30"
                   : "bg-gradient-to-r from-[#DA7B93]/10 to-[#2F4454]/10 border-[#DA7B93]/20"
@@ -102,7 +122,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
             type="button"
             className={`w-12 h-12 flex items-center justify-center rounded-full
               appearance-none outline-none
-              border-2 shadow-sm transition-all duration-300
+              border-2 shadow-sm transition-all duration-300 mr-[-10px]
               ${
                 isDark
                   ? "bg-[#DA7B93]/10 border-yellow-400 text-yellow-400 hover:bg-[#DA7B93]/20"
@@ -116,8 +136,11 @@ export default function Header({ onOpenLogin, isModalOpen }) {
 
           {/* 👤 User Profile */}
           {isLoggedIn ? (
-            <div className="relative group">
-              <button className="w-12 h-12">
+            <div className="relative" ref={menuRef}>
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="w-22 h-18 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#DA7B93] focus:ring-offset-2"
+              >
                 <img
                   src={profile?.avatarUrl || "https://via.placeholder.com/48"}
                   alt={user?.fullName}
@@ -129,12 +152,15 @@ export default function Header({ onOpenLogin, isModalOpen }) {
 
               {/* Menu tài khoản */}
               <div
-                className={`absolute right-0 mt-3 w-48 rounded-xl shadow-2xl border transition-all duration-300 z-[10001]
-                           opacity-0 invisible group-hover:opacity-100 group-hover:visible ${
-                             isDark
-                               ? "bg-slate-800 border-slate-700 text-slate-100"
-                               : "bg-white border-[#DA7B93]/20"
-                           }`}
+                className={`absolute right-0 mt-3 w-48 rounded-xl shadow-2xl border transition-all duration-300 z-[10001] origin-top-right ${
+                  isMenuOpen
+                    ? "opacity-100 visible scale-100"
+                    : "opacity-0 invisible scale-95"
+                } ${
+                  isDark
+                    ? "bg-slate-800 border-slate-700 text-slate-100"
+                    : "bg-white border-[#DA7B93]/20"
+                }`}
               >
                 <div
                   className={`p-2 border-b ${
@@ -160,7 +186,10 @@ export default function Header({ onOpenLogin, isModalOpen }) {
                 </div>
                 <div className="py-2">
                   <button
-                    onClick={() => navigate("/profile")}
+                    onClick={() => {
+                      navigate("/profile");
+                      setIsMenuOpen(false);
+                    }}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-all ${
                       isDark
                         ? "text-slate-200 hover:bg-slate-700"

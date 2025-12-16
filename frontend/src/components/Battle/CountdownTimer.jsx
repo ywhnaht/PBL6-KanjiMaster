@@ -1,6 +1,8 @@
 import React, { memo } from 'react';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const CountdownTimer = memo(({ timeLeft, totalTime }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
   const percentage = Math.max(0, (timeLeft / totalTime) * 100);
   const isWarning = timeLeft <= 3;
   const isCaution = timeLeft <= 5;
@@ -22,15 +24,22 @@ const CountdownTimer = memo(({ timeLeft, totalTime }) => {
     }
     return 'bg-gradient-to-r from-green-600 to-green-500 shadow-green-500/50';
   };
+
+  // Xác định màu background của thanh timer
+  const getBackgroundColor = () => {
+    if (isDark) {
+      return 'bg-slate-700';
+    }
+    return 'bg-gray-200';
+  };
   
   return (
-    <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+    <div className={`relative w-full h-4 rounded-full overflow-hidden shadow-inner transition-colors duration-300 ${getBackgroundColor()}`}>
       <div
         className={`absolute top-0 left-0 h-full rounded-full shadow-lg transition-all duration-1000 ease-out ${getProgressStyles()}`}
         style={{ 
           width: `${percentage}%`,
           transform: 'translateZ(0)',
-          // Thêm cubic-bezier cho animation mượt hơn
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       />
