@@ -1,16 +1,16 @@
-// pages/VerificationPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore'; // 🆕 Import Zustand store
 
 const VerificationPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { login } = useAuthStore(); // 🆕 Lấy hàm login từ Zustand store
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     const verifyEmail = async () => {
-      // 🆕 CHỈ LẤY TOKEN TỪ URL
       const accessToken = searchParams.get('token');
 
       console.log("🔍 Thông tin từ URL:", {
@@ -27,18 +27,26 @@ const VerificationPage = () => {
       try {
         const authApi = await import('../../apis/verify');
         
-        // 🆕 CHỈ GỬI TOKEN, KHÔNG CẦN EMAIL
         const result = await authApi.verifyEmailApi(accessToken);
         
         console.log("📦 Kết quả xác thực:", result);
 
-        if (result.success) {
+        if (result.success && result.data) {
+          // 🆕 GỌI HÀM LOGIN TỪ ZUSTAND STORE
+          login({
+            accessToken: result.data.accessToken,
+            refreshToken: result.data.refreshToken,
+            user: result.data.user
+          });
+          console.log("✅ User đã được đăng nhập vào app và tokens đã lưu");
+
           setStatus('success');
           setMessage(result.message || '🎉 Xác thực email thành công!');
           
+          // 🆕 CHUYỂN HƯỚNG (1 giây)
           setTimeout(() => {
-            navigate('/home');
-          }, 2000);
+            navigate('/home', { replace: true });
+          }, 1000);
         } else {
           setStatus('error');
           setMessage(result.message || 'Xác thực thất bại. Vui lòng thử lại.');
@@ -46,7 +54,6 @@ const VerificationPage = () => {
       } catch (error) {
         console.error('❌ Verification error:', error);
         
-        // 🆕 XỬ LÝ LỖI CHI TIẾT HƠN
         const errorMessage = error.response?.data?.message 
           || error.message 
           || 'Có lỗi xảy ra khi xác thực. Vui lòng thử lại sau.';
@@ -57,7 +64,7 @@ const VerificationPage = () => {
     };
 
     verifyEmail();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, login]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -86,7 +93,7 @@ const VerificationPage = () => {
               </svg>
             </div>
             <p className="text-green-600 text-lg font-semibold">{message}</p>
-            <p className="text-gray-500 text-sm">Bạn sẽ được chuyển hướng tự động...</p>
+            <p className="text-gray-500 text-sm">Đang chuyển hướng đến trang chủ...</p>
           </div>
         )}
 
@@ -100,7 +107,6 @@ const VerificationPage = () => {
             
             <p className="text-red-600 text-lg font-semibold">{message}</p>
 
-            {/* 🆕 HƯỚNG DẪN CẬP NHẬT */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-left">
               <p className="text-yellow-800 text-sm font-medium mb-2">💡 Giải pháp:</p>
               <ul className="text-xs text-yellow-700 list-disc list-inside space-y-1">
