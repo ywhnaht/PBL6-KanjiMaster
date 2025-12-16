@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +26,7 @@ public class ApiResponse<T> {
                 .success(true)
                 .message(message)
                 .data(data)
-                .timestamp(java.time.Instant.now().toString())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .build();
     }
 
@@ -32,7 +36,7 @@ public class ApiResponse<T> {
                 .message(message)
                 .errorCode(errorCode)
                 .data(null)
-                .timestamp(java.time.Instant.now().toString())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .build();
     }
 

@@ -42,6 +42,9 @@ public interface KanjiProgressRepository extends JpaRepository<KanjiProgress, Ka
     @Query("SELECT MAX(kp.lastReviewAt) FROM KanjiProgress kp WHERE kp.user.id = :userId")
     Optional<LocalDateTime> findLastStudyDateByUserId(@Param("userId") String userId);
 
+    @Query("SELECT MAX(kp.lastReviewAt) FROM KanjiProgress kp WHERE kp.user.id = :userId AND kp.kanji.id != :kanjiId")
+    Optional<LocalDateTime> findLastStudyDateByUserIdExcludingKanji(@Param("userId") String userId, @Param("kanjiId") Integer kanjiId);
+
     @Query("SELECT COUNT(kp) FROM KanjiProgress kp WHERE kp.user.id = :userId")
     Integer countTotalKanjiByUserId(@Param("userId") String userId);
 }

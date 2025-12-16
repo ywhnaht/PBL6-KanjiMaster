@@ -55,52 +55,69 @@ public class KanjiProgressService {
         return summary;
     }
 
-    @Transactional
-    public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        UserProfile userProfile = user.getUserProfile();
-        if (userProfile == null) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
-        }
-
-        KanjiProgressId kanjiProgressId = new KanjiProgressId(userId, kanjiId);
-        KanjiProgress kanjiProgress = kanjiProgressRepository.findById(kanjiProgressId).orElseGet(() -> {
-            Kanji kanji = kanjiRepository.findById(kanjiId)
-                    .orElseThrow(() -> new AppException(ErrorCode.KANJI_NOT_FOUND));
-            return new KanjiProgress(kanjiProgressId, user, kanji, LearnStatus.LEARNING, LocalDateTime.now(), null);
-        });
-
-        boolean isNewlyMastered = kanjiProgress.getStatus() != LearnStatus.MASTERED;
-
-        // Get the last study date BEFORE saving the new progress
-        LocalDateTime previousLastStudyDate = kanjiProgressRepository
-                .findLastStudyDateByUserId(userId)
-                .orElse(null);
-
-        kanjiProgress.setStatus(LearnStatus.MASTERED);
-        kanjiProgress.setLastReviewAt(LocalDateTime.now());
-        KanjiProgress savedProgress = kanjiProgressRepository.save(kanjiProgress);
-
-        if (isNewlyMastered) {
-            Integer currentTotal = userProfile.getTotalKanjiLearned();
-            if (currentTotal == null) currentTotal = 0;
-            userProfile.setTotalKanjiLearned(currentTotal + 1);
-        }
-
-        updateStreakDays(userProfile, previousLastStudyDate);
-        userProfileRepository.save(userProfile);
-
-        String levelOfMasteredKanji = savedProgress.getKanji().getLevel();
-        Long newCountForLevel = kanjiProgressRepository.countLearnedByLevel(levelOfMasteredKanji, userId);
-
-        return Map.of(
-                "updatedLevel", "N" + levelOfMasteredKanji,
-                "newCount", newCountForLevel,
-                "totalKanjiLearned", userProfile.getTotalKanjiLearned(),
-                "streakDays", userProfile.getStreakDays()
-        );
+    // KanjiProgressService.java - Fix streak logic
+@Transactional
+public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    UserProfile userProfile = user.getUserProfile();
+    if (userProfile == null) {
+        throw new AppException(ErrorCode.USER_NOT_FOUND);
     }
+
+    KanjiProgressId kanjiProgressId = new KanjiProgressId(userId, kanjiId);
+    KanjiProgress kanjiProgress = kanjiProgressRepository.findById(kanjiProgressId).orElseGet(() -> {
+        Kanji kanji = kanjiRepository.findById(kanjiId)
+                .orElseThrow(() -> new AppException(ErrorCode.KANJI_NOT_FOUND));
+        return new KanjiProgress(kanjiProgressId, user, kanji, LearnStatus.LEARNING, null, null);
+    });
+
+    boolean isNewlyMastered = kanjiProgress.getStatus() != LearnStatus.MASTERED;
+
+    // Lấy lastReviewAt của chính kanji này (trước khi update)
+    LocalDateTime currentKanjiLastReview = kanjiProgress.getLastReviewAt();
+    
+    // Lấy lastReviewAt của các kanji khác
+    LocalDateTime otherKanjiLastReview = kanjiProgressRepository
+            .findLastStudyDateByUserIdExcludingKanji(userId, kanjiId)
+            .orElse(null);
+    
+    // Chọn ngày gần nhất
+    LocalDateTime previousLastStudyDate;
+    if (currentKanjiLastReview == null && otherKanjiLastReview == null) {
+        previousLastStudyDate = null;
+    } else if (currentKanjiLastReview == null) {
+        previousLastStudyDate = otherKanjiLastReview;
+    } else if (otherKanjiLastReview == null) {
+        previousLastStudyDate = currentKanjiLastReview;
+    } else {
+        previousLastStudyDate = currentKanjiLastReview.isAfter(otherKanjiLastReview) 
+            ? currentKanjiLastReview : otherKanjiLastReview;
+    }
+
+    kanjiProgress.setStatus(LearnStatus.MASTERED);
+    kanjiProgress.setLastReviewAt(LocalDateTime.now());
+    KanjiProgress savedProgress = kanjiProgressRepository.save(kanjiProgress);
+
+    if (isNewlyMastered) {
+        Integer currentTotal = userProfile.getTotalKanjiLearned();
+        if (currentTotal == null) currentTotal = 0;
+        userProfile.setTotalKanjiLearned(currentTotal + 1);
+    }
+
+    updateStreakDays(userProfile, previousLastStudyDate);
+    userProfileRepository.save(userProfile);
+
+    String levelOfMasteredKanji = savedProgress.getKanji().getLevel();
+    Long newCountForLevel = kanjiProgressRepository.countLearnedByLevel(levelOfMasteredKanji, userId);
+
+    return Map.of(
+            "updatedLevel", "N" + levelOfMasteredKanji,
+            "newCount", newCountForLevel,
+            "totalKanjiLearned", userProfile.getTotalKanjiLearned(),
+            "streakDays", userProfile.getStreakDays()
+    );
+}
 
     private void updateStreakDays(UserProfile userProfile, LocalDateTime previousLastStudyDate) {
         LocalDateTime now = LocalDateTime.now();
