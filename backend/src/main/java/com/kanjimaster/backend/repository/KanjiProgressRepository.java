@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +23,9 @@ public interface KanjiProgressRepository extends JpaRepository<KanjiProgress, Ka
               and p.kanji.level != '0'
         group by p.kanji.level
     """)
-    public List<KanjiCountByLevelDto> getLearnedKanjiCountGroupByLevel(@Param("userId") String userId);
+    List<KanjiCountByLevelDto> getLearnedKanjiCountGroupByLevel(@Param("userId") String userId);
 
-    public Optional<KanjiProgress> findByUserIdAndKanjiId(String userId, Integer kanjiId);
+    Optional<KanjiProgress> findByUserIdAndKanjiId(String userId, Integer kanjiId);
 
     @Query("""
         select count(p)
@@ -33,5 +34,17 @@ public interface KanjiProgressRepository extends JpaRepository<KanjiProgress, Ka
               p.user.id = :userId and
               p.status = 'MASTERED'
     """)
-    public Long countLearnedByLevel(@Param("level") String level, @Param("userId") String userId);
+    Long countLearnedByLevel(@Param("level") String level, @Param("userId") String userId);
+
+    @Query("SELECT COUNT(kp) FROM KanjiProgress kp JOIN kp.kanji k WHERE kp.user.id = :userId AND k.level = :level")
+    Integer countByUserIdAndKanjiLevel(@Param("userId") String userId, @Param("level") String level);
+
+    @Query("SELECT MAX(kp.lastReviewAt) FROM KanjiProgress kp WHERE kp.user.id = :userId")
+    Optional<LocalDateTime> findLastStudyDateByUserId(@Param("userId") String userId);
+
+    @Query("SELECT MAX(kp.lastReviewAt) FROM KanjiProgress kp WHERE kp.user.id = :userId AND kp.kanji.id != :kanjiId")
+    Optional<LocalDateTime> findLastStudyDateByUserIdExcludingKanji(@Param("userId") String userId, @Param("kanjiId") Integer kanjiId);
+
+    @Query("SELECT COUNT(kp) FROM KanjiProgress kp WHERE kp.user.id = :userId")
+    Integer countTotalKanjiByUserId(@Param("userId") String userId);
 }

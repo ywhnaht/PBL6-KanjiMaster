@@ -25,6 +25,13 @@ public enum ErrorCode {
     ENTRY_NOT_FOUND(1013, "NotebookEntry không tồn tại", HttpStatus.NOT_FOUND),
     UNAUTHORIZED(1014, "Yêu cầu xác thực không thành công", HttpStatus.UNAUTHORIZED),
     ENTRY_EXISTS(1015, "%s đã được thêm trong notebook %s", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1016, "Mật khẩu xác nhận không khớp", HttpStatus.BAD_REQUEST),
+    WRONG_PASSWORD(1017, "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
+    SAME_PASSWORD(1018, "Mật khẩu mới phải khác mật khẩu cũ", HttpStatus.BAD_REQUEST),
+    FILE_EMPTY(1019, "File không được để trống", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE(1020, "File quá lớn (tối đa 5MB)", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE(1021, "Chỉ chấp nhận file ảnh", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FAILED(1022, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),

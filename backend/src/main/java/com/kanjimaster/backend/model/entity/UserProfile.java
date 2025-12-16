@@ -34,6 +34,9 @@ public class UserProfile {
     @Column(name = "avatar_url")
     String avatarUrl;
 
+    @Column(name = "bio", columnDefinition = "TEXT")
+    String bio;
+
     @Column(name = "total_kanji_learned")
     Integer totalKanjiLearned;
 

@@ -9,6 +9,7 @@ import NBDetail from "../pages/NBDetail";
 import BattlePage from "../pages/Battle";
 import LeaderboardPage from "../pages/Leaderboard";
 import BattleHistoryPage from "../pages/BattleHistory";
+import Profile from "../pages/Profile"; 
 
 const AppRoutes = () => {
   return (
@@ -23,6 +24,8 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/notebook" element={<Notebook />} />
       <Route path="/notebooks/:notebookId" element={<NBDetail />} />
+      <Route path="/profile" element={<Profile />} /> 
+
       
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="*" element={<Navigate to="/home" replace />} />
