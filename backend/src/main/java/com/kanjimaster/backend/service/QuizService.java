@@ -12,6 +12,8 @@ import com.kanjimaster.backend.util.QuizUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class QuizService {
+    static Logger logger = LoggerFactory.getLogger(QuizService.class);
+    
     KanjiExampleRepository kanjiExampleRepository;
     CompoundWordRepository compoundWordRepository;
     QuizHistoryRepository quizHistoryRepository;
@@ -88,12 +92,14 @@ public class QuizService {
         }
 
         double score = (double) quizResult.getTotalCorrects() / quizResult.getTotalQuestions();
+        logger.info("📊 Quiz result for user {}: score={}, totalQuestions={}, totalCorrects={}", 
+                userId, score, quizResult.getTotalQuestions(), quizResult.getTotalCorrects());
 
         if (score >= 0.8) {
+            logger.info("🎉 Sending excellent achievement notification to user {}", userId);
             notificationService.createQuickNotification(
                     userId,
                     "Kết quả xuất sắc!",
-                    // Sửa dòng này:
                     String.format("Bạn đã đạt %.0f%% trên tổng %d câu hỏi trong quiz %s. Tuyệt vời!",
                             score * 100,
                             quizResult.getTotalQuestions(),
@@ -101,6 +107,7 @@ public class QuizService {
                     NotificationType.ACHIEVEMENT
             );
         } else if (score >= 0.5) {
+            logger.info("👍 Sending good job notification to user {}", userId);
             notificationService.createQuickNotification(
                     userId,
                     "Làm tốt lắm!",
@@ -110,6 +117,8 @@ public class QuizService {
                             quizResult.getLevel()),
                     NotificationType.INFO
             );
+        } else {
+            logger.info("ℹ️ Score {} is below 50%, no notification sent", score);
         }
     }
 

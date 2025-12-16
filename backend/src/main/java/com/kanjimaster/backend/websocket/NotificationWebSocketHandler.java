@@ -124,8 +124,15 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String userId = (String) session.getAttributes().get("userId");
         if (userId != null) {
-            userSessions.remove(userId);
-            logger.info("🔌 User {} disconnected from notification WebSocket (status: {})", userId, status);
+            // Only remove if this session is still the active one
+            // This prevents race condition where old session's close callback
+            // removes a newly established session
+            boolean removed = userSessions.remove(userId, session);
+            if (removed) {
+                logger.info("🔌 User {} disconnected from notification WebSocket (status: {})", userId, status);
+            } else {
+                logger.debug("🔌 Old session for user {} closed, but new session already active", userId);
+            }
         }
     }
 
