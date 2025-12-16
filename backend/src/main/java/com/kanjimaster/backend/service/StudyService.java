@@ -121,12 +121,12 @@ public class StudyService {
 
         // 4. [NÂNG CAO] Kiểm tra xem Level ưu thế này đã "học xong" chưa?
         // Ví dụ: User đã học 150/160 chữ N4 -> Coi như xong N4 -> Gợi ý lên N3
-        long totalInLevel = kanjiService.countByLevel(dominantLevel);
-
-        // Nếu đã học được > 90% level hiện tại
-        if (totalInLevel > 0 && (double) maxCount / totalInLevel > 0.9) {
-            return getNextLevel(dominantLevel); // Hàm phụ để lấy level tiếp theo
-        }
+//        long totalInLevel = kanjiService.countByLevel(dominantLevel);
+//
+//        // Nếu đã học được > 90% level hiện tại
+//        if (totalInLevel > 0 && (double) maxCount / totalInLevel > 0.9) {
+//            return getNextLevel(dominantLevel); // Hàm phụ để lấy level tiếp theo
+//        }
 
         // 5. Nếu chưa xong -> Trả về chính level đó để học tiếp
         return dominantLevel;
