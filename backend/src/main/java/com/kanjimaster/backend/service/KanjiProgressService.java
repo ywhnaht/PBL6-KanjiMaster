@@ -84,17 +84,7 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
             .orElse(null);
     
     // Chọn ngày gần nhất
-    LocalDateTime previousLastStudyDate;
-    if (currentKanjiLastReview == null && otherKanjiLastReview == null) {
-        previousLastStudyDate = null;
-    } else if (currentKanjiLastReview == null) {
-        previousLastStudyDate = otherKanjiLastReview;
-    } else if (otherKanjiLastReview == null) {
-        previousLastStudyDate = currentKanjiLastReview;
-    } else {
-        previousLastStudyDate = currentKanjiLastReview.isAfter(otherKanjiLastReview) 
-            ? currentKanjiLastReview : otherKanjiLastReview;
-    }
+    LocalDateTime previousLastStudyDate = getLocalDateTime(currentKanjiLastReview, otherKanjiLastReview);
 
     kanjiProgress.setStatus(LearnStatus.MASTERED);
     kanjiProgress.setLastReviewAt(LocalDateTime.now());
@@ -119,6 +109,21 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
             "streakDays", userProfile.getStreakDays()
     );
 }
+
+    private static LocalDateTime getLocalDateTime(LocalDateTime currentKanjiLastReview, LocalDateTime otherKanjiLastReview) {
+        LocalDateTime previousLastStudyDate;
+        if (currentKanjiLastReview == null && otherKanjiLastReview == null) {
+            previousLastStudyDate = null;
+        } else if (currentKanjiLastReview == null) {
+            previousLastStudyDate = otherKanjiLastReview;
+        } else if (otherKanjiLastReview == null) {
+            previousLastStudyDate = currentKanjiLastReview;
+        } else {
+            previousLastStudyDate = currentKanjiLastReview.isAfter(otherKanjiLastReview) 
+                ? currentKanjiLastReview : otherKanjiLastReview;
+        }
+        return previousLastStudyDate;
+    }
 
     private void updateStreakDays(UserProfile userProfile, LocalDateTime previousLastStudyDate) {
         LocalDateTime now = LocalDateTime.now();
