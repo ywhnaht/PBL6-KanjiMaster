@@ -39,7 +39,11 @@ public class JwtService {
     }
 
     public String buildToken(Map<String, Object> extraClaims, CustomUserDetails userDetails, long expiration) {
+        // Add userId to claims
+        extraClaims.put("userId", userDetails.getId());
+        
         return Jwts.builder()
+                .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
@@ -112,9 +116,14 @@ public class JwtService {
         }
     }
 
-    // NEW: Extract userId from token (email is used as userId)
+    // NEW: Extract userId from token (from claims, not subject)
     public String extractUserId(String token) {
-        return extractEmail(token);
+        try {
+            Claims claims = extractAllClaims(token);
+            return (String) claims.get("userId");
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // NEW: Make extractAllClaims public for custom claim extraction

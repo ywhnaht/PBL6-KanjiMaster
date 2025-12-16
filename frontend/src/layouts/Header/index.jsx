@@ -1,12 +1,21 @@
+// Header.jsx - Cập nhật để hỗ trợ làm mờ khi modal mở
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import useNotificationStore from "../../store/useNotificationStore";
+import NotificationDropdown from "../../components/NotificationDropdown";
+import NotificationToast from "../../components/NotificationToast";
+import useNotificationWebSocket from "../../hooks/useNotificationWebSocket";
 import useProfileStore from "../../store/useProfileStore";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 export default function Header({ onOpenLogin, isModalOpen }) {
   const navigate = useNavigate();
   const authStore = useAuthStore();
+  const { newNotification, clearNewNotification } = useNotificationStore();
+
+  // ✅ Auto connect/disconnect WebSocket
+  useNotificationWebSocket();
   const axiosPrivateHook = useAxiosPrivate();
   const { profile, fetchProfile } = useProfileStore();
 
@@ -38,37 +47,47 @@ export default function Header({ onOpenLogin, isModalOpen }) {
     }, 300);
   };
 
+  const getInitials = (name) => {
+    if (!name) return "US";
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const isLoggedIn = checkLoggedIn();
   const user = authStore.user;
 
   return (
-    <header
-      className={`relative z-[10000] bg-white/80 backdrop-blur-md shadow-sm h-18 flex items-center justify-between px-8 border-b border-gray-200 transition-all duration-300 ${
-        isModalOpen ? "brightness-100" : ""
-      }`}
-    >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent"></h1>
+    <>
+      <header
+        className={`relative z-[10000] bg-white/80 backdrop-blur-md shadow-sm h-18 flex items-center justify-between px-8 border-b border-gray-200 transition-all duration-300 ${
+          isModalOpen ? "brightness-100" : ""
+        }`}
+      >
+        {/* Logo */}
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
+          Kanji Master
+        </h1>
 
-      <div className="flex items-center gap-6">
-        {/* 🔔 Thông báo */}
-        <button className="relative w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all duration-300 hover:shadow-md transform hover:scale-110">
-          <span className="material-symbols-outlined text-[#2F4454]">
-            notifications
-          </span>
-          <span className="absolute top-1 right-1 w-5 h-5 bg-[#DA7B93] rounded-full text-white text-xs flex items-center justify-center animate-pulse shadow-lg">
-            3
-          </span>
-        </button>
+        {/* Right Section */}
+        <div className="flex items-center gap-6">
+          {/* Notification Bell - Chỉ hiển thị khi đã đăng nhập */}
+          {isLoggedIn && <NotificationDropdown />}
 
-        {/* 🔥 Điểm */}
-        <div className="flex items-center gap-2 mr-[-20px] bg-gradient-to-r from-[#DA7B93]/10 to-[#2F4454]/10 px-4 py-2 rounded-full shadow-sm border border-[#DA7B93]/20" >
-          <span className="material-symbols-outlined text-[#DA7B93] animate-pulse">
-            local_fire_department
-          </span>
-          <span className="font-bold text-[#2F4454]">
-            {user?.streakDays || 0}
-          </span>
-        </div>
+          {/* Streak Counter */}
+          {isLoggedIn && (
+            <div className="flex items-center gap-2 bg-gradient-to-r from-[#DA7B93]/10 to-[#2F4454]/10 px-4 py-2 rounded-full shadow-sm border border-[#DA7B93]/20">
+              <span className="material-symbols-outlined text-[#DA7B93] animate-pulse">
+                local_fire_department
+              </span>
+              <span className="font-bold text-[#2F4454]">
+                {user?.streakDays || 0}
+              </span>
+            </div>
+          )}
 
         {/* 👤 User */}
         {isLoggedIn ? (
@@ -99,16 +118,16 @@ export default function Header({ onOpenLogin, isModalOpen }) {
                 </div>
               </div>
               <div className="py-2">
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2 transition-all"
-                >
+                  <button
+                      onClick={() => navigate("/profile")}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2 transition-all"
+                  >
                   <span className="material-symbols-outlined text-sm text-[#2F4454]">
                     person
                   </span>
-                  Hồ sơ
-                </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2 transition-all">
+                      Hồ sơ
+                  </button>
+                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm text-[#2F4454]">
                     settings
                   </span>
@@ -117,7 +136,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
                 <div className="border-t border-gray-200 my-1"></div>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-[#DA7B93] hover:bg-[#DA7B93]/10 flex items-center gap-2 transition-all"
+                  className="w-full text-left px-4 py-2 text-sm text-[#DA7B93] hover:bg-[#DA7B93]/10 flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-sm">
                     logout
@@ -140,5 +159,13 @@ export default function Header({ onOpenLogin, isModalOpen }) {
         )}
       </div>
     </header>
+
+        {isLoggedIn && (
+            <NotificationToast
+                notification={newNotification}
+                onClose={clearNewNotification}
+            />
+        )}
+    </>
   );
 }

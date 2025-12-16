@@ -5,12 +5,15 @@ import com.kanjimaster.backend.exception.ErrorCode;
 import com.kanjimaster.backend.model.dto.QuizItem;
 import com.kanjimaster.backend.model.dto.QuizResultDto;
 import com.kanjimaster.backend.model.entity.*;
+import com.kanjimaster.backend.model.enums.NotificationType;
 import com.kanjimaster.backend.model.enums.QuestionType;
 import com.kanjimaster.backend.repository.*;
 import com.kanjimaster.backend.util.QuizUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +26,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class QuizService {
+    static Logger logger = LoggerFactory.getLogger(QuizService.class);
+    
     KanjiExampleRepository kanjiExampleRepository;
     CompoundWordRepository compoundWordRepository;
     QuizHistoryRepository quizHistoryRepository;
     UserIncorrectQuestionRepository incorrectQuestionRepository;
     UserRepository userRepository;
+    NotificationService notificationService;
 
     public List<QuizItem> generateQuiz(String level, int numberOfQuestions) {
         List<QuizItem> quizItems = new ArrayList<>();
@@ -83,6 +89,36 @@ public class QuizService {
 
         if (quizResult.getCorrectReviewCompoundIds() != null && !quizResult.getCorrectReviewCompoundIds().isEmpty()) {
             incorrectQuestionRepository.deleteReviewQuestions(userId, QuestionType.COMPOUND_WORD, quizResult.getCorrectReviewCompoundIds());
+        }
+
+        double score = (double) quizResult.getTotalCorrects() / quizResult.getTotalQuestions();
+        logger.info("📊 Quiz result for user {}: score={}, totalQuestions={}, totalCorrects={}", 
+                userId, score, quizResult.getTotalQuestions(), quizResult.getTotalCorrects());
+
+        if (score >= 0.8) {
+            logger.info("🎉 Sending excellent achievement notification to user {}", userId);
+            notificationService.createQuickNotification(
+                    userId,
+                    "Kết quả xuất sắc!",
+                    String.format("Bạn đã đạt %.0f%% trên tổng %d câu hỏi trong quiz %s. Tuyệt vời!",
+                            score * 100,
+                            quizResult.getTotalQuestions(),
+                            quizResult.getLevel()),
+                    NotificationType.ACHIEVEMENT
+            );
+        } else if (score >= 0.5) {
+            logger.info("👍 Sending good job notification to user {}", userId);
+            notificationService.createQuickNotification(
+                    userId,
+                    "Làm tốt lắm!",
+                    String.format("Bạn đã đạt %.0f%% trên tổng %d câu hỏi trong quiz %s. Tiếp tục cố gắng!",
+                            score * 100,
+                            quizResult.getTotalQuestions(),
+                            quizResult.getLevel()),
+                    NotificationType.INFO
+            );
+        } else {
+            logger.info("ℹ️ Score {} is below 50%, no notification sent", score);
         }
     }
 

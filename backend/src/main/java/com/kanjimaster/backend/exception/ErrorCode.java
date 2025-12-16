@@ -32,6 +32,7 @@ public enum ErrorCode {
     FILE_TOO_LARGE(1020, "File quá lớn (tối đa 5MB)", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE(1021, "Chỉ chấp nhận file ảnh", HttpStatus.BAD_REQUEST),
     FILE_UPLOAD_FAILED(1022, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    NOTIFICATION_NOT_FOUND(1023, "Không tìm thấy thông báo", HttpStatus.NOT_FOUND),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
