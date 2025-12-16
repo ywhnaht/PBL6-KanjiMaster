@@ -12,7 +12,10 @@ const useNotificationWebSocket = () => {
     if (accessToken && user && currentToken.current !== accessToken) {
       console.log('🔌 Connecting to notification WebSocket...');
       
-      const { connect, disconnect, ws } = useNotificationStore.getState();
+      const { connect, disconnect, ws, updateToken } = useNotificationStore.getState();
+      
+      // Update token in store
+      updateToken(accessToken);
       
       // Check if already connected with a valid WebSocket
       if (ws?.readyState === WebSocket.OPEN) {

@@ -1,11 +1,30 @@
 import { create } from 'zustand';
 
+// Utility function to get WebSocket URL based on environment
+const getWebSocketUrl = () => {
+  // 1. Check if environment variable is set
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  
+  // 2. In development mode, use localhost
+  if (import.meta.env.DEV) {
+    return 'ws://localhost:8080';
+  }
+  
+  // 3. In production, auto-detect based on current location
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  return `${protocol}//${host}`;
+};
+
 const useNotificationStore = create((set, get) => ({
   // State
   notifications: [],
   unreadCount: 0,
   newNotification: null,
   isConnected: false,
+  currentToken: null, // Store current token for reconnection
   
   // WebSocket reference
   ws: null,
@@ -130,7 +149,12 @@ const useNotificationStore = create((set, get) => ({
       return;
     }
 
-    const wsUrl = `ws://localhost:8080/ws/notifications?token=${token}`;
+    // Store token in state for reconnection
+    set({ currentToken: token });
+
+    const baseUrl = getWebSocketUrl();
+    const wsUrl = `${baseUrl}/ws/notifications?token=${token}`;
+    console.log('🔗 Connecting to:', wsUrl);
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -216,7 +240,11 @@ const useNotificationStore = create((set, get) => ({
         
         const timeout = setTimeout(() => {
           set({ reconnectAttempts: state.reconnectAttempts + 1 });
-          get().connect(token);
+          // Use stored token from state instead of closure parameter
+          const latestToken = get().currentToken;
+          if (latestToken) {
+            get().connect(latestToken);
+          }
         }, delay);
         
         set({ reconnectTimeout: timeout });
@@ -255,6 +283,11 @@ const useNotificationStore = create((set, get) => ({
     } else {
       console.warn('⚠️ WebSocket not connected');
     }
+  },
+
+  // Update token when it changes (e.g., after refresh)
+  updateToken: (newToken) => {
+    set({ currentToken: newToken });
   }
 }));
 
