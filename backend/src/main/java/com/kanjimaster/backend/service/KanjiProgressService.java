@@ -73,6 +73,11 @@ public class KanjiProgressService {
 
         boolean isNewlyMastered = kanjiProgress.getStatus() != LearnStatus.MASTERED;
 
+        // Get the last study date BEFORE saving the new progress
+        LocalDateTime previousLastStudyDate = kanjiProgressRepository
+                .findLastStudyDateByUserId(userId)
+                .orElse(null);
+
         kanjiProgress.setStatus(LearnStatus.MASTERED);
         kanjiProgress.setLastReviewAt(LocalDateTime.now());
         KanjiProgress savedProgress = kanjiProgressRepository.save(kanjiProgress);
@@ -83,7 +88,7 @@ public class KanjiProgressService {
             userProfile.setTotalKanjiLearned(currentTotal + 1);
         }
 
-        updateStreakDays(userProfile);
+        updateStreakDays(userProfile, previousLastStudyDate);
         userProfileRepository.save(userProfile);
 
         String levelOfMasteredKanji = savedProgress.getKanji().getLevel();
@@ -97,20 +102,16 @@ public class KanjiProgressService {
         );
     }
 
-    private void updateStreakDays(UserProfile userProfile) {
+    private void updateStreakDays(UserProfile userProfile, LocalDateTime previousLastStudyDate) {
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
 
-        LocalDateTime lastReviewAt = kanjiProgressRepository
-                .findLastStudyDateByUserId(userProfile.getUser().getId())
-                .orElse(null);
-
-        if (lastReviewAt == null) {
+        if (previousLastStudyDate == null) {
             userProfile.setStreakDays(1);
             return;
         }
 
-        LocalDate lastStudyDate = lastReviewAt.toLocalDate();
+        LocalDate lastStudyDate = previousLastStudyDate.toLocalDate();
 
         long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastStudyDate, today);
 
