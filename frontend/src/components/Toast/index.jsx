@@ -1,58 +1,88 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Toast({ message, type = 'info', onClose, duration = 3000 }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
   useEffect(() => {
+    // Delay to trigger animation
+    requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+
     if (duration > 0) {
       const timer = setTimeout(() => {
-        onClose();
+        handleClose();
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [duration]);
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-500',
-    error: 'bg-red-50 border-red-500',
-    warning: 'bg-yellow-50 border-yellow-500',
-    info: 'bg-blue-50 border-blue-500'
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      onClose();
+    }, 300); // Match animation duration
   };
 
-  const textColors = {
-    success: 'text-green-800',
-    error: 'text-red-800',
-    warning: 'text-yellow-800',
-    info: 'text-blue-800'
+  const colorSchemes = {
+    success: {
+      bg: 'from-green-500 to-emerald-500',
+      icon: 'check_circle',
+      iconColor: 'text-white'
+    },
+    error: {
+      bg: 'from-red-500 to-rose-500',
+      icon: 'error',
+      iconColor: 'text-white'
+    },
+    warning: {
+      bg: 'from-yellow-500 to-orange-500',
+      icon: 'warning',
+      iconColor: 'text-white'
+    },
+    info: {
+      bg: 'from-blue-500 to-indigo-500',
+      icon: 'info',
+      iconColor: 'text-white'
+    }
   };
 
-  const icons = {
-    success: 'check_circle',
-    error: 'error',
-    warning: 'warning',
-    info: 'info'
-  };
-
-  const iconColors = {
-    success: 'text-green-500',
-    error: 'text-red-500',
-    warning: 'text-yellow-500',
-    info: 'text-blue-500'
-  };
+  const scheme = colorSchemes[type] || colorSchemes.info;
 
   return (
-    <div className="fixed top-4 right-4 z-[10001] animate-slide-in-right">
-      <div className={`${bgColors[type]} border-l-4 rounded-lg shadow-xl p-4 max-w-md flex items-start gap-3`}>
-        <span className={`material-symbols-outlined ${iconColors[type]}`}>
-          {icons[type]}
-        </span>
-        <div className="flex-1">
-          <p className={`${textColors[type]} font-medium`}>{message}</p>
+    <div 
+      className={`fixed top-20 right-4 z-[10002] transition-all duration-300 ease-out ${
+        isVisible && !isClosing 
+          ? 'translate-x-0 opacity-100' 
+          : 'translate-x-full opacity-0'
+      }`}
+    >
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm min-w-[320px] backdrop-blur-sm">
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-sm ${scheme.bg}`}>
+            <span className={`material-symbols-outlined ${scheme.iconColor} text-lg`}>
+              {scheme.icon}
+            </span>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#2F4454]">{message}</p>
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <span className="material-symbols-outlined text-gray-400 text-lg">
+              close
+            </span>
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className={`${textColors[type]} hover:opacity-70 transition-opacity`}
-        >
-          <span className="material-symbols-outlined text-lg">close</span>
-        </button>
       </div>
     </div>
   );
