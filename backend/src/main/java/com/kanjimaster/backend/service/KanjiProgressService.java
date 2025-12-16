@@ -32,6 +32,7 @@ public class KanjiProgressService {
     UserRepository userRepository;
     KanjiRepository kanjiRepository;
     UserProfileRepository userProfileRepository;
+    StreakService streakService;
 
     public Map<String, Long> getProgressSummary(String userId) {
         Map<String, Long> summary;
@@ -125,6 +126,7 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
 
         if (previousLastStudyDate == null) {
             userProfile.setStreakDays(1);
+            streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), 1);
             return;
         }
 
@@ -138,7 +140,9 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
             // Học liên tiếp, tăng streak
             Integer currentStreak = userProfile.getStreakDays();
             if (currentStreak == null) currentStreak = 0;
-            userProfile.setStreakDays(currentStreak + 1);
+            int newStreak = currentStreak + 1;
+            userProfile.setStreakDays(newStreak);
+            streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), newStreak);
         } else {
             // Gián đoạn, reset streak về 1
             userProfile.setStreakDays(1);

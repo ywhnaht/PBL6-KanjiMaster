@@ -8,6 +8,7 @@ import com.kanjimaster.backend.model.entity.BattleHistory;
 import com.kanjimaster.backend.model.entity.User;
 import com.kanjimaster.backend.model.enums.BattleMessageType;
 import com.kanjimaster.backend.model.enums.BattleStatus;
+import com.kanjimaster.backend.model.enums.NotificationType;
 import com.kanjimaster.backend.repository.BattleHistoryRepository;
 import com.kanjimaster.backend.repository.UserRepository;
 import com.kanjimaster.backend.websocket.BattleWebSocketHandler;
@@ -43,6 +44,7 @@ public class BattleService {
     UserRepository userRepository;
     BattleHistoryRepository battleHistoryRepository;
     BattleWebSocketHandler webSocketHandler;
+    NotificationService notificationService;
     
     Map<String, BattleRoom> activeRooms = new ConcurrentHashMap<>(); // roomId -> BattleRoom
     Map<String, String> userToRoom = new ConcurrentHashMap<>(); // userId -> roomId
@@ -282,6 +284,27 @@ public class BattleService {
                 .numberOfQuestions(TOTAL_QUESTIONS)
                 .build();
         webSocketHandler.sendMessage(player2.getSession(), BattleMessageType.MATCH_FOUND, payload2);
+
+
+        try {
+            notificationService.createQuickNotification(
+                    player1.getUserId(),
+                    "Tìm thấy đối thủ!",
+                    String.format("Bạn sẽ đối đầu với %s ở cấp độ %s. Sẵn sàng chiến đấu!",
+                            player2.getUserName(), level),
+                    NotificationType.BATTLE_INVITE
+            );
+
+            notificationService.createQuickNotification(
+                    player2.getUserId(),
+                    "Tìm thấy đối thủ!",
+                    String.format("Bạn sẽ đối đầu với %s ở cấp độ %s. Sẵn sàng chiến đấu!",
+                            player1.getUserName(), level),
+                    NotificationType.BATTLE_INVITE
+            );
+        } catch (Exception e) {
+            logger.error("❌ Failed to send match found notifications", e);
+        }
     }
 
     /**
@@ -484,9 +507,78 @@ public class BattleService {
         
         logger.info("Game ended for room: {}. Winner: {}", room.getRoomId(), 
                 winnerId != null ? winnerId : "DRAW");
+
+        sendBattleEndNotifications(player1, player2, winnerId, player1.getScore(), player2.getScore());
         
         // Cleanup after 10 seconds
         scheduler.schedule(() -> cleanupRoom(room.getRoomId()), 10, TimeUnit.SECONDS);
+    }
+
+    private void sendBattleEndNotifications(BattlePlayer player1, BattlePlayer player2,
+                                            String winnerId, int score1, int score2) {
+        try {
+            String player1Id = player1.getUserId();
+            String player2Id = player2.getUserId();
+            String player1Name = player1.getUserName();
+            String player2Name = player2.getUserName();
+
+            if (winnerId == null) {
+                // Hòa
+                notificationService.createQuickNotification(
+                        player1Id,
+                        "⚔️ Trận đấu hòa!",
+                        String.format("Bạn đã hòa với %s với tỷ số %d-%d. Cố gắng hơn lần sau nhé!",
+                                player2Name, score1, score2),
+                        NotificationType.BATTLE_RESULT
+                );
+
+                notificationService.createQuickNotification(
+                        player2Id,
+                        "⚔️ Trận đấu hòa!",
+                        String.format("Bạn đã hòa với %s với tỷ số %d-%d. Cố gắng hơn lần sau nhé!",
+                                player1Name, score2, score1),
+                        NotificationType.BATTLE_RESULT
+                );
+            } else if (winnerId.equals(player1Id)) {
+                // Player 1 thắng
+                notificationService.createQuickNotification(
+                        player1Id,
+                        "🏆 Chiến thắng rực rỡ!",
+                        String.format("Xin chúc mừng! Bạn đã đánh bại %s với tỷ số %d-%d",
+                                player2Name, score1, score2),
+                        NotificationType.BATTLE_RESULT
+                );
+
+                notificationService.createQuickNotification(
+                        player2Id,
+                        "💪 Đừng bỏ cuộc!",
+                        String.format("Bạn đã thua %s với tỷ số %d-%d. Luyện tập thêm và thử lại nhé!",
+                                player1Name, score2, score1),
+                        NotificationType.BATTLE_RESULT
+                );
+            } else {
+                // Player 2 thắng
+                notificationService.createQuickNotification(
+                        player2Id,
+                        "🏆 Chiến thắng rực rỡ!",
+                        String.format("Xin chúc mừng! Bạn đã đánh bại %s với tỷ số %d-%d",
+                                player1Name, score2, score1),
+                        NotificationType.BATTLE_RESULT
+                );
+
+                notificationService.createQuickNotification(
+                        player1Id,
+                        "💪 Đừng bỏ cuộc!",
+                        String.format("Bạn đã thua %s với tỷ số %d-%d. Luyện tập thêm và thử lại nhé!",
+                                player2Name, score1, score2),
+                        NotificationType.BATTLE_RESULT
+                );
+            }
+
+            logger.info("✅ Sent battle end notifications to both players");
+        } catch (Exception e) {
+            logger.error("❌ Failed to send battle end notifications", e);
+        }
     }
 
     /**

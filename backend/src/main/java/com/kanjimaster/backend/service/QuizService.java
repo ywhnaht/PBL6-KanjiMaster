@@ -5,6 +5,7 @@ import com.kanjimaster.backend.exception.ErrorCode;
 import com.kanjimaster.backend.model.dto.QuizItem;
 import com.kanjimaster.backend.model.dto.QuizResultDto;
 import com.kanjimaster.backend.model.entity.*;
+import com.kanjimaster.backend.model.enums.NotificationType;
 import com.kanjimaster.backend.model.enums.QuestionType;
 import com.kanjimaster.backend.repository.*;
 import com.kanjimaster.backend.util.QuizUtils;
@@ -28,6 +29,7 @@ public class QuizService {
     QuizHistoryRepository quizHistoryRepository;
     UserIncorrectQuestionRepository incorrectQuestionRepository;
     UserRepository userRepository;
+    NotificationService notificationService;
 
     public List<QuizItem> generateQuiz(String level, int numberOfQuestions) {
         List<QuizItem> quizItems = new ArrayList<>();
@@ -83,6 +85,31 @@ public class QuizService {
 
         if (quizResult.getCorrectReviewCompoundIds() != null && !quizResult.getCorrectReviewCompoundIds().isEmpty()) {
             incorrectQuestionRepository.deleteReviewQuestions(userId, QuestionType.COMPOUND_WORD, quizResult.getCorrectReviewCompoundIds());
+        }
+
+        double score = (double) quizResult.getTotalCorrects() / quizResult.getTotalQuestions();
+
+        if (score >= 0.8) {
+            notificationService.createQuickNotification(
+                    userId,
+                    "Kết quả xuất sắc!",
+                    // Sửa dòng này:
+                    String.format("Bạn đã đạt %.0f%% trên tổng %d câu hỏi trong quiz %s. Tuyệt vời!",
+                            score * 100,
+                            quizResult.getTotalQuestions(),
+                            quizResult.getLevel()),
+                    NotificationType.ACHIEVEMENT
+            );
+        } else if (score >= 0.5) {
+            notificationService.createQuickNotification(
+                    userId,
+                    "Làm tốt lắm!",
+                    String.format("Bạn đã đạt %.0f%% trên tổng %d câu hỏi trong quiz %s. Tiếp tục cố gắng!",
+                            score * 100,
+                            quizResult.getTotalQuestions(),
+                            quizResult.getLevel()),
+                    NotificationType.INFO
+            );
         }
     }
 
