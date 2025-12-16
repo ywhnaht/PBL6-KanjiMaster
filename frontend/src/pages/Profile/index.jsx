@@ -648,7 +648,7 @@ const Profile = () => {
                                 Tỉ lệ thắng trận
                               </p>
                               <p className="text-3xl font-bold text-purple-800">
-                                {(stats?.winRate * 100 || 0).toFixed(1)}%
+                                {(stats?.winRate|| 0)}%
                               </p>
                             </div>
                             <span className="text-5xl">🏆</span>
