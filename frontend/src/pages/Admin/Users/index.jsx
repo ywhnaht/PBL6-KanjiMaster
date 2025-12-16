@@ -119,7 +119,7 @@ const AdminUsers = () => {
 
   const handleUpdateRole = async () => {
     try {
-      await updateUserRole(axiosPrivate, selectedUser.id, { role: selectedRole });
+      await updateUserRole(axiosPrivate, selectedUser.id, { roles: [selectedRole] });
       showNotification('success', 'Thành công', `Đã cập nhật role cho ${selectedUser.username}`);
       fetchUsers();
     } catch (error) {

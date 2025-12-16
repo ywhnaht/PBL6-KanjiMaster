@@ -32,7 +32,7 @@ export const deleteUser = async (axiosPrivate, userId) => {
 };
 
 export const updateUserRole = async (axiosPrivate, userId, roleData) => {
-  const response = await axiosPrivate.put(`/api/admin/users/${userId}/role`, roleData);
+  const response = await axiosPrivate.put(`/api/admin/users/${userId}/roles`, roleData);
   return response.data;
 };
 
