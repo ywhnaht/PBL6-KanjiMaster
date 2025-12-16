@@ -1,8 +1,11 @@
 package com.kanjimaster.backend.model.dto;
 
+import com.kanjimaster.backend.model.entity.Role;
 import jakarta.persistence.Column;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,4 +20,5 @@ public class UserProfileDto {
     String bio;
     Integer totalKanjiLearned;
     Integer streakDays;
+    List<Role> roles;
 }

@@ -35,12 +35,21 @@ public class User {
     @Column(name = "is_verified")
     boolean isVerified = false;
 
+    @Column(name = "is_banned")
+    boolean isBanned = false;
+
+    @Column(name = "banned_at")
+    LocalDateTime bannedAt;
+
+    @Column(name = "ban_reason", columnDefinition = "TEXT")
+    String banReason;
+
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     UserProfile userProfile;
 
     @JsonIgnore
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
             @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     List<Role> roles = new ArrayList<>();

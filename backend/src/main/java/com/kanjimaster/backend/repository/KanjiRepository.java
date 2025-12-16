@@ -16,6 +16,10 @@ import com.kanjimaster.backend.model.entity.Kanji;
 public interface KanjiRepository extends JpaRepository<Kanji, Integer> {
     Optional<Kanji> findByKanji(String character);
     Page<Kanji> findByLevel(String level, Pageable pageable);
+    
+    // Admin methods
+    boolean existsByKanji(String kanji);
+    Page<Kanji> findAll(Pageable pageable);
 
     @Query("""
         select new com.kanjimaster.backend.model.dto.KanjiBasicDto(k.id, k.kanji, k.hanViet, k.level, k.joyoReading, p.status)

@@ -147,6 +147,12 @@ public class AuthService {
                     );
 
             var user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+            
+            // Check if user is banned
+            if (user.isBanned()) {
+                throw new AppException(ErrorCode.USER_BANNED);
+            }
+            
             var userDetail = userDetailService.loadUserByUsername(user.getEmail());
 
             return generateAuthResponse(user, userDetail);
@@ -264,6 +270,7 @@ public class AuthService {
                 .avatarUrl(profile.getAvatarUrl())
                 .totalKanjiLearned(profile.getTotalKanjiLearned())
                 .streakDays(profile.getStreakDays())
+                .roles(user.getRoles())
                 .build();
     }
 
