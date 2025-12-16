@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../store/useDarkModeStore';
 import { getBattleHistory, getBattleStats } from '../../services/battleService';
 import Sidebar from '../../layouts/Sidebar';
 import Header from '../../layouts/Header';
@@ -9,12 +10,14 @@ import Toast from '../../components/Toast';
 import LoginModal from '../../components/Login';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 export default function BattleHistoryPage() {
   const { user } = useAuthStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
+  const isDark = useDarkModeStore((state) => state.isDark);
   
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
@@ -63,14 +66,29 @@ export default function BattleHistoryPage() {
   const getResultBadge = (battle) => {
     // Check draw first (winner is null)
     if (battle.draw) {
-      return { text: 'Hòa', color: 'bg-gray-100 text-gray-700' };
+      return { 
+        text: 'Hòa', 
+        color: isDark 
+          ? 'bg-slate-700 text-slate-200' 
+          : 'bg-gray-100 text-gray-700' 
+      };
     }
     // Check winner flag from backend (this is the source of truth)
     if (battle.winner) {
-      return { text: 'Thắng', color: 'bg-green-100 text-green-700' };
+      return { 
+        text: 'Thắng', 
+        color: isDark 
+          ? 'bg-green-900/30 text-green-300' 
+          : 'bg-green-100 text-green-700' 
+      };
     }
     // If not draw and not winner, then it's a loss
-    return { text: 'Thua', color: 'bg-red-100 text-red-700' };
+    return { 
+      text: 'Thua', 
+      color: isDark 
+        ? 'bg-red-900/30 text-red-300' 
+        : 'bg-red-100 text-red-700' 
+    };
   };
   
   // Pagination calculations
@@ -87,7 +105,11 @@ export default function BattleHistoryPage() {
   if (!user) {
     return (
       <>
-        <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className={`flex h-screen transition-colors duration-300 ${
+          isDark
+            ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+        }`}>
           <Sidebar />
           <div className="flex-1 flex flex-col overflow-hidden">
             <Header />
@@ -104,15 +126,35 @@ export default function BattleHistoryPage() {
                   </h1>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#2F4454]/10 to-[#DA7B93]/10 mb-4">
-                    <span className="material-symbols-outlined text-[#DA7B93] text-5xl">lock</span>
+                <div className={`rounded-2xl shadow-2xl p-8 md:p-12 text-center transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border border-slate-700'
+                    : 'bg-white'
+                }`}>
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 transition-colors duration-300 ${
+                    isDark
+                      ? 'bg-rose-900/30'
+                      : 'bg-gradient-to-br from-[#2F4454]/10 to-[#DA7B93]/10'
+                  }`}>
+                    <span className={`material-symbols-outlined text-5xl transition-colors duration-300 ${
+                      isDark ? 'text-rose-400' : 'text-[#DA7B93]'
+                    }`}>
+                      lock
+                    </span>
                   </div>
-                  <h2 className="text-2xl font-bold mb-3 text-[#2F4454]">Đăng Nhập Để Xem Lịch Sử</h2>
-                  <p className="text-gray-600 mb-6">Đăng nhập để xem lịch sử các trận đấu của bạn!</p>
+                  <h2 className={`text-2xl font-bold mb-3 transition-colors duration-300 ${
+                    isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                  }`}>
+                    Đăng Nhập Để Xem Lịch Sử
+                  </h2>
+                  <p className={`mb-6 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Đăng nhập để xem lịch sử các trận đấu của bạn!
+                  </p>
                   <button
                     onClick={() => setShowLoginModal(true)}
-                    className="px-8 py-3 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-xl font-bold hover:shadow-xl transition-all"
+                    className="px-8 py-3 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-xl font-bold hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     Đăng Nhập
                   </button>
@@ -130,7 +172,11 @@ export default function BattleHistoryPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className={`flex h-screen transition-colors duration-300 ${
+      isDark
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+        : 'bg-gradient-to-br from-gray-50 to-gray-100'
+    }`}>
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
@@ -140,7 +186,11 @@ export default function BattleHistoryPage() {
             <div className="mb-8">
               <button
                 onClick={() => navigate('/battle')}
-                className="flex items-center gap-2 text-[#2F4454] hover:text-[#DA7B93] transition-colors mb-4"
+                className={`flex items-center gap-2 transition-colors duration-300 mb-4 ${
+                  isDark
+                    ? 'text-rose-400 hover:text-rose-300'
+                    : 'text-[#2F4454] hover:text-[#DA7B93]'
+                }`}
               >
                 <span className="material-symbols-outlined">arrow_back</span>
                 <span className="font-semibold">Trở lại Battle</span>
@@ -155,7 +205,9 @@ export default function BattleHistoryPage() {
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
                   Lịch Sử Đấu
                 </h1>
-                <p className="text-lg text-gray-600">
+                <p className={`text-lg transition-colors duration-300 ${
+                  isDark ? 'text-slate-400' : 'text-gray-600'
+                }`}>
                   Xem lại các trận đấu của bạn
                 </p>
               </div>
@@ -168,44 +220,112 @@ export default function BattleHistoryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
               >
-                <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-[#2F4454]">
-                  <p className="text-sm text-gray-600 mb-1">Tổng trận</p>
-                  <p className="text-2xl font-bold text-[#2F4454]">{stats.totalBattles}</p>
+                <div className={`rounded-xl shadow-md p-4 border-l-4 transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-l-rose-400'
+                    : 'bg-white border-l-[#2F4454]'
+                }`}>
+                  <p className={`text-sm mb-1 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Tổng trận
+                  </p>
+                  <p className={`text-2xl font-bold transition-colors duration-300 ${
+                    isDark ? 'text-rose-400' : 'text-[#2F4454]'
+                  }`}>
+                    {stats.totalBattles}
+                  </p>
                 </div>
-                <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500">
-                  <p className="text-sm text-gray-600 mb-1">Thắng</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.totalWins}</p>
+                <div className={`rounded-xl shadow-md p-4 border-l-4 transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-l-green-400'
+                    : 'bg-white border-l-green-500'
+                }`}>
+                  <p className={`text-sm mb-1 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Thắng
+                  </p>
+                  <p className={`text-2xl font-bold transition-colors duration-300 ${
+                    isDark ? 'text-green-400' : 'text-green-600'
+                  }`}>
+                    {stats.totalWins}
+                  </p>
                 </div>
-                <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-500">
-                  <p className="text-sm text-gray-600 mb-1">Thua</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.totalLosses}</p>
+                <div className={`rounded-xl shadow-md p-4 border-l-4 transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-l-red-400'
+                    : 'bg-white border-l-red-500'
+                }`}>
+                  <p className={`text-sm mb-1 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Thua
+                  </p>
+                  <p className={`text-2xl font-bold transition-colors duration-300 ${
+                    isDark ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    {stats.totalLosses}
+                  </p>
                 </div>
-                <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-[#DA7B93]">
-                  <p className="text-sm text-gray-600 mb-1">Tỉ lệ thắng</p>
-                  <p className="text-2xl font-bold text-[#DA7B93]">{stats.winRate}%</p>
+                <div className={`rounded-xl shadow-md p-4 border-l-4 transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-l-rose-500'
+                    : 'bg-white border-l-[#DA7B93]'
+                }`}>
+                  <p className={`text-sm mb-1 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Tỉ lệ thắng
+                  </p>
+                  <p className={`text-2xl font-bold transition-colors duration-300 ${
+                    isDark ? 'text-rose-400' : 'text-[#DA7B93]'
+                  }`}>
+                    {stats.winRate}%
+                  </p>
                 </div>
               </motion.div>
             )}
 
             {/* History List */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className={`rounded-2xl shadow-xl overflow-hidden transition-colors duration-300 ${
+              isDark
+                ? 'bg-slate-800 border border-slate-700'
+                : 'bg-white'
+            }`}>
               {loading ? (
                 <div className="p-12 text-center">
-                  <div className="animate-spin w-12 h-12 border-4 border-[#DA7B93] border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p className="text-gray-600">Đang tải...</p>
+                  <div className={`animate-spin w-12 h-12 border-4 border-[#DA7B93] border-t-transparent rounded-full mx-auto mb-4 transition-colors duration-300 ${
+                    isDark ? 'border-slate-600' : 'border-gray-200'
+                  }`}></div>
+                  <p className={`transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Đang tải...
+                  </p>
                 </div>
               ) : !history || history.length === 0 ? (
                 <div className="p-12 text-center">
-                  <span className="material-symbols-outlined text-gray-400 text-6xl mb-4">
+                  <span className={`material-symbols-outlined text-6xl mb-4 transition-colors duration-300 ${
+                    isDark ? 'text-slate-600' : 'text-gray-400'
+                  }`}>
                     history
                   </span>
-                  <p className="text-gray-600">Chưa có lịch sử đấu</p>
-                  <p className="text-sm text-gray-500 mt-2">Tham gia Battle Mode để bắt đầu!</p>
+                  <p className={`transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    Chưa có lịch sử đấu
+                  </p>
+                  <p className={`text-sm mt-2 transition-colors duration-300 ${
+                    isDark ? 'text-slate-500' : 'text-gray-500'
+                  }`}>
+                    Tham gia Battle Mode để bắt đầu!
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white">
+                    <thead className="bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white transition-colors duration-300">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Kết quả</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Đối thủ</th>
@@ -214,7 +334,9 @@ export default function BattleHistoryPage() {
                         <th className="px-4 py-3 text-center text-sm font-semibold">Thời gian</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className={`divide-y transition-colors duration-300 ${
+                      isDark ? 'divide-slate-700' : 'divide-gray-200'
+                    }`}>
                       {currentHistory.map((battle, index) => {
                         const badge = getResultBadge(battle);
                         
@@ -224,32 +346,56 @@ export default function BattleHistoryPage() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.03 }}
-                            className="hover:bg-gray-50 transition-colors"
+                            className={`transition-colors duration-300 ${
+                              isDark
+                                ? 'hover:bg-slate-700'
+                                : 'hover:bg-gray-50'
+                            }`}
                           >
                             <td className="px-4 py-4">
-                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${badge.color}`}>
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300 ${badge.color}`}>
                                 {badge.text}
                               </span>
                             </td>
                             <td className="px-4 py-4">
-                              <p className="font-semibold text-[#2F4454]">{battle.opponentName}</p>
-                              <p className="text-xs text-gray-500">{battle.opponentEmail}</p>
+                              <p className={`font-semibold transition-colors duration-300 ${
+                                isDark ? 'text-rose-400' : 'text-[#2F4454]'
+                              }`}>
+                                {battle.opponentName}
+                              </p>
+                              <p className={`text-xs transition-colors duration-300 ${
+                                isDark ? 'text-slate-500' : 'text-gray-500'
+                              }`}>
+                                {battle.opponentEmail}
+                              </p>
                             </td>
                             <td className="px-4 py-4 text-center">
-                              <span className="inline-block px-3 py-1 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-lg text-sm font-bold">
+                              <span className="inline-block px-3 py-1 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white rounded-lg text-sm font-bold transition-colors duration-300">
                                 {battle.level}
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-center">
-                              <span className="font-bold text-[#2F4454]">
+                            <td className={`px-4 py-4 text-center transition-colors duration-300 ${
+                              isDark ? 'text-slate-100' : 'text-gray-900'
+                            }`}>
+                              <span className={`font-bold transition-colors duration-300 ${
+                                isDark ? 'text-rose-400' : 'text-[#2F4454]'
+                              }`}>
                                 {battle.myScore}
                               </span>
-                              <span className="text-gray-400 mx-1">-</span>
-                              <span className="font-bold text-gray-600">
+                              <span className={`mx-1 transition-colors duration-300 ${
+                                isDark ? 'text-slate-500' : 'text-gray-400'
+                              }`}>
+                                -
+                              </span>
+                              <span className={`font-bold transition-colors duration-300 ${
+                                isDark ? 'text-slate-400' : 'text-gray-600'
+                              }`}>
                                 {battle.opponentScore}
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-center text-sm text-gray-600">
+                            <td className={`px-4 py-4 text-center text-sm transition-colors duration-300 ${
+                              isDark ? 'text-slate-400' : 'text-gray-600'
+                            }`}>
                               {formatDate(battle.completedAt)}
                             </td>
                           </motion.tr>
@@ -260,15 +406,25 @@ export default function BattleHistoryPage() {
                   
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-                      <div className="text-sm text-gray-600">
+                    <div className={`flex items-center justify-between px-6 py-4 border-t transition-colors duration-300 ${
+                      isDark
+                        ? 'border-slate-700'
+                        : 'border-gray-200'
+                    }`}>
+                      <div className={`text-sm transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>
                         Hiển thị {startIndex + 1}-{Math.min(endIndex, history.length)} / {history.length} trận đấu
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => goToPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            isDark
+                              ? 'border-slate-600 hover:bg-slate-700 text-slate-100'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
                           <span className="material-symbols-outlined text-sm">chevron_left</span>
                         </button>
@@ -285,9 +441,11 @@ export default function BattleHistoryPage() {
                               <button
                                 key={page}
                                 onClick={() => goToPage(page)}
-                                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
                                   currentPage === page
                                     ? 'bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white'
+                                    : isDark
+                                    ? 'border border-slate-600 hover:bg-slate-700 text-slate-100'
                                     : 'border border-gray-300 hover:bg-gray-50'
                                 }`}
                               >
@@ -295,7 +453,16 @@ export default function BattleHistoryPage() {
                               </button>
                             );
                           } else if (page === currentPage - 2 || page === currentPage + 2) {
-                            return <span key={page} className="px-2">...</span>;
+                            return (
+                              <span 
+                                key={page} 
+                                className={`px-2 transition-colors duration-300 ${
+                                  isDark ? 'text-slate-500' : 'text-gray-400'
+                                }`}
+                              >
+                                ...
+                              </span>
+                            );
                           }
                           return null;
                         })}
@@ -303,7 +470,11 @@ export default function BattleHistoryPage() {
                         <button
                           onClick={() => goToPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            isDark
+                              ? 'border-slate-600 hover:bg-slate-700 text-slate-100'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
                           <span className="material-symbols-outlined text-sm">chevron_right</span>
                         </button>

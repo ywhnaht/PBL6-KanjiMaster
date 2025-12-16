@@ -7,6 +7,7 @@ import SearchSection from "../../components/SearchItem/SearchSection";
 import LoginModal from "../../components/Login";
 import RegisterModal from "../../components/Register";
 import { useAuthStore } from "../../store/useAuthStore";
+import useDarkModeStore from "../../store/useDarkModeStore";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // dictionary mẫu
@@ -37,10 +38,13 @@ export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [welcomeCountdown, setWelcomeCountdown] = useState(3);
   
-  // 🎯 THÊM: Lấy cả isAuthenticated, user, accessToken
+  // ✅ Lấy isDark từ store
+  const isDark = useDarkModeStore((state) => state.isDark);
+  
+  // 🎯 Lấy cả isAuthenticated, user, accessToken
   const { user, isAuthenticated, accessToken } = useAuthStore();
 
-  // 🎯 THÊM: Countdown timer cho welcome modal
+  // 🎯 Countdown timer cho welcome modal
   useEffect(() => {
     let interval;
     if (showWelcomeModal && welcomeCountdown > 0) {
@@ -54,7 +58,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [showWelcomeModal, welcomeCountdown]);
 
-  // 🎯 THÊM: Search filter logic
+  // 🎯 Search filter logic
   useEffect(() => {
     if (value) {
       const filtered = dictionary.filter(
@@ -86,7 +90,6 @@ export default function Home() {
     setShowWelcomeModal(true);
     setWelcomeCountdown(3);
     console.log("✅ Login successful, showing welcome modal");
-    // 🎯 THÊM: Log auth state để debug
     console.log("🔐 Auth state after login:", { isAuthenticated, user: user?.fullName, accessToken: !!accessToken });
   };
 
@@ -95,7 +98,11 @@ export default function Home() {
 
     return (
       <div className="fixed top-4 right-4 z-[10001]">
-        <div className="bg-white rounded-2xl shadow-2xl border border-[#DA7B93]/20 p-6 max-w-sm transform animate-slide-in-right">
+        <div className={`rounded-2xl shadow-2xl border p-6 max-w-sm transform animate-slide-in-right transition-colors duration-300 ${
+          isDark 
+            ? 'bg-slate-800 border-[#DA7B93]/40' 
+            : 'bg-white border-[#DA7B93]/20'
+        }`}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-[#2F4454] to-[#DA7B93] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="material-symbols-outlined text-white text-lg">
@@ -107,10 +114,14 @@ export default function Home() {
               <h3 className="font-bold text-lg bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
                 Chào mừng!
               </h3>
-              <p className="text-[#2F4454]/80 text-sm leading-relaxed">
+              <p className={`text-sm leading-relaxed transition-colors duration-300 ${
+                isDark ? 'text-slate-300' : 'text-[#2F4454]/80'
+              }`}>
                 {user?.fullName}
               </p>
-              <p className="text-gray-500 text-xs mt-1">
+              <p className={`text-xs mt-1 transition-colors duration-300 ${
+                isDark ? 'text-slate-400' : 'text-gray-500'
+              }`}>
                 Bạn đã đăng nhập thành công
               </p>
             </div>
@@ -133,7 +144,11 @@ export default function Home() {
           <div className="mt-4 flex justify-end">
             <button
               onClick={() => setShowWelcomeModal(false)}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              className={`text-xs transition-colors duration-300 ${
+                isDark
+                  ? 'text-slate-500 hover:text-slate-300'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
             >
               Đóng
             </button>
@@ -145,19 +160,23 @@ export default function Home() {
 
   return (
     <div id="webcrumbs">
-      <div className={`flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 ${
-        activeModal ? 'brightness-95' : 'brightness-100'
-      }`}>
+      <div className={`flex h-screen transition-all duration-300 ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+          : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50'
+      } ${activeModal ? 'brightness-95' : 'brightness-100'}`}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
           />
-          <main className="flex-1 overflow-y-auto p-8">
+          <main className={`flex-1 overflow-y-auto p-8 transition-colors duration-300 ${
+            isDark ? 'bg-slate-900' : 'bg-transparent'
+          }`}>
             <SearchSection currentType={type} onSelect={handleSearch} />
             
-            {/* 🎯 SỬA: Truyền axios + isAuthenticated + accessToken xuống ContentSection */}
+            {/* ✅ Truyền axios + isAuthenticated + accessToken xuống ContentSection */}
             <ContentSection
               query={value || ""}
               type={type}
@@ -173,7 +192,9 @@ export default function Home() {
 
       {/* Modal Backdrop + Login/Register */}
       {activeModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/10 transition-all duration-200">
+        <div className={`fixed inset-0 z-[9999] transition-all duration-200 ${
+          isDark ? 'bg-black/30' : 'bg-black/10'
+        }`}>
           <div className="relative z-[10000] w-full h-full flex items-center justify-center">
             {activeModal === 'login' && (
               <LoginModal

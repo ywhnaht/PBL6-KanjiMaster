@@ -4,6 +4,7 @@ import Sidebar from "../../layouts/Sidebar";
 import useProfileStore from "../../store/useProfileStore";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useAuthStore } from "../../store/useAuthStore";
+import useDarkModeStore from "../../store/useDarkModeStore";
 import LoginModal from "../../components/Login";
 
 // Import avatar images from local assets
@@ -43,6 +44,8 @@ const avatarOptions = [
 
 // Notification Modal Component
 const NotificationModal = ({ type, title, message, onClose }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
+
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
@@ -64,46 +67,54 @@ const NotificationModal = ({ type, title, message, onClose }) => {
   const getBgColor = () => {
     switch (type) {
       case "success":
-        return "bg-green-50 border-green-200";
+        return isDark
+          ? "bg-green-900/30 border-green-700"
+          : "bg-green-50 border-green-200";
       case "error":
-        return "bg-red-50 border-red-200";
+        return isDark
+          ? "bg-red-900/30 border-red-700"
+          : "bg-red-50 border-red-200";
       case "info":
-        return "bg-blue-50 border-blue-200";
+        return isDark
+          ? "bg-blue-900/30 border-blue-700"
+          : "bg-blue-50 border-blue-200";
       default:
-        return "bg-gray-50 border-gray-200";
+        return isDark
+          ? "bg-slate-800 border-slate-700"
+          : "bg-gray-50 border-gray-200";
     }
   };
 
   const getTitleColor = () => {
     switch (type) {
       case "success":
-        return "text-green-800";
+        return isDark ? "text-green-400" : "text-green-800";
       case "error":
-        return "text-red-800";
+        return isDark ? "text-red-400" : "text-red-800";
       case "info":
-        return "text-blue-800";
+        return isDark ? "text-blue-400" : "text-blue-800";
       default:
-        return "text-gray-800";
+        return isDark ? "text-slate-100" : "text-gray-800";
     }
   };
 
   const getTextColor = () => {
     switch (type) {
       case "success":
-        return "text-green-700";
+        return isDark ? "text-green-300" : "text-green-700";
       case "error":
-        return "text-red-700";
+        return isDark ? "text-red-300" : "text-red-700";
       case "info":
-        return "text-blue-700";
+        return isDark ? "text-blue-300" : "text-blue-700";
       default:
-        return "text-gray-700";
+        return isDark ? "text-slate-200" : "text-gray-700";
     }
   };
 
   return (
     <div className="fixed top-4 right-4 z-[99999] animate-in fade-in slide-in-from-right-4 duration-300">
       <div
-        className={`${getBgColor()} border rounded-xl p-4 shadow-lg max-w-sm`}
+        className={`${getBgColor()} border rounded-xl p-4 shadow-lg max-w-sm transition-colors duration-300`}
       >
         <div className="flex gap-3">
           <span className="text-2xl flex-shrink-0">{getIcon()}</span>
@@ -113,7 +124,11 @@ const NotificationModal = ({ type, title, message, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+            className={`flex-shrink-0 transition-colors duration-300 ${
+              isDark
+                ? "text-slate-500 hover:text-slate-300"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
           >
             ✕
           </button>
@@ -146,6 +161,7 @@ const Profile = () => {
 
   const axiosPrivateHook = useAxiosPrivate();
   const { user, accessToken } = useAuthStore();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const isAuthenticated = !!user && !!accessToken;
 
   const {
@@ -307,7 +323,13 @@ const Profile = () => {
   if (!isAuthenticated) {
     return (
       <div id="webcrumbs">
-        <div className="flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div
+          className={`flex h-screen transition-colors duration-300 ${
+            isDark
+              ? "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+              : "bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"
+          }`}
+        >
           <Sidebar />
           <div className="flex-1 flex flex-col overflow-hidden">
             <Header
@@ -315,16 +337,38 @@ const Profile = () => {
               isModalOpen={showLoginModal}
             />
             <div className="flex-1 overflow-y-auto py-8 px-20 flex items-center justify-center">
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md">
-                <div className="w-20 h-20 bg-gradient-to-br from-slate-500/10 to-rose-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="material-symbols-outlined text-5xl text-slate-500">
+              <div
+                className={`rounded-2xl shadow-lg p-12 text-center max-w-md transition-colors duration-300 ${
+                  isDark ? "bg-slate-800 border border-slate-700" : "bg-white"
+                }`}
+              >
+                <div
+                  className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-slate-700"
+                      : "bg-gradient-to-br from-slate-500/10 to-rose-400/10"
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-5xl transition-colors duration-300 ${
+                      isDark ? "text-slate-400" : "text-slate-500"
+                    }`}
+                  >
                     lock
                   </span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                <h3
+                  className={`text-2xl font-bold mb-3 transition-colors duration-300 ${
+                    isDark ? "text-slate-100" : "text-gray-800"
+                  }`}
+                >
                   Đăng nhập để tiếp tục
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p
+                  className={`mb-6 transition-colors duration-300 ${
+                    isDark ? "text-slate-400" : "text-gray-600"
+                  }`}
+                >
                   Vui lòng đăng nhập để xem hồ sơ của bạn
                 </p>
                 <button
@@ -349,7 +393,13 @@ const Profile = () => {
 
   return (
     <div id="webcrumbs">
-      <div className="flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div
+        className={`flex h-screen transition-colors duration-300 ${
+          isDark
+            ? "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+            : "bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"
+        }`}
+      >
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header
@@ -357,24 +407,40 @@ const Profile = () => {
             isModalOpen={showLoginModal}
           />
           <div className="flex-1 overflow-y-auto py-8 px-20">
-            <main className="bg-white rounded-3xl w-full p-16 border border-gray-200">
+            <main
+              className={`rounded-3xl w-full p-16 transition-colors duration-300 ${
+                isDark
+                  ? "bg-slate-800 border border-slate-700"
+                  : "bg-white border border-gray-200"
+              }`}
+            >
               {/* Header Section */}
               <div className="mb-12">
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-500 to-rose-400 bg-clip-text text-transparent mb-2">
                   Hồ sơ cá nhân
                 </h1>
-                <p className="text-gray-600">
+                <p
+                  className={`transition-colors duration-300 ${
+                    isDark ? "text-slate-400" : "text-gray-600"
+                  }`}
+                >
                   Quản lý thông tin tài khoản của bạn
                 </p>
               </div>
 
               {/* Tab Navigation */}
-              <div className="flex gap-4 mb-8 border-b border-gray-200">
+              <div
+                className={`flex gap-4 mb-8 border-b transition-colors duration-300 ${
+                  isDark ? "border-slate-700" : "border-gray-200"
+                }`}
+              >
                 <button
                   onClick={() => setActiveTab("info")}
-                  className={`px-6 py-3 font-semibold transition-all ${
+                  className={`px-6 py-3 font-semibold transition-all duration-300 ${
                     activeTab === "info"
                       ? "text-rose-400 border-b-2 border-rose-400"
+                      : isDark
+                      ? "text-slate-400 hover:text-slate-300"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
@@ -382,9 +448,11 @@ const Profile = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab("stats")}
-                  className={`px-6 py-3 font-semibold transition-all ${
+                  className={`px-6 py-3 font-semibold transition-all duration-300 ${
                     activeTab === "stats"
                       ? "text-rose-400 border-b-2 border-rose-400"
+                      : isDark
+                      ? "text-slate-400 hover:text-slate-300"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
@@ -403,8 +471,18 @@ const Profile = () => {
                   {/* Info Tab */}
                   {activeTab === "info" && (
                     <div className="space-y-8">
-                      <div className="border border-gray-200 rounded-2xl p-8 bg-white">
-                        <h3 className="text-xl font-bold text-gray-800 mb-6">
+                      <div
+                        className={`border rounded-2xl p-8 transition-colors duration-300 ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-xl font-bold mb-6 transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
                           Ảnh hồ sơ
                         </h3>
                         <div className="flex items-center gap-8">
@@ -443,10 +521,20 @@ const Profile = () => {
                                   setShowAvatarModal(true);
                                   setShowFileUpload(true);
                                 }}
-                                className="w-16 h-16 mt-4 ml-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-400 hover:border-rose-400 hover:from-rose-50 hover:to-rose-100 flex items-center justify-center text-xl hover:scale-125 transition-all shadow-md focus:outline-none flex-shrink-0"
+                                className={`w-16 h-16 mt-4 ml-6 rounded-full border-2 border-dashed flex items-center justify-center text-xl hover:scale-125 transition-all shadow-md focus:outline-none flex-shrink-0 ${
+                                  isDark
+                                    ? "bg-slate-600 border-slate-500 hover:border-rose-400 hover:bg-slate-500"
+                                    : "bg-gradient-to-br from-gray-100 to-gray-200 border-gray-400 hover:border-rose-400 hover:from-rose-50 hover:to-rose-100"
+                                }`}
                                 title="Tải lên ảnh từ máy tính"
                               >
-                                <span className="text-gray-600 hover:text-rose-400">
+                                <span
+                                  className={`transition-colors duration-300 ${
+                                    isDark
+                                      ? "text-slate-200 hover:text-rose-400"
+                                      : "text-gray-600 hover:text-rose-400"
+                                  }`}
+                                >
                                   +
                                 </span>
                               </button>
@@ -456,14 +544,28 @@ const Profile = () => {
                       </div>
 
                       {/* Profile Info Section */}
-                      <div className="border border-gray-200 rounded-2xl p-8">
+                      <div
+                        className={`border rounded-2xl p-8 transition-colors duration-300 ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
                         <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-xl font-bold text-gray-800">
+                          <h3
+                            className={`text-xl font-bold transition-colors duration-300 ${
+                              isDark ? "text-slate-100" : "text-gray-800"
+                            }`}
+                          >
                             Thông tin cá nhân
                           </h3>
                           <button
                             onClick={() => setEditMode(!editMode)}
-                            className="px-4 py-2 text-rose-400 font-semibold hover:bg-rose-50 rounded-lg transition-all"
+                            className={`px-4 py-2 font-semibold rounded-lg transition-all duration-300 ${
+                              isDark
+                                ? "text-rose-400 hover:bg-slate-600"
+                                : "text-rose-400 hover:bg-rose-50"
+                            }`}
                           >
                             {editMode ? "Hủy" : "Sửa"}
                           </button>
@@ -471,8 +573,16 @@ const Profile = () => {
 
                         <div className="space-y-6">
                           {/* Full Name */}
-                          <div className="pb-6 border-b border-gray-200 last:border-b-0">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                          <div
+                            className={`pb-6 border-b transition-colors duration-300 ${
+                              isDark ? "border-slate-600" : "border-gray-200"
+                            } last:border-b-0`}
+                          >
+                            <label
+                              className={`block font-semibold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-200" : "text-gray-700"
+                              }`}
+                            >
                               Tên người dùng
                             </label>
                             {editMode ? (
@@ -481,27 +591,57 @@ const Profile = () => {
                                 name="fullName"
                                 value={formData.fullName}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 transition-colors duration-300 ${
+                                  isDark
+                                    ? "bg-slate-600 border-slate-500 text-slate-100"
+                                    : "border-gray-300 bg-white text-gray-900"
+                                }`}
                                 placeholder="Nhập tên của bạn"
                               />
                             ) : (
-                              <p className="text-gray-600">
+                              <p
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 {profile?.fullName || "Chưa cập nhật"}
                               </p>
                             )}
                           </div>
 
                           {/* Email */}
-                          <div className="pb-6 border-b border-gray-200 last:border-b-0">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                          <div
+                            className={`pb-6 border-b transition-colors duration-300 ${
+                              isDark ? "border-slate-600" : "border-gray-200"
+                            } last:border-b-0`}
+                          >
+                            <label
+                              className={`block font-semibold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-200" : "text-gray-700"
+                              }`}
+                            >
                               Email
                             </label>
-                            <p className="text-gray-600">{profile?.email}</p>
+                            <p
+                              className={`transition-colors duration-300 ${
+                                isDark ? "text-slate-300" : "text-gray-600"
+                              }`}
+                            >
+                              {profile?.email}
+                            </p>
                           </div>
 
                           {/* Bio */}
-                          <div className="pb-6 border-b border-gray-200 last:border-b-0">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                          <div
+                            className={`pb-6 border-b transition-colors duration-300 ${
+                              isDark ? "border-slate-600" : "border-gray-200"
+                            } last:border-b-0`}
+                          >
+                            <label
+                              className={`block font-semibold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-200" : "text-gray-700"
+                              }`}
+                            >
                               Tiểu sử
                             </label>
                             {editMode ? (
@@ -509,12 +649,20 @@ const Profile = () => {
                                 name="bio"
                                 value={formData.bio}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none"
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none transition-colors duration-300 ${
+                                  isDark
+                                    ? "bg-slate-600 border-slate-500 text-slate-100"
+                                    : "border-gray-300 bg-white text-gray-900"
+                                }`}
                                 rows="4"
                                 placeholder="Viết gì đó về bạn..."
                               />
                             ) : (
-                              <p className="text-gray-600">
+                              <p
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 {profile?.bio || "Chưa cập nhật"}
                               </p>
                             )}
@@ -524,7 +672,7 @@ const Profile = () => {
                         {editMode && (
                           <button
                             onClick={handleUpdateProfile}
-                            className="mt-6 px-6 py-3 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+                            className="mt-6 px-6 py-3 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
                           >
                             Lưu thay đổi
                           </button>
@@ -532,42 +680,127 @@ const Profile = () => {
                       </div>
 
                       {/* Privacy & Notifications Section */}
-                      <div className="border border-gray-200 rounded-2xl p-8 space-y-6">
-                        {/* Password */}
-                        <div className="flex items-center justify-between pb-6 border-b border-gray-200">
+                      <div
+                        className={`border rounded-2xl p-8 space-y-6 transition-colors duration-300 ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-xl font-bold transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
+                          Quyền riêng tư & Thông báo
+                        </h3>
+
+                        {/* Dark Mode Toggle */}
+                        <div
+                          className={`flex items-center justify-between pb-6 border-b transition-colors duration-300 ${
+                            isDark ? "border-slate-600" : "border-gray-200"
+                          }`}
+                        >
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-2">
+                            <h3
+                              className={`text-lg font-bold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-100" : "text-gray-800"
+                              }`}
+                            >
+                              Chế độ sáng tối
+                            </h3>
+                            <p
+                              className={`text-sm transition-colors duration-300 ${
+                                isDark ? "text-slate-400" : "text-gray-600"
+                              }`}
+                            >
+                              Chuyển đổi giữa chế độ sáng và tối
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              useDarkModeStore.setState({ isDark: !isDark })
+                            }
+                            className={`px-4 py-2 rounded-full border-2 transition-all duration-300 flex items-center gap-2 flex-shrink-0 ${
+                              isDark
+                                ? "bg-slate-600 border-yellow-400 text-yellow-400 hover:bg-slate-500 hover:shadow-lg"
+                                : "bg-gray-100 border-gray-400 text-gray-600 hover:bg-gray-200 hover:shadow-lg"
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-xl">
+                              {isDark ? "light_mode" : "dark_mode"}
+                            </span>
+                            <span className="text-sm font-semibold">
+                              {isDark ? "Sáng" : "Tối"}
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Password */}
+                        <div
+                          className={`flex items-center justify-between pb-6 border-b transition-colors duration-300 ${
+                            isDark ? "border-slate-600" : "border-gray-200"
+                          }`}
+                        >
+                          <div>
+                            <h3
+                              className={`text-lg font-bold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-100" : "text-gray-800"
+                              }`}
+                            >
                               Mật khẩu
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-600 text-sm font-medium">
+                              <span
+                                className={`text-sm font-medium transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 Mật khẩu hiện tại:
                               </span>
-                              <span className="text-gray-400 text-lg tracking-widest">
+                              <span
+                                className={`text-lg tracking-widest transition-colors duration-300 ${
+                                  isDark ? "text-slate-400" : "text-gray-400"
+                                }`}
+                              >
                                 ・・・・・・・
                               </span>
                             </div>
                           </div>
                           <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex-shrink-0 h-fit text-sm"
+                            className="px-4 py-2 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300 flex-shrink-0 h-fit text-sm"
                           >
                             Đổi mật khẩu
                           </button>
                         </div>
 
                         {/* Learning Streak & Badges */}
-                        <div className="flex items-center justify-between pb-6 border-b border-gray-200">
+                        <div
+                          className={`flex items-center justify-between pb-6 border-b transition-colors duration-300 ${
+                            isDark ? "border-slate-600" : "border-gray-200"
+                          }`}
+                        >
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-2">
+                            <h3
+                              className={`text-lg font-bold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-100" : "text-gray-800"
+                              }`}
+                            >
                               Chuỗi phiên học và huy hiệu
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p
+                              className={`text-sm transition-colors duration-300 ${
+                                isDark ? "text-slate-400" : "text-gray-600"
+                              }`}
+                            >
                               Thông tin về chuỗi học tập và những huy hiệu bạn
                               đã đạt được
                             </p>
                           </div>
-                          <button className="px-4 py-2 rounded-full bg-gradient-to-r from-slate-500 to-rose-400 text-white transition-all flex items-center gap-2 flex-shrink-0">
+                          <button
+                            className={`px-4 py-2 rounded-full bg-gradient-to-r from-slate-500 to-rose-400 text-white transition-all flex items-center gap-2 flex-shrink-0 hover:shadow-lg`}
+                          >
                             <span className="material-symbols-outlined text-xl">
                               mail
                             </span>
@@ -575,18 +808,28 @@ const Profile = () => {
                         </div>
 
                         {/* Learning Reminders */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between pt-2">
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-2">
-                              Lỗi nhắc học
+                            <h3
+                              className={`text-lg font-bold mb-2 transition-colors duration-300 ${
+                                isDark ? "text-slate-100" : "text-gray-800"
+                              }`}
+                            >
+                              Lời nhắc học
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p
+                              className={`text-sm transition-colors duration-300 ${
+                                isDark ? "text-slate-400" : "text-gray-600"
+                              }`}
+                            >
                               Nhận thông báo khi bạn quên ôn tập
                             </p>
                           </div>
-                          <button className="px-3 py-2 rounded-full bg-gradient-to-r from-slate-500 to-rose-400 text-white transition-all flex items-center gap-2 flex-shrink-0">
+                          <button
+                            className={`px-4 py-2 rounded-full bg-gradient-to-r from-slate-500 to-rose-400 text-white transition-all flex items-center gap-2 flex-shrink-0 hover:shadow-lg`}
+                          >
                             <span className="material-symbols-outlined text-xl">
-                              mail
+                              notifications
                             </span>
                           </button>
                         </div>
@@ -599,13 +842,27 @@ const Profile = () => {
                     <div className="space-y-8">
                       {/* Learning Stats */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+                        <div
+                          className={`rounded-2xl p-6 border transition-colors duration-300 ${
+                            isDark
+                              ? "bg-blue-900/30 border-blue-700"
+                              : "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-blue-600 font-semibold mb-1">
+                              <p
+                                className={`font-semibold mb-1 transition-colors duration-300 ${
+                                  isDark ? "text-blue-300" : "text-blue-600"
+                                }`}
+                              >
                                 Kanji đã học trong hôm nay
                               </p>
-                              <p className="text-3xl font-bold text-blue-800">
+                              <p
+                                className={`text-3xl font-bold transition-colors duration-300 ${
+                                  isDark ? "text-blue-200" : "text-blue-800"
+                                }`}
+                              >
                                 {stats?.totalKanjiLearned || 0}
                               </p>
                             </div>
@@ -613,13 +870,27 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+                        <div
+                          className={`rounded-2xl p-6 border transition-colors duration-300 ${
+                            isDark
+                              ? "bg-green-900/30 border-green-700"
+                              : "bg-gradient-to-br from-green-50 to-green-100 border-green-200"
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-green-600 font-semibold mb-1">
+                              <p
+                                className={`font-semibold mb-1 transition-colors duration-300 ${
+                                  isDark ? "text-green-300" : "text-green-600"
+                                }`}
+                              >
                                 Ngày học liên tiếp
                               </p>
-                              <p className="text-3xl font-bold text-green-800">
+                              <p
+                                className={`text-3xl font-bold transition-colors duration-300 ${
+                                  isDark ? "text-green-200" : "text-green-800"
+                                }`}
+                              >
                                 {stats?.streakDays || 0}
                               </p>
                             </div>
@@ -627,13 +898,27 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200">
+                        <div
+                          className={`rounded-2xl p-6 border transition-colors duration-300 ${
+                            isDark
+                              ? "bg-orange-900/30 border-orange-700"
+                              : "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-orange-600 font-semibold mb-1">
+                              <p
+                                className={`font-semibold mb-1 transition-colors duration-300 ${
+                                  isDark ? "text-orange-300" : "text-orange-600"
+                                }`}
+                              >
                                 Bài quiz làm
                               </p>
-                              <p className="text-3xl font-bold text-orange-800">
+                              <p
+                                className={`text-3xl font-bold transition-colors duration-300 ${
+                                  isDark ? "text-orange-200" : "text-orange-800"
+                                }`}
+                              >
                                 {stats?.totalQuizzesTaken || 0}
                               </p>
                             </div>
@@ -641,14 +926,28 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200">
+                        <div
+                          className={`rounded-2xl p-6 border transition-colors duration-300 ${
+                            isDark
+                              ? "bg-purple-900/30 border-purple-700"
+                              : "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200"
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-purple-600 font-semibold mb-1">
+                              <p
+                                className={`font-semibold mb-1 transition-colors duration-300 ${
+                                  isDark ? "text-purple-300" : "text-purple-600"
+                                }`}
+                              >
                                 Tỉ lệ thắng trận
                               </p>
-                              <p className="text-3xl font-bold text-purple-800">
-                                {(stats?.winRate|| 0)}%
+                              <p
+                                className={`text-3xl font-bold transition-colors duration-300 ${
+                                  isDark ? "text-purple-200" : "text-purple-800"
+                                }`}
+                              >
+                                {stats?.winRate || 0}%
                               </p>
                             </div>
                             <span className="text-5xl">🏆</span>
@@ -657,26 +956,54 @@ const Profile = () => {
                       </div>
 
                       {/* Detailed Stats */}
-                      <div className="border border-gray-200 rounded-2xl p-8">
-                        <h3 className="text-xl font-bold text-gray-800 mb-6">
+                      <div
+                        className={`border rounded-2xl p-8 transition-colors duration-300 ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-xl font-bold mb-6 transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
                           Thống kê chi tiết
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           {/* Quiz Stats */}
                           <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-700 border-b pb-3">
+                            <h4
+                              className={`font-semibold border-b pb-3 transition-colors duration-300 ${
+                                isDark
+                                  ? "text-slate-100 border-slate-600"
+                                  : "text-gray-700 border-gray-200"
+                              }`}
+                            >
                               Thống kê Quiz
                             </h4>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 Điểm trung bình:
                               </span>
-                              <span className="font-semibold text-gray-800">
+                              <span
+                                className={`font-semibold transition-colors duration-300 ${
+                                  isDark ? "text-slate-100" : "text-gray-800"
+                                }`}
+                              >
                                 {(stats?.averageQuizScore || 0).toFixed(1)}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 Điểm cao nhất:
                               </span>
                               <span className="font-semibold text-green-600">
@@ -684,7 +1011,11 @@ const Profile = () => {
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
                                 Điểm thấp nhất:
                               </span>
                               <span className="font-semibold text-red-600">
@@ -695,23 +1026,51 @@ const Profile = () => {
 
                           {/* Battle Stats */}
                           <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-700 border-b pb-3">
+                            <h4
+                              className={`font-semibold border-b pb-3 transition-colors duration-300 ${
+                                isDark
+                                  ? "text-slate-100 border-slate-600"
+                                  : "text-gray-700 border-gray-200"
+                              }`}
+                            >
                               Thống kê Trận đấu
                             </h4>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Tổng trận:</span>
-                              <span className="font-semibold text-gray-800">
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
+                                Tổng trận:
+                              </span>
+                              <span
+                                className={`font-semibold transition-colors duration-300 ${
+                                  isDark ? "text-slate-100" : "text-gray-800"
+                                }`}
+                              >
                                 {stats?.totalBattlesPlayed || 0}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Trận thắng:</span>
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
+                                Trận thắng:
+                              </span>
                               <span className="font-semibold text-green-600">
                                 {stats?.battlesWon || 0}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Trận thua:</span>
+                              <span
+                                className={`transition-colors duration-300 ${
+                                  isDark ? "text-slate-300" : "text-gray-600"
+                                }`}
+                              >
+                                Trận thua:
+                              </span>
                               <span className="font-semibold text-red-600">
                                 {stats?.battlesLost || 0}
                               </span>
@@ -721,8 +1080,18 @@ const Profile = () => {
                       </div>
 
                       {/* Progress by Level */}
-                      <div className="border border-gray-200 rounded-2xl p-8">
-                        <h3 className="text-xl font-bold text-gray-800 mb-6">
+                      <div
+                        className={`border rounded-2xl p-8 transition-colors duration-300 ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-xl font-bold mb-6 transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
                           Tiến độ theo cấp độ
                         </h3>
                         <div className="space-y-4">
@@ -731,24 +1100,40 @@ const Profile = () => {
                           ).map(([level, percent]) => (
                             <div key={level}>
                               <div className="flex justify-between mb-2">
-                                <span className="font-semibold text-gray-700">
+                                <span
+                                  className={`font-semibold transition-colors duration-300 ${
+                                    isDark ? "text-slate-100" : "text-gray-700"
+                                  }`}
+                                >
                                   Level {level}
                                 </span>
-                                <span className="text-gray-600">
+                                <span
+                                  className={`transition-colors duration-300 ${
+                                    isDark ? "text-slate-300" : "text-gray-600"
+                                  }`}
+                                >
                                   {stats?.kanjiLearnedByLevel?.[level] || 0}/
                                   {stats?.totalKanjiByLevel?.[level] || 0}
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                              <div
+                                className={`w-full rounded-full h-3 overflow-hidden transition-colors duration-300 ${
+                                  isDark ? "bg-slate-600" : "bg-gray-200"
+                                }`}
+                              >
                                 <div
                                   className="bg-gradient-to-r from-slate-500 to-rose-400 h-full rounded-full transition-all duration-500"
                                   style={{
-                                    width: `${(percent).toFixed(1)}%`,
+                                    width: `${percent.toFixed(1)}%`,
                                   }}
                                 ></div>
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {(percent).toFixed(1)}%
+                              <p
+                                className={`text-xs mt-1 transition-colors duration-300 ${
+                                  isDark ? "text-slate-400" : "text-gray-500"
+                                }`}
+                              >
+                                {percent.toFixed(1)}%
                               </p>
                             </div>
                           ))}
@@ -765,18 +1150,34 @@ const Profile = () => {
 
       {/* Avatar Selection Modal */}
       {showAvatarModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative">
-            {/* Loading Overlay - Hiển thị khi đang tải lên avatar */}
+        <div
+          className={`fixed inset-0 flex items-center justify-center z-[99999] p-4 transition-colors duration-300 ${
+            isDark ? "bg-black/50" : "bg-black/50"
+          }`}
+        >
+          <div
+            className={`rounded-2xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative transition-colors duration-300 ${
+              isDark ? "bg-slate-800 border border-slate-700" : "bg-white"
+            }`}
+          >
+            {/* Loading Overlay */}
             {avatarUploading && (
-              <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+              <div
+                className={`absolute inset-0 flex items-center justify-center z-10 rounded-2xl backdrop-blur-sm transition-colors duration-300 ${
+                  isDark ? "bg-slate-800/85" : "bg-white/85"
+                }`}
+              >
                 <div className="text-center">
                   <div className="mb-4 flex justify-center">
                     <span className="material-symbols-outlined text-6xl text-rose-400 animate-spin inline-block">
                       hourglass_empty
                     </span>
                   </div>
-                  <p className="text-gray-600 font-semibold">
+                  <p
+                    className={`font-semibold transition-colors duration-300 ${
+                      isDark ? "text-slate-200" : "text-gray-600"
+                    }`}
+                  >
                     Đang tải lên ảnh...
                   </p>
                 </div>
@@ -784,7 +1185,11 @@ const Profile = () => {
             )}
 
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-800">
+              <h2
+                className={`text-2xl font-bold transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-gray-800"
+                }`}
+              >
                 Chọn ảnh đại diện
               </h2>
               <button
@@ -795,7 +1200,11 @@ const Profile = () => {
                   }
                 }}
                 disabled={avatarUploading}
-                className="text-gray-500 hover:text-gray-700 text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className={`text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 ${
+                  isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
               >
                 ✕
               </button>
@@ -823,15 +1232,29 @@ const Profile = () => {
                   <button
                     onClick={() => setShowFileUpload(true)}
                     disabled={avatarUploading}
-                    className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-dashed border-gray-400 hover:border-rose-400 hover:from-rose-50 hover:to-rose-100 flex items-center justify-center text-4xl hover:scale-110 transition-all shadow-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`w-24 h-24 rounded-full border-3 border-dashed flex items-center justify-center text-4xl hover:scale-110 transition-all shadow-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDark
+                        ? "bg-slate-700 border-slate-600 hover:border-rose-400 hover:bg-slate-600"
+                        : "bg-gradient-to-br from-gray-100 to-gray-200 border-gray-400 hover:border-rose-400 hover:from-rose-50 hover:to-rose-100"
+                    }`}
                   >
-                    <span className="text-gray-500 group-hover:text-rose-400">
+                    <span
+                      className={`transition-colors duration-300 ${
+                        isDark
+                          ? "text-slate-300 group-hover:text-rose-400"
+                          : "text-gray-500 group-hover:text-rose-400"
+                      }`}
+                    >
                       +
                     </span>
                   </button>
                 </div>
 
-                <p className="text-gray-600 text-sm text-center font-medium">
+                <p
+                  className={`text-sm text-center font-medium transition-colors duration-300 ${
+                    isDark ? "text-slate-300" : "text-gray-600"
+                  }`}
+                >
                   Bấm vào ảnh để chọn hoặc bấm dấu{" "}
                   <span className="font-bold">+</span> để tải lên ảnh từ máy
                   tính
@@ -840,7 +1263,13 @@ const Profile = () => {
             ) : (
               <>
                 {/* File Upload Section */}
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-12 border-3 border-dashed border-slate-300 mb-6">
+                <div
+                  className={`rounded-xl p-12 border-3 border-dashed mb-6 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-slate-700/50 border-slate-600"
+                      : "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-300"
+                  }`}
+                >
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -852,13 +1281,23 @@ const Profile = () => {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={avatarUploading}
-                    className="w-full py-8 flex flex-col items-center justify-center rounded-lg hover:bg-slate-200/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`w-full py-8 flex flex-col items-center justify-center rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDark ? "hover:bg-slate-600" : "hover:bg-slate-200/50"
+                    }`}
                   >
                     <span className="text-6xl mb-4">📁</span>
-                    <p className="text-gray-800 font-bold text-lg mb-2">
+                    <p
+                      className={`font-bold text-lg mb-2 transition-colors duration-300 ${
+                        isDark ? "text-slate-100" : "text-gray-800"
+                      }`}
+                    >
                       Bấm để chọn ảnh từ máy tính
                     </p>
-                    <p className="text-gray-600 text-sm">
+                    <p
+                      className={`text-sm transition-colors duration-300 ${
+                        isDark ? "text-slate-400" : "text-gray-600"
+                      }`}
+                    >
                       Hỗ trợ định dạng: JPG, PNG, GIF, WebP
                     </p>
                   </button>
@@ -868,7 +1307,11 @@ const Profile = () => {
                   <button
                     onClick={() => setShowFileUpload(false)}
                     disabled={avatarUploading}
-                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all border disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDark
+                        ? "bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600"
+                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                    }`}
                   >
                     Quay lại
                   </button>
@@ -881,13 +1324,31 @@ const Profile = () => {
 
       {/* Password Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div
+          className={`fixed inset-0 flex items-center justify-center z-[99999] p-4 transition-colors duration-300 ${
+            isDark ? "bg-black/50" : "bg-black/50"
+          }`}
+        >
+          <div
+            className={`rounded-2xl p-8 max-w-md w-full shadow-2xl transition-colors duration-300 ${
+              isDark ? "bg-slate-800 border border-slate-700" : "bg-white"
+            }`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Đổi mật khẩu</h2>
+              <h2
+                className={`text-2xl font-bold transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-gray-800"
+                }`}
+              >
+                Đổi mật khẩu
+              </h2>
               <button
                 onClick={() => setShowPasswordModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-3xl font-bold"
+                className={`text-3xl font-bold transition-colors duration-300 ${
+                  isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
               >
                 ✕
               </button>
@@ -895,7 +1356,11 @@ const Profile = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label
+                  className={`block font-semibold mb-2 transition-colors duration-300 ${
+                    isDark ? "text-slate-200" : "text-gray-700"
+                  }`}
+                >
                   Mật khẩu hiện tại
                 </label>
                 <input
@@ -903,13 +1368,21 @@ const Profile = () => {
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-slate-700 border-slate-600 text-slate-100"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                   placeholder="Nhập mật khẩu hiện tại"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label
+                  className={`block font-semibold mb-2 transition-colors duration-300 ${
+                    isDark ? "text-slate-200" : "text-gray-700"
+                  }`}
+                >
                   Mật khẩu mới
                 </label>
                 <input
@@ -917,13 +1390,21 @@ const Profile = () => {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-slate-700 border-slate-600 text-slate-100"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                   placeholder="Nhập mật khẩu mới"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label
+                  className={`block font-semibold mb-2 transition-colors duration-300 ${
+                    isDark ? "text-slate-200" : "text-gray-700"
+                  }`}
+                >
                   Xác nhận mật khẩu
                 </label>
                 <input
@@ -931,7 +1412,11 @@ const Profile = () => {
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-slate-700 border-slate-600 text-slate-100"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                   placeholder="Nhập lại mật khẩu mới"
                 />
               </div>
@@ -939,13 +1424,17 @@ const Profile = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all border border-gray-300"
+                  className={`flex-1 px-4 py-2 font-semibold rounded-lg transition-all border ${
+                    isDark
+                      ? "bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600"
+                      : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                  }`}
                 >
                   Hủy
                 </button>
                 <button
                   onClick={handleChangePassword}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-slate-500 to-rose-400 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
                 >
                   Xác nhận
                 </button>

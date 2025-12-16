@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useNotebookStore from "../../store/useNotebookStore";
+import useDarkModeStore from "../../store/useDarkModeStore";
 
 // eslint-disable-next-line no-unused-vars
-export default function NBCard({ notebook, onDelete, onRefresh, onViewDetails }) {
+export default function NBCard({ notebook, onDelete, onRefresh, onViewDetails, isListView = false }) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isDark = useDarkModeStore((state) => state.isDark);
   const { deleteNotebook } = useNotebookStore();
 
   const handleCardClick = () => {
@@ -51,14 +53,22 @@ export default function NBCard({ notebook, onDelete, onRefresh, onViewDetails })
   return (
     <div
       onClick={handleCardClick}
-      className="group relative bg-gradient-to-br from-slate-500 to-rose-400 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden h-64 flex flex-col"
+      className={`group relative rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden h-64 flex flex-col ${
+        isDark
+          ? "bg-gradient-to-br from-rose-900 to-slate-600"
+          : "bg-gradient-to-br from-slate-500 to-rose-500"
+      }`}
     >
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
 
       {/* Header with icon and menu */}
       <div className="relative z-10 flex items-start justify-between p-6">
-        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${
+          isDark
+            ? "bg-white/20 backdrop-blur-sm"
+            : "bg-white/20 backdrop-blur-sm"
+        }`}>
           <span className="material-symbols-outlined text-3xl text-white">
             note
           </span>
@@ -80,14 +90,22 @@ export default function NBCard({ notebook, onDelete, onRefresh, onViewDetails })
 
           {/* Dropdown menu */}
           {showMenu && (
-            <div className="absolute right-0 top-12 bg-white rounded-lg shadow-xl overflow-hidden z-50 min-w-48">
+            <div className={`absolute right-0 top-12 rounded-lg shadow-xl overflow-hidden z-50 min-w-48 transition-colors duration-300 ${
+              isDark
+                ? "bg-slate-700 border border-slate-600"
+                : "bg-white"
+            }`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete();
                 }}
                 disabled={isDeleting}
-                className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full px-4 py-3 text-left hover:transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark
+                    ? "text-red-400 hover:bg-red-900/30"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
               >
                 <span className="material-symbols-outlined text-sm">
                   delete

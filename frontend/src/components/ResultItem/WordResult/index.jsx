@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useSearchStore from "../../../store/useSearchStore";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
-import useNotebookStore from "../../../store/useNotebookStore"; // ✅ THÊM
+import useNotebookStore from "../../../store/useNotebookStore";
+import useDarkModeStore from "../../../store/useDarkModeStore";
 import { useAuthStore } from "../../../store/useAuthStore";
 import NotebookSelectionModal from "../../../components/Notebooks/NBList";
 import NotebookCreateModal from "../../../components/Notebooks/NBCreate";
@@ -19,9 +20,9 @@ export default function WordResult({
   const navigate = useNavigate();
   const axiosPrivateHook = useAxiosPrivate();
   const { user, accessToken } = useAuthStore();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const isAuthenticated = !!user && !!accessToken;
 
-  // ✅ LẤY TỪSTORE
   const addEntryToNotebook = useNotebookStore(
     (state) => state.addEntryToNotebook
   );
@@ -33,7 +34,6 @@ export default function WordResult({
   const [isAddingToNotebook, setIsAddingToNotebook] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState(null);
 
-  // ✅ State cho notification
   const [notification, setNotification] = useState(null);
   const [notificationCountdown, setNotificationCountdown] = useState(3);
 
@@ -49,7 +49,6 @@ export default function WordResult({
 
   const displayQuery = queryFromStore || query || word || "-";
 
-  // ✅ Effect cho notification countdown
   useEffect(() => {
     let interval;
     if (notification && notificationCountdown > 0) {
@@ -110,12 +109,10 @@ export default function WordResult({
     setShowNotebookModal(true);
   };
 
-  // ✅ SỬA: Dùng store để add entry
   const handleSelectNotebook = async (notebook) => {
     try {
       setIsAddingToNotebook(true);
 
-      // ✅ SỬA: Lấy entityId đúng - phải là số ID, không phải từ string
       const currentWordId = useSearchStore.getState().currentWordId;
       const entityId = selectedWordId || currentWordId;
 
@@ -128,7 +125,6 @@ export default function WordResult({
         notebookId: notebook.id,
       });
 
-      // ✅ Validate entityId - phải là số hợp lệ
       if (
         !entityId ||
         entityId === 0 ||
@@ -140,7 +136,6 @@ export default function WordResult({
         );
       }
 
-      // ✅ Kiểm tra từ trùng TRƯỚC - dùng COMPOUND thay vì COMPOUND_WORD
       console.log("🔍 [WordResult] Checking if entry exists:", {
         entityId,
         entityType: "COMPOUND",
@@ -166,10 +161,8 @@ export default function WordResult({
         word,
       });
 
-      // ✅ Lấy axios instance
       const axiosInstance = axiosPrivateHook;
 
-      // ✅ Dùng store function - truyền COMPOUND
       const result = await addEntryToNotebook(
         axiosInstance,
         notebook.id,
@@ -179,7 +172,6 @@ export default function WordResult({
 
       console.log("✅ [WordResult] Backend response received:", result);
 
-      // ✅ Thành công
       setNotification({
         type: "success",
         title: "Lưu thành công!",
@@ -195,7 +187,6 @@ export default function WordResult({
         fullError: error,
       });
 
-      // ✅ Xử lý lỗi
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -269,7 +260,6 @@ export default function WordResult({
     console.log("Switch to register modal");
   };
 
-  // ✅ Component Notification Modal
   const NotificationModal = () => {
     if (!notification) return null;
 
@@ -284,20 +274,23 @@ export default function WordResult({
       success: {
         bg: "from-green-500 to-emerald-500",
         icon: "text-white",
-        border: "border-green-200",
-        text: "text-green-800",
+        border: isDark ? "border-green-700" : "border-green-200",
+        text: isDark ? "text-green-300" : "text-green-800",
+        bgLight: isDark ? "bg-green-900/30" : "bg-green-50",
       },
       warning: {
         bg: "from-amber-500 to-orange-500",
         icon: "text-white",
-        border: "border-amber-200",
-        text: "text-amber-800",
+        border: isDark ? "border-amber-700" : "border-amber-200",
+        text: isDark ? "text-amber-300" : "text-amber-800",
+        bgLight: isDark ? "bg-amber-900/30" : "bg-amber-50",
       },
       error: {
         bg: "from-red-500 to-rose-500",
         icon: "text-white",
-        border: "border-red-200",
-        text: "text-red-800",
+        border: isDark ? "border-red-700" : "border-red-200",
+        text: isDark ? "text-red-300" : "text-red-800",
+        bgLight: isDark ? "bg-red-900/30" : "bg-red-50",
       },
     };
 
@@ -306,7 +299,9 @@ export default function WordResult({
     return (
       <div className="fixed top-4 right-4 z-[10001]">
         <div
-          className={`bg-white rounded-2xl shadow-2xl border ${theme.border} p-6 max-w-sm transform animate-slide-in-right`}
+          className={`rounded-2xl shadow-2xl border ${theme.border} p-6 max-w-sm transform animate-slide-in-right transition-colors duration-300 ${
+            isDark ? "bg-slate-800" : "bg-white"
+          }`}
         >
           <div className="flex items-center gap-4">
             <div
@@ -325,7 +320,7 @@ export default function WordResult({
               >
                 {notification.title}
               </h3>
-              <p className={`${theme.text} text-sm leading-relaxed`}>
+              <p className={`${theme.text} text-sm leading-relaxed transition-colors duration-300`}>
                 {notification.message}
               </p>
             </div>
@@ -374,7 +369,11 @@ export default function WordResult({
           <div className="mt-4 flex justify-end">
             <button
               onClick={() => setNotification(null)}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              className={`text-xs transition-colors duration-300 ${
+                isDark
+                  ? "text-slate-500 hover:text-slate-300"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
             >
               Đóng
             </button>
@@ -388,10 +387,18 @@ export default function WordResult({
     <>
       <div className="w-full space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-7 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">
+        <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-7 border-b transition-colors duration-300 ${
+          isDark ? "border-slate-700" : "border-gray-200"
+        }`}>
+          <h2 className={`text-2xl font-bold transition-colors duration-300 ${
+            isDark ? "text-slate-100" : "text-gray-800"
+          }`}>
             Kết quả cho:{" "}
-            <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+            <span className={`px-3 py-1 rounded-lg transition-colors duration-300 ${
+              isDark
+                ? "text-blue-300 bg-blue-900/30"
+                : "text-blue-600 bg-blue-50"
+            }`}>
               {displayQuery}
             </span>
           </h2>
@@ -401,15 +408,23 @@ export default function WordResult({
           {/* Main Word Content */}
           <div className="xl:col-span-2">
             {/* Main Word Display */}
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+            <div className={`rounded-xl shadow-lg p-8 mb-6 transition-colors duration-300 ${
+              isDark
+                ? "bg-slate-800 border border-slate-700"
+                : "bg-white"
+            }`}>
               <div className="mb-8 text-left">
                 <div className="flex justify-between items-start mb-4 px-[20px]">
                   {/* Left side: Word + Reading */}
                   <div className="text-center">
-                    <div className="text-8xl font-light text-gray-800 select-text">
+                    <div className={`text-8xl font-light select-text transition-colors duration-300 ${
+                      isDark ? "text-slate-100" : "text-gray-800"
+                    }`}>
                       {word}
                     </div>
-                    <div className="text-2xl text-gray-600 font-medium mt-3">
+                    <div className={`text-2xl font-medium mt-3 transition-colors duration-300 ${
+                      isDark ? "text-slate-400" : "text-gray-600"
+                    }`}>
                       {hiragana}
                     </div>
                   </div>
@@ -419,24 +434,48 @@ export default function WordResult({
                     <button
                       onClick={handleFavoriteClick}
                       disabled={isAddingToNotebook}
-                      className="group p-1 rounded-full bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                      className={`group p-1 rounded-full transition-colors duration-300 disabled:opacity-50 ${
+                        isDark
+                          ? "bg-red-900/30 hover:bg-red-800/50"
+                          : "bg-red-50 hover:bg-red-100"
+                      }`}
                       title={
                         isAuthenticated
                           ? "Lưu vào notebook"
                           : "Đăng nhập để lưu notebook"
                       }
                     >
-                      <span className="material-symbols-outlined text-red-500 group-hover:text-red-600 text-base">
+                      <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
+                        isDark
+                          ? "text-red-400 group-hover:text-red-300"
+                          : "text-red-500 group-hover:text-red-600"
+                      }`}>
                         favorite
                       </span>
                     </button>
-                    <button className="group p-1 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <span className="material-symbols-outlined text-blue-500 group-hover:text-blue-600 text-base">
+                    <button className={`group p-1 rounded-full transition-colors duration-300 ${
+                      isDark
+                        ? "bg-blue-900/30 hover:bg-blue-800/50"
+                        : "bg-blue-50 hover:bg-blue-100"
+                    }`}>
+                      <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
+                        isDark
+                          ? "text-blue-400 group-hover:text-blue-300"
+                          : "text-blue-500 group-hover:text-blue-600"
+                      }`}>
                         share
                       </span>
                     </button>
-                    <button className="group p-1 rounded-full bg-green-50 hover:bg-green-100 transition-colors">
-                      <span className="material-symbols-outlined text-green-500 group-hover:text-green-600 text-base">
+                    <button className={`group p-1 rounded-full transition-colors duration-300 ${
+                      isDark
+                        ? "bg-green-900/30 hover:bg-green-800/50"
+                        : "bg-green-50 hover:bg-green-100"
+                    }`}>
+                      <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
+                        isDark
+                          ? "text-green-400 group-hover:text-green-300"
+                          : "text-green-500 group-hover:text-green-600"
+                      }`}>
                         bookmark
                       </span>
                     </button>
@@ -446,35 +485,65 @@ export default function WordResult({
 
               {/* Meaning */}
               <div className="space-y-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h3 className="font-semibold text-blue-800 mb-2">Ý nghĩa</h3>
-                  <p className="text-blue-700 font-medium">{meaning}</p>
+                <div className={`p-4 rounded-lg transition-colors duration-300 ${
+                  isDark
+                    ? "bg-blue-900/30 border border-blue-700"
+                    : "bg-blue-50"
+                }`}>
+                  <h3 className={`font-semibold mb-2 transition-colors duration-300 ${
+                    isDark ? "text-blue-300" : "text-blue-800"
+                  }`}>
+                    Ý nghĩa
+                  </h3>
+                  <p className={`font-medium transition-colors duration-300 ${
+                    isDark ? "text-blue-200" : "text-blue-700"
+                  }`}>
+                    {meaning}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Examples */}
             {examples.length > 0 && (
-              <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <h3 className="font-bold text-lg text-gray-800 mb-4">
+              <div className={`rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300 ${
+                isDark
+                  ? "bg-slate-800 border border-slate-700"
+                  : "bg-white"
+              }`}>
+                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-gray-800"
+                }`}>
                   Câu ví dụ
                 </h3>
                 <div className="space-y-4">
                   {examples.map((ex, i) => (
                     <div
                       key={ex.id || i}
-                      className="border-l-4 border-blue-200 pl-4 py-2"
+                      className={`border-l-4 pl-4 py-2 transition-colors duration-300 ${
+                        isDark
+                          ? "border-blue-700"
+                          : "border-blue-200"
+                      }`}
                     >
-                      <p className="text-lg font-medium text-gray-800">
+                      <p className={`text-lg font-medium transition-colors duration-300 ${
+                        isDark ? "text-slate-100" : "text-gray-800"
+                      }`}>
                         {ex.sentence || ex.example}
                       </p>
                       {ex.meaning && (
-                        <p className="text-gray-500 text-sm italic">
+                        <p className={`text-sm italic transition-colors duration-300 ${
+                          isDark ? "text-slate-400" : "text-gray-500"
+                        }`}>
                           {ex.meaning}
                         </p>
                       )}
                       {ex.meaningEn && (
-                        <p className="text-gray-400 text-sm">{ex.meaningEn}</p>
+                        <p className={`text-sm transition-colors duration-300 ${
+                          isDark ? "text-slate-500" : "text-gray-400"
+                        }`}>
+                          {ex.meaningEn}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -487,8 +556,14 @@ export default function WordResult({
           <div className="space-y-6">
             {/* Kanji cấu thành */}
             {compoundKanjis && compoundKanjis.length > 0 && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="font-bold text-lg text-gray-800 mb-4">
+              <div className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
+                isDark
+                  ? "bg-slate-800 border border-slate-700"
+                  : "bg-white"
+              }`}>
+                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-gray-800"
+                }`}>
                   Kanji cấu thành
                 </h3>
                 <div className="space-y-3">
@@ -504,17 +579,29 @@ export default function WordResult({
                           handleNavigate(k.id, "kanji", k.kanji);
                         }
                       }}
-                      className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors cursor-pointer"
+                      className={`border rounded-lg p-3 transition-all duration-300 cursor-pointer ${
+                        isDark
+                          ? "border-slate-600 hover:border-blue-500 hover:bg-blue-900/20"
+                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xl font-semibold text-gray-800">
+                        <span className={`text-xl font-semibold transition-colors duration-300 ${
+                          isDark ? "text-slate-100" : "text-gray-800"
+                        }`}>
                           {k.kanji}
                         </span>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        <span className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
+                          isDark
+                            ? "text-slate-300 bg-slate-700"
+                            : "text-gray-500 bg-gray-100"
+                        }`}>
                           {k.hanViet}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm">
+                      <p className={`text-sm transition-colors duration-300 ${
+                        isDark ? "text-slate-400" : "text-gray-600"
+                      }`}>
                         Level: {k.level} | ON: {k.onyomi} | KUN: {k.kunyomi}
                       </p>
                     </div>
@@ -525,10 +612,20 @@ export default function WordResult({
 
             {/* Từ liên quan */}
             {relatedWords.length > 0 && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="font-bold text-lg text-gray-800 mb-4">
+              <div className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
+                isDark
+                  ? "bg-slate-800 border border-slate-700"
+                  : "bg-white"
+              }`}>
+                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-gray-800"
+                }`}>
                   Từ liên quan với{" "}
-                  <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                  <span className={`px-3 py-1 rounded-lg transition-colors duration-300 ${
+                    isDark
+                      ? "text-blue-300 bg-blue-900/30"
+                      : "text-blue-600 bg-blue-50"
+                  }`}>
                     {displayQuery}
                   </span>
                 </h3>
@@ -545,21 +642,37 @@ export default function WordResult({
                           handleRelatedWordClick(relatedWord);
                         }
                       }}
-                      className="border border-gray-200 rounded-lg p-3 hover:border-green-300 hover:bg-green-50 transition-colors cursor-pointer"
+                      className={`border rounded-lg p-3 transition-all duration-300 cursor-pointer ${
+                        isDark
+                          ? "border-slate-600 hover:border-green-500 hover:bg-green-900/20"
+                          : "border-gray-200 hover:border-green-300 hover:bg-green-50"
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-lg font-semibold text-gray-800">
+                        <span className={`text-lg font-semibold transition-colors duration-300 ${
+                          isDark ? "text-slate-100" : "text-gray-800"
+                        }`}>
                           {relatedWord.word}
                         </span>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        <span className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
+                          isDark
+                            ? "text-slate-300 bg-slate-700"
+                            : "text-gray-500 bg-gray-100"
+                        }`}>
                           {relatedWord.reading || relatedWord.hiragana || ""}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm">
+                      <p className={`text-sm transition-colors duration-300 ${
+                        isDark ? "text-slate-400" : "text-gray-600"
+                      }`}>
                         {relatedWord.meaning || relatedWord.meaningEn || ""}
                       </p>
                       {relatedWord.partOfSpeech && (
-                        <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        <span className={`inline-block mt-1 px-2 py-1 text-xs rounded-full transition-colors duration-300 ${
+                          isDark
+                            ? "bg-purple-900/30 text-purple-300"
+                            : "bg-purple-100 text-purple-800"
+                        }`}>
                           {relatedWord.partOfSpeech}
                         </span>
                       )}
@@ -596,7 +709,7 @@ export default function WordResult({
         onSuccess={handleCreateSuccess}
       />
 
-      {/* ✅ Notification Modal */}
+      {/* Notification Modal */}
       <NotificationModal />
     </>
   );

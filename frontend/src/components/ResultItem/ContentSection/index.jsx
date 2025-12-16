@@ -1,6 +1,7 @@
 import React from "react";
 import DailyWord from "../DailyWord";
 import SearchResult from "../SearchResult";
+import useDarkModeStore from "../../../store/useDarkModeStore";
 
 export default function ContentSection({ 
   query, 
@@ -11,6 +12,7 @@ export default function ContentSection({
   isAuthenticated,
   accessToken
 }) {
+  const isDark = useDarkModeStore((state) => state.isDark);
   const firstResult = results[0];
 
   const wordData = {
@@ -80,7 +82,11 @@ export default function ContentSection({
     });
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8">
+    <div className={`rounded-2xl shadow-lg p-8 transition-colors duration-300 ${
+      isDark
+        ? 'bg-slate-800 border border-slate-700'
+        : 'bg-white'
+    }`}>
       <div className="space-y-6">
         {!query ? (
           // 🎯 DailyWord nhận đầy đủ props

@@ -11,6 +11,7 @@ import Header from "../../layouts/Header";
 import KanjiLearningBoard from "../../components/JLPT/KanjiLearningBoard";
 import KanjiSidebar from "../../components/JLPT/KanjiSidebar";
 import useKanjiStore from "../../store/useKanjiStore";
+import useDarkModeStore from "../../store/useDarkModeStore";
 import { GlobalKanjiModal } from "../../components/JLPT/LessonCard";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import axiosPublic from "../../apis/axios";
@@ -87,19 +88,29 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const isDark = useDarkModeStore((state) => state.isDark);
       return (
-        <div className="p-6 bg-red-50 border border-red-200 rounded-lg m-4">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">
+        <div className={`p-6 border rounded-lg m-4 transition-colors duration-300 ${
+          isDark
+            ? 'bg-red-900/20 border-red-700/50'
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <h2 className={`text-lg font-semibold mb-2 transition-colors duration-300 ${
+            isDark ? 'text-red-400' : 'text-red-800'
+          }`}>
             Đã xảy ra lỗi
           </h2>
-          <p className="text-red-600 mb-4">
+          <p className={`mb-4 transition-colors duration-300 ${
+            isDark ? 'text-red-300' : 'text-red-600'
+          }`}>
             {this.state.error?.message || "Có lỗi xảy ra khi tải dữ liệu"}
           </p>
           <button
             onClick={() =>
               this.setState({ hasError: false, error: null, errorInfo: null })
             }
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-300"
             type="button"
           >
             Thử lại
@@ -121,6 +132,7 @@ function LearnKanjiContent() {
   const [currentApiPage, setCurrentApiPage] = useState(0);
 
   const axiosPrivateHook = useAxiosPrivate();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const isInitialMount = useRef(true);
   const lastFetchedApiLevel = useRef("5");
 
@@ -451,13 +463,16 @@ function LearnKanjiContent() {
 
   // --- RENDER LOGIC ---
 
-  // Hiển thị Error (Giữ nguyên)
+  // Hiển thị Error
   if (error) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className={`flex h-screen transition-colors duration-300 ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+          : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50'
+      }`}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 🎯 TRUYỀN isModalOpen VÀO HEADER */}
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
@@ -466,24 +481,32 @@ function LearnKanjiContent() {
             <div className="max-w-[1800px] mx-auto">
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">😵</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${
+                  isDark ? 'text-slate-300' : 'text-gray-700'
+                }`}>
                   Có lỗi xảy ra
                 </h3>
-                <p className="text-gray-500 mb-4">{error}</p>
+                <p className={`mb-4 transition-colors duration-300 ${
+                  isDark ? 'text-slate-400' : 'text-gray-500'
+                }`}>{error}</p>
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={() => {
                       clearError();
                       forceRefresh();
                     }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-rose-400 text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
                     type="button"
                   >
                     Thử lại
                   </button>
                   <button
                     onClick={() => handleLevelChange("N5")}
-                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105 ${
+                      isDark
+                        ? 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+                        : 'bg-gray-600 text-white hover:bg-gray-700'
+                    }`}
                     type="button"
                   >
                     Về N5
@@ -497,13 +520,16 @@ function LearnKanjiContent() {
     );
   }
 
-  // Hiển thị Loading ban đầu (Giữ nguyên)
+  // Hiển thị Loading ban đầu
   if (loading && currentApiPage === 0 && pagination.currentPage < 1) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className={`flex h-screen transition-colors duration-300 ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+          : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50'
+      }`}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 🎯 TRUYỀN isModalOpen VÀO HEADER */}
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
@@ -512,8 +538,12 @@ function LearnKanjiContent() {
             <div className="max-w-[1500px] mx-auto">
               <div className="flex justify-center items-center h-64">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">
+                  <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 transition-colors duration-300 ${
+                    isDark ? 'border-b-rose-400' : 'border-b-purple-600'
+                  }`}></div>
+                  <p className={`transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
                     Đang tải danh sách bài học {currentLevel}...
                   </p>
                 </div>
@@ -527,10 +557,13 @@ function LearnKanjiContent() {
 
   return (
     <div id="webcrumbs-learn-kanji">
-      <div className="flex h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className={`flex h-screen transition-colors duration-300 ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+          : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50'
+      }`}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 🎯 Tích hợp props mở modal vào Header - THÊM isModalOpen */}
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}
@@ -555,14 +588,18 @@ function LearnKanjiContent() {
 
                   {currentLevelData.totalLessons > 0 && totalLessonPages > 1 && (
                     <div className="mt-8 flex justify-center items-center">
-                      {/* Pagination controls - Giữ nguyên */}
+                      {/* Pagination controls */}
                       <div className="flex gap-2 items-center">
                         <button
                           onClick={() =>
                             setCurrentLessonPage(currentLessonPage - 1)
                           }
                           disabled={currentLessonPage === 1}
-                          className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 ${
+                            isDark
+                              ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
+                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
+                          }`}
                           type="button"
                         >
                           ←
@@ -577,12 +614,13 @@ function LearnKanjiContent() {
                             <button
                               key={page}
                               onClick={() => setCurrentLessonPage(page)}
-                              className={`min-w-10 h-10 flex items-center justify-center rounded-lg border text-sm font-medium transition-all duration-150
-                                ${
-                                  currentLessonPage === page
-                                    ? "bg-purple-600 text-white border-purple-600 shadow-sm"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                                }`}
+                              className={`min-w-10 h-10 flex items-center justify-center rounded-lg border text-sm font-medium transition-all duration-150 ${
+                                currentLessonPage === page
+                                  ? 'bg-gradient-to-r from-purple-600 to-rose-400 text-white border-purple-600 shadow-sm'
+                                  : isDark
+                                  ? 'bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                              }`}
                               type="button"
                             >
                               {page}
@@ -597,7 +635,9 @@ function LearnKanjiContent() {
                               for (let i = 1; i <= 5; i++)
                                 pages.push(createPage(i));
                               pages.push(
-                                <span key="dots1" className="px-2 text-gray-400">
+                                <span key="dots1" className={`px-2 transition-colors duration-300 ${
+                                  isDark ? 'text-slate-500' : 'text-gray-400'
+                                }`}>
                                   …
                                 </span>
                               );
@@ -605,7 +645,9 @@ function LearnKanjiContent() {
                             } else if (currentLessonPage < totalPages - 3) {
                               pages.push(createPage(1));
                               pages.push(
-                                <span key="dots1" className="px-2 text-gray-400">
+                                <span key="dots1" className={`px-2 transition-colors duration-300 ${
+                                  isDark ? 'text-slate-500' : 'text-gray-400'
+                                }`}>
                                   …
                                 </span>
                               );
@@ -616,7 +658,9 @@ function LearnKanjiContent() {
                               )
                                 pages.push(createPage(i));
                               pages.push(
-                                <span key="dots2" className="px-2 text-gray-400">
+                                <span key="dots2" className={`px-2 transition-colors duration-300 ${
+                                  isDark ? 'text-slate-500' : 'text-gray-400'
+                                }`}>
                                   …
                                 </span>
                               );
@@ -624,7 +668,9 @@ function LearnKanjiContent() {
                             } else {
                               pages.push(createPage(1));
                               pages.push(
-                                <span key="dots1" className="px-2 text-gray-400">
+                                <span key="dots1" className={`px-2 transition-colors duration-300 ${
+                                  isDark ? 'text-slate-500' : 'text-gray-400'
+                                }`}>
                                   …
                                 </span>
                               );
@@ -645,7 +691,11 @@ function LearnKanjiContent() {
                             setCurrentLessonPage(currentLessonPage + 1)
                           }
                           disabled={currentLessonPage === totalLessonPages}
-                          className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 ${
+                            isDark
+                              ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
+                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
+                          }`}
                           type="button"
                         >
                           →
@@ -683,9 +733,11 @@ function LearnKanjiContent() {
           </main>
         </div>
         
-        {/* 🎯 Modal Login/Register được hiển thị ở đây - THÊM REF VÀ OVERLAY CLICK */}
+        {/* 🎯 Modal Login/Register được hiển thị ở đây */}
         {activeModal && (
-          <div className="fixed inset-0 z-[9999] bg-black/50 transition-all duration-200">
+          <div className={`fixed inset-0 z-[9999] transition-colors duration-300 ${
+            isDark ? 'bg-black/60' : 'bg-black/50'
+          }`}>
             <div 
               ref={modalRef}
               className="relative z-[10000] w-full h-full flex items-center justify-center"

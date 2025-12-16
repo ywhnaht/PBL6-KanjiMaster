@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { fetchLogin } from '../../apis/login';
 import { useAuthStore } from '../../store/useAuthStore';
+import useDarkModeStore from '../../store/useDarkModeStore';
 import ForgetPasswordModal from '../ForgetPasswordModal';
 
 const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
@@ -11,6 +12,7 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
   const [showForgetPassword, setShowForgetPassword] = useState(false);
   
   const login = useAuthStore(state => state.login);
+  const isDark = useDarkModeStore((state) => state.isDark);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,12 +114,18 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
       {!showForgetPassword && (
         // 🎯 SỬA: Thêm onClick để xử lý click bên ngoài
         <div 
-          className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4 z-[10001]"
+          className={`fixed inset-0 z-[10001] flex items-center justify-center px-4 transition-colors duration-300 ${
+            isDark ? 'bg-black/50' : 'bg-black/30'
+          }`}
           onClick={handleOverlayClick} // 🎯 CLICK OVERLAY ĐÓNG MODAL
         >
           {/* 🎯 SỬA: Thêm stopPropagation để ngăn click trong modal lan ra ngoài */}
           <div 
-            className="w-full max-w-md bg-white rounded-2xl p-8 relative border border-gray-200"
+            className={`w-full max-w-md rounded-2xl p-8 relative border transition-colors duration-300 ${
+              isDark
+                ? 'bg-slate-800 border-slate-700'
+                : 'bg-white border-gray-200'
+            }`}
             onClick={(e) => e.stopPropagation()} // 🎯 NGĂN CLICK TRONG MODAL
           >
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[#DA7B93] to-[#c44569] text-white px-6 py-2 rounded-full text-sm font-bold border border-white">
@@ -126,7 +134,11 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
 
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 hover:text-gray-800 transition-colors duration-150 text-lg font-medium z-10"
+              className={`absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-lg font-medium z-10 transition-colors duration-150 ${
+                isDark
+                  ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-slate-100'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800'
+              }`}
               disabled={isLoading}
             >
               ✕
@@ -146,15 +158,21 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent mb-2">
                 Đăng nhập
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className={`text-sm transition-colors duration-300 ${
+                isDark ? 'text-slate-400' : 'text-gray-600'
+              }`}>
                 Tiếp tục hành trình chinh phục Kanji
               </p>
             </div>
 
             {error && (
-              <div className={`mb-4 p-3 border rounded-lg text-sm text-center relative z-10 ${
+              <div className={`mb-4 p-3 border rounded-lg text-sm text-center relative z-10 transition-colors duration-300 ${
                 error.includes("thành công") 
-                  ? "bg-green-50 border-green-200 text-green-600" 
+                  ? isDark
+                    ? "bg-green-900/30 border-green-700/50 text-green-400"
+                    : "bg-green-50 border-green-200 text-green-600"
+                  : isDark
+                  ? "bg-red-900/30 border-red-700/50 text-red-400"
                   : "bg-red-50 border-red-200 text-red-600"
               }`}>
                 {error}
@@ -171,7 +189,11 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93] bg-white transition-colors duration-150 text-gray-800"
+                  className={`w-full p-4 border rounded-lg transition-all duration-150 ${
+                    isDark
+                      ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93]'
+                      : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93]'
+                  }`}
                   required
                   disabled={isLoading}
                 />
@@ -183,7 +205,11 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mật khẩu"
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93] bg-white transition-colors duration-150 text-gray-800"
+                  className={`w-full p-4 border rounded-lg transition-all duration-150 ${
+                    isDark
+                      ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93]'
+                      : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-1 focus:ring-[#DA7B93] focus:border-[#DA7B93]'
+                  }`}
                   required
                   disabled={isLoading}
                   minLength={6}
@@ -194,7 +220,11 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
                 <button
                   type="button"
                   onClick={handleForgetPasswordClick}
-                  className="text-sm text-[#DA7B93] hover:text-[#c44569] font-medium transition-colors duration-150"
+                  className={`text-sm font-medium transition-colors duration-150 ${
+                    isDark
+                      ? 'text-rose-400 hover:text-rose-300'
+                      : 'text-[#DA7B93] hover:text-[#c44569]'
+                  }`}
                   disabled={isLoading}
                 >
                   Quên mật khẩu?
@@ -204,7 +234,7 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-lg font-bold text-white bg-gradient-to-r from-[#DA7B93] to-[#c44569] hover:from-[#c44569] hover:to-[#DA7B93] transition-colors duration-200 disabled:opacity-60 shadow-md"
+                className="w-full py-4 rounded-lg font-bold text-white bg-gradient-to-r from-[#DA7B93] to-[#c44569] hover:from-[#c44569] hover:to-[#DA7B93] transition-all duration-200 disabled:opacity-60 shadow-md hover:shadow-lg"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -218,18 +248,30 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
             </form>
 
             <div className="flex items-center my-6 relative z-10">
-              <div className="flex-1 border-t border-gray-300"></div>
-              <span className="px-4 text-gray-500 text-sm bg-white">
+              <div className={`flex-1 border-t transition-colors duration-300 ${
+                isDark ? 'border-slate-700' : 'border-gray-300'
+              }`}></div>
+              <span className={`px-4 text-sm transition-colors duration-300 ${
+                isDark
+                  ? 'text-slate-500 bg-slate-800'
+                  : 'text-gray-500 bg-white'
+              }`}>
                 hoặc
               </span>
-              <div className="flex-1 border-t border-gray-300"></div>
+              <div className={`flex-1 border-t transition-colors duration-300 ${
+                isDark ? 'border-slate-700' : 'border-gray-300'
+              }`}></div>
             </div>
 
             <div className="mb-6 relative z-10">
               <button
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full py-4 rounded-lg font-semibold text-gray-700 bg-white border border-gray-300 hover:border-[#DA7B93] hover:bg-[#DA7B93]/5 transition-colors duration-150 disabled:opacity-60 flex items-center justify-center gap-3"
+                className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-3 transition-all duration-150 disabled:opacity-60 border ${
+                  isDark
+                    ? 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 hover:border-[#DA7B93]/50'
+                    : 'bg-white border-gray-300 text-gray-700 hover:border-[#DA7B93] hover:bg-[#DA7B93]/5'
+                }`}
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -254,33 +296,51 @@ const LoginModal = ({ onClose, onSwitchToRegister, onLoginSuccess }) => {
             </div>
 
             <div className="text-center relative z-10">
-              <p className="text-sm text-gray-600">
+              <p className={`text-sm transition-colors duration-300 ${
+                isDark ? 'text-slate-400' : 'text-gray-600'
+              }`}>
                 Chưa có tài khoản?{" "}
                 <button
                   onClick={() => {
                     handleClose();
                     if (onSwitchToRegister) onSwitchToRegister();
                   }}
-                  className="text-[#DA7B93] hover:text-[#c44569] font-semibold underline transition-colors duration-150"
+                  className={`font-semibold underline transition-colors duration-150 ${
+                    isDark
+                      ? 'text-rose-400 hover:text-rose-300'
+                      : 'text-[#DA7B93] hover:text-[#c44569]'
+                  }`}
                 >
                   Đăng ký ngay
                 </button>
               </p>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200 relative z-10">
-              <p className="text-xs text-gray-500 text-center">
+            <div className={`mt-6 pt-4 border-t relative z-10 transition-colors duration-300 ${
+              isDark ? 'border-slate-700' : 'border-gray-200'
+            }`}>
+              <p className={`text-xs text-center transition-colors duration-300 ${
+                isDark ? 'text-slate-500' : 'text-gray-500'
+              }`}>
                 Bằng việc đăng nhập, bạn đồng ý với{" "}
                 <a
                   href="#"
-                  className="text-[#DA7B93] hover:text-[#c44569] font-medium transition-colors duration-150"
+                  className={`font-medium transition-colors duration-150 ${
+                    isDark
+                      ? 'text-rose-400 hover:text-rose-300'
+                      : 'text-[#DA7B93] hover:text-[#c44569]'
+                  }`}
                 >
                   Điều khoản sử dụng
                 </a>{" "}
                 và{" "}
                 <a
                   href="#"
-                  className="text-[#DA7B93] hover:text-[#c44569] font-medium transition-colors duration-150"
+                  className={`font-medium transition-colors duration-150 ${
+                    isDark
+                      ? 'text-rose-400 hover:text-rose-300'
+                      : 'text-[#DA7B93] hover:text-[#c44569]'
+                  }`}
                 >
                   Chính sách bảo mật
                 </a>
