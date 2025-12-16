@@ -29,9 +29,9 @@ export default function Sidebar() {
       } overflow-x-hidden`}
     >
       {/* Header */}
-      <div className="p-5 border-b border-gray-200 transition-all duration-300">
+      <div className="border-b border-gray-200 transition-all duration-300 h-[72px] flex items-center px-5">
         <div
-          className={`flex items-center gap-2 ${
+          className={`flex items-center gap-2 w-full ${
             isCollapsed ? "justify-center" : ""
           }`}
         >

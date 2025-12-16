@@ -1,9 +1,21 @@
-// Header.jsx - Cập nhật để hỗ trợ làm mờ khi modal mở
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import useProfileStore from "../../store/useProfileStore";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 export default function Header({ onOpenLogin, isModalOpen }) {
+  const navigate = useNavigate();
   const authStore = useAuthStore();
+  const axiosPrivateHook = useAxiosPrivate();
+  const { profile, fetchProfile } = useProfileStore();
+
+  React.useEffect(() => {
+    const { accessToken, user } = authStore;
+    if (accessToken && user) {
+      fetchProfile(axiosPrivateHook);
+    }
+  }, [authStore.accessToken, authStore.user]);
 
   const checkLoggedIn = () => {
     const { accessToken, user } = authStore;
@@ -26,16 +38,6 @@ export default function Header({ onOpenLogin, isModalOpen }) {
     }, 300);
   };
 
-  const getInitials = (name) => {
-    if (!name) return "US";
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const isLoggedIn = checkLoggedIn();
   const user = authStore.user;
 
@@ -45,8 +47,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
         isModalOpen ? "brightness-100" : ""
       }`}
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
-      </h1>
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent"></h1>
 
       <div className="flex items-center gap-6">
         {/* 🔔 Thông báo */}
@@ -60,7 +61,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
         </button>
 
         {/* 🔥 Điểm */}
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#DA7B93]/10 to-[#2F4454]/10 px-4 py-2 rounded-full shadow-sm border border-[#DA7B93]/20">
+        <div className="flex items-center gap-2 mr-[-20px] bg-gradient-to-r from-[#DA7B93]/10 to-[#2F4454]/10 px-4 py-2 rounded-full shadow-sm border border-[#DA7B93]/20" >
           <span className="material-symbols-outlined text-[#DA7B93] animate-pulse">
             local_fire_department
           </span>
@@ -72,8 +73,12 @@ export default function Header({ onOpenLogin, isModalOpen }) {
         {/* 👤 User */}
         {isLoggedIn ? (
           <div className="relative group">
-            <button className="w-12 h-12 rounded-full bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white font-bold flex items-center justify-center hover:from-[#DA7B93] hover:to-[#2F4454] transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-110">
-              {getInitials(user?.fullName)}
+            <button className="w-22 h-18  ">
+              <img
+                src={profile?.avatarUrl || "https://via.placeholder.com/48"}
+                alt={user?.fullName}
+                className="w-full h-full object-cover rounded-full border-2 border-[#efbac7]"
+              />
             </button>
 
             {/* Menu tài khoản */}
@@ -94,13 +99,16 @@ export default function Header({ onOpenLogin, isModalOpen }) {
                 </div>
               </div>
               <div className="py-2">
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2">
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2 transition-all"
+                >
                   <span className="material-symbols-outlined text-sm text-[#2F4454]">
                     person
                   </span>
                   Hồ sơ
                 </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2">
+                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#2F4454]/5 flex items-center gap-2 transition-all">
                   <span className="material-symbols-outlined text-sm text-[#2F4454]">
                     settings
                   </span>
@@ -109,7 +117,7 @@ export default function Header({ onOpenLogin, isModalOpen }) {
                 <div className="border-t border-gray-200 my-1"></div>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-[#DA7B93] hover:bg-[#DA7B93]/10 flex items-center gap-2"
+                  className="w-full text-left px-4 py-2 text-sm text-[#DA7B93] hover:bg-[#DA7B93]/10 flex items-center gap-2 transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">
                     logout
