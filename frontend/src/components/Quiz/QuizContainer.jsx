@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import useQuizStore from "../../store/useQuizStore";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import useDarkModeStore from "../../store/useDarkModeStore";
 import axiosPublic from "../../apis/axios";
 
 const QuizContainer = ({
@@ -31,6 +32,7 @@ const QuizContainer = ({
   const [isLoadingReview, setIsLoadingReview] = useState(false);
 
   const axiosPrivateHook = useAxiosPrivate();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const currentQuestion = questions[currentIndex];
 
   const isAllQuestionsAnswered = () => {
@@ -209,37 +211,37 @@ const QuizContainer = ({
       return "from-gray-400 to-slate-500";
     };
 
-    // Sửa lỗi click outside: đóng modal khi click vào overlay
     const handleOverlayClick = () => {
       setShowResultModal(false);
     };
 
-    // Ngăn sự kiện click lan ra ngoài khi click vào modal
     const handleModalClick = (e) => {
       e.stopPropagation();
     };
 
     return (
-      <div 
-        className="fixed inset-0 z-[10001] flex items-center justify-center p-4"
-        onClick={handleOverlayClick} // Click vào bất kỳ đâu trong overlay sẽ đóng modal
+      <div
+        className={`fixed inset-0 z-[10001] flex items-center justify-center p-4 transition-colors duration-300 ${
+          isDark ? "bg-black/60" : "bg-gray-900/10"
+        }`}
+        onClick={handleOverlayClick}
       >
-        {/* Overlay tối */}
-        <div className="absolute inset-0 bg-gray-900/10"></div>
-        
-        {/* Modal - ngăn sự kiện click lan ra ngoài */}
-        <div 
-          className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full mx-auto transform animate-scale-in overflow-hidden z-[10002]"
-          onClick={handleModalClick} // Quan trọng: ngăn sự kiện click lan lên overlay
+        <div
+          className={`relative rounded-3xl shadow-2xl max-w-md w-full mx-auto transform animate-scale-in overflow-hidden z-[10002] transition-colors duration-300 ${
+            isDark ? "bg-slate-800 border border-slate-700" : "bg-white"
+          }`}
+          onClick={handleModalClick}
         >
           {/* Close button */}
           <button
             onClick={() => setShowResultModal(false)}
-            className="absolute top-4 right-4 z-10 w-8 h-8  rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 group"
+            className={`absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 group ${
+              isDark
+                ? "text-slate-400 group-hover:text-slate-200"
+                : "text-gray-600 group-hover:text-gray-800"
+            }`}
           >
-            <span className="material-symbols-outlined text-gray-600 group-hover:text-gray-800 text-lg">
-              close
-            </span>
+            <span className="material-symbols-outlined text-lg">close</span>
           </button>
 
           {/* Header với gradient */}
@@ -251,8 +253,10 @@ const QuizContainer = ({
               <div className="absolute bottom-6 left-8 w-3 h-3 bg-white rounded-full"></div>
               <div className="absolute bottom-4 right-4 w-2 h-2 bg-white rounded-full"></div>
             </div>
-            
-            <div className={`w-24 h-24 bg-gradient-to-r ${getConfettiColor()} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg border-4 border-white/20`}>
+
+            <div
+              className={`w-24 h-24 bg-gradient-to-r ${getConfettiColor()} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg border-4 border-white/20`}
+            >
               <span className="material-symbols-outlined text-4xl text-white">
                 {gradeIcon}
               </span>
@@ -280,14 +284,33 @@ const QuizContainer = ({
             <div className="space-y-3">
               {incorrectCount > 0 ? (
                 <>
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-2 text-blue-800 mb-1">
-                      <span className="material-symbols-outlined text-sm">lightbulb</span>
+                  <div
+                    className={`border rounded-xl p-4 mb-4 transition-colors duration-300 ${
+                      isDark
+                        ? "bg-blue-900/20 border-blue-700/50"
+                        : "bg-blue-50 border-blue-200"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 mb-1 transition-colors duration-300 ${
+                        isDark ? "text-blue-300" : "text-blue-800"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        lightbulb
+                      </span>
                       <span className="text-sm font-medium">Gợi ý học tập</span>
                     </div>
-                    <p className="text-blue-700 text-sm">
-                      Bạn có <span className="font-semibold">{incorrectCount} câu sai</span>. 
-                      Hãy ôn tập để cải thiện kết quả!
+                    <p
+                      className={`text-sm transition-colors duration-300 ${
+                        isDark ? "text-blue-300/80" : "text-blue-700"
+                      }`}
+                    >
+                      Bạn có{" "}
+                      <span className="font-semibold">
+                        {incorrectCount} câu sai
+                      </span>
+                      . Hãy ôn tập để cải thiện kết quả!
                     </p>
                   </div>
 
@@ -298,12 +321,16 @@ const QuizContainer = ({
                   >
                     {isLoadingReview ? (
                       <>
-                        <span className="material-symbols-outlined animate-spin text-sm">refresh</span>
+                        <span className="material-symbols-outlined animate-spin text-sm">
+                          refresh
+                        </span>
                         Đang tải câu ôn tập...
                       </>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-sm">replay</span>
+                        <span className="material-symbols-outlined text-sm">
+                          replay
+                        </span>
                         Làm lại {incorrectCount} câu sai
                       </>
                     )}
@@ -311,20 +338,42 @@ const QuizContainer = ({
 
                   <button
                     onClick={handleBackToSetup}
-                    className="w-full px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                    className={`w-full px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
+                      isDark
+                        ? "bg-slate-700 text-slate-100 hover:bg-slate-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-sm">schedule</span>
+                    <span className="material-symbols-outlined text-sm">
+                      schedule
+                    </span>
                     Ôn tập sau
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-2 text-emerald-800 mb-1">
-                      <span className="material-symbols-outlined text-sm">emoji_events</span>
+                  <div
+                    className={`border rounded-xl p-4 mb-4 transition-colors duration-300 ${
+                      isDark
+                        ? "bg-emerald-900/20 border-emerald-700/50"
+                        : "bg-emerald-50 border-emerald-200"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 mb-1 transition-colors duration-300 ${
+                        isDark ? "text-emerald-300" : "text-emerald-800"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        emoji_events
+                      </span>
                       <span className="text-sm font-medium">Xuất sắc!</span>
                     </div>
-                    <p className="text-emerald-700 text-sm">
+                    <p
+                      className={`text-sm transition-colors duration-300 ${
+                        isDark ? "text-emerald-300/80" : "text-emerald-700"
+                      }`}
+                    >
                       Bạn đã làm đúng tất cả câu hỏi. Thật ấn tượng! 🎉
                     </p>
                   </div>
@@ -333,7 +382,9 @@ const QuizContainer = ({
                     onClick={handleBackToSetup}
                     className="w-full px-6 py-4 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-sm">home</span>
+                    <span className="material-symbols-outlined text-sm">
+                      home
+                    </span>
                     Quay về Setup
                   </button>
                 </>
@@ -348,7 +399,11 @@ const QuizContainer = ({
   const renderSentence = () => {
     if (!currentQuestion?.sentence) {
       return (
-        <div className="text-lg text-gray-800 leading-relaxed">
+        <div
+          className={`text-lg leading-relaxed transition-colors duration-300 ${
+            isDark ? "text-slate-200" : "text-gray-800"
+          }`}
+        >
           {currentQuestion?.sentence}
         </div>
       );
@@ -361,19 +416,27 @@ const QuizContainer = ({
       const parts = currentQuestion.sentence.split(/(<u>.*?<\/u>)/g);
 
       return (
-        <div className="text-lg text-gray-800 leading-relaxed">
+        <div
+          className={`text-lg leading-relaxed transition-colors duration-300 ${
+            isDark ? "text-slate-200" : "text-gray-800"
+          }`}
+        >
           {parts.map((part, index) => {
             if (part.startsWith("<u>") && part.endsWith("</u>")) {
               const content = part.slice(3, -4);
               return (
                 <span
                   key={index}
-                  className="font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent relative"
+                  className={`font-bold bg-gradient-to-r ${
+                    isDark
+                      ? "text-rose-400 bg-clip-text"
+                      : "from-[#2F4454] to-[#DA7B93] text-transparent bg-clip-text"
+                  } relative transition-colors duration-300`}
                   style={{
                     textDecoration: "underline",
                     textDecorationThickness: "2px",
                     textUnderlineOffset: "6px",
-                    textDecorationColor: "#DA7B93",
+                    textDecorationColor: isDark ? "#FB7185" : "#DA7B93",
                   }}
                 >
                   {content}
@@ -388,7 +451,11 @@ const QuizContainer = ({
 
     if (!currentQuestion.targetWord) {
       return (
-        <div className="text-lg text-gray-800 leading-relaxed">
+        <div
+          className={`text-lg leading-relaxed transition-colors duration-300 ${
+            isDark ? "text-slate-200" : "text-gray-800"
+          }`}
+        >
           {currentQuestion.sentence}
         </div>
       );
@@ -399,7 +466,11 @@ const QuizContainer = ({
     );
 
     return (
-      <div className="text-lg text-gray-800 leading-relaxed">
+      <div
+        className={`text-lg leading-relaxed transition-colors duration-300 ${
+          isDark ? "text-slate-200" : "text-gray-800"
+        }`}
+      >
         {parts.map((part, index) =>
           part.toLowerCase() === currentQuestion.targetWord.toLowerCase() ? (
             <span
@@ -426,10 +497,18 @@ const QuizContainer = ({
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-600 mb-3">
+          <h2
+            className={`text-2xl font-bold mb-3 transition-colors duration-300 ${
+              isDark ? "text-slate-200" : "text-gray-600"
+            }`}
+          >
             Không có câu hỏi
           </h2>
-          <p className="text-gray-500 text-base">
+          <p
+            className={`text-base transition-colors duration-300 ${
+              isDark ? "text-slate-400" : "text-gray-500"
+            }`}
+          >
             Vui lòng quay lại setup và thử lại.
           </p>
         </div>
@@ -441,24 +520,44 @@ const QuizContainer = ({
     <>
       <div className="w-full max-w-6xl mx-auto px-3">
         <div
-          className={`bg-white rounded-2xl shadow-xl p-6 border border-gray-100 transition-all duration-500 min-h-[680px] flex flex-col ${
+          className={`rounded-2xl shadow-xl p-6 border transition-all duration-500 min-h-[680px] flex flex-col ${
             isAnimating
               ? "opacity-0 transform scale-95"
               : "opacity-100 transform scale-100"
+          } ${
+            isDark
+              ? "bg-slate-800 border-slate-700"
+              : "bg-white border-gray-100"
           }`}
         >
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+          <div
+            className={`flex justify-between items-center mb-6 pb-4 border-b transition-colors duration-300 ${
+              isDark ? "border-slate-700" : "border-gray-200"
+            }`}
+          >
             <div className="flex-1 mr-6">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-semibold text-gray-700">
+                <span
+                  className={`text-sm font-semibold transition-colors duration-300 ${
+                    isDark ? "text-slate-300" : "text-gray-700"
+                  }`}
+                >
                   Câu {currentIndex + 1} / {questions.length}
                 </span>
-                <span className="text-sm font-semibold text-gray-700">
+                <span
+                  className={`text-sm font-semibold transition-colors duration-300 ${
+                    isDark ? "text-slate-300" : "text-gray-700"
+                  }`}
+                >
                   Điểm: <span className="text-[#2F4454]">{score}</span>/
                   {questions.length}
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-xl h-2 shadow-inner">
+              <div
+                className={`w-full rounded-xl h-2 shadow-inner transition-colors duration-300 ${
+                  isDark ? "bg-slate-700" : "bg-gray-100"
+                }`}
+              >
                 <div
                   className="bg-gradient-to-r from-[#2F4454] via-[#376E6F] to-[#DA7B93] h-2 rounded-xl transition-all duration-700 ease-out shadow-sm"
                   style={{
@@ -471,11 +570,21 @@ const QuizContainer = ({
 
           <div className="flex-1 flex flex-col">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-[#2F4454] mb-5 leading-tight">
+              <h3
+                className={`text-2xl font-bold mb-5 leading-tight transition-colors duration-300 ${
+                  isDark ? "text-slate-100" : "text-[#2F4454]"
+                }`}
+              >
                 {currentQuestion.questionText}
               </h3>
 
-              <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border border-blue-100 shadow-sm mb-6">
+              <div
+                className={`p-5 rounded-xl border shadow-sm mb-6 transition-colors duration-300 ${
+                  isDark
+                    ? "bg-slate-700 border-slate-600"
+                    : "bg-gradient-to-br from-gray-50 to-blue-50 border-blue-100"
+                }`}
+              >
                 {renderSentence()}
               </div>
             </div>
@@ -504,7 +613,11 @@ const QuizContainer = ({
                             : showIncorrect
                             ? "bg-gradient-to-br from-rose-50 to-red-100 border-rose-400 text-rose-900 shadow-lg ring-2 ring-rose-200/50"
                             : isSelected
-                            ? "bg-gradient-to-br from-[#2F4454] to-[#376E6F] border-[#2F4454] text-white shadow-xl scale-105 ring-2 ring-[#DA7B93]/30"
+                            ? isDark
+                              ? "bg-gradient-to-br from-[#2F4454] to-[#376E6F] border-[#2F4454] text-white shadow-xl scale-105 ring-2 ring-[#DA7B93]/30"
+                              : "bg-gradient-to-br from-[#2F4454] to-[#376E6F] border-[#2F4454] text-white shadow-xl scale-105 ring-2 ring-[#DA7B93]/30"
+                            : isDark
+                            ? "bg-slate-700 border-slate-600 text-slate-100 hover:border-[#DA7B93] hover:shadow-lg hover:bg-slate-600"
                             : "bg-white border-gray-200 text-gray-800 hover:border-[#DA7B93] hover:shadow-lg hover:bg-gray-50"
                         }
                         ${!showResult && "active:scale-98"}
@@ -513,7 +626,9 @@ const QuizContainer = ({
                       <div
                         className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
                           !showResult && !isSelected
-                            ? "bg-gradient-to-br from-[#2F4454]/5 to-[#DA7B93]/5"
+                            ? isDark
+                              ? "bg-gradient-to-br from-[#2F4454]/5 to-[#DA7B93]/5"
+                              : "bg-gradient-to-br from-[#2F4454]/5 to-[#DA7B93]/5"
                             : ""
                         }`}
                       ></div>
@@ -528,6 +643,8 @@ const QuizContainer = ({
                                 ? "bg-rose-500 text-white shadow-rose-200"
                                 : isSelected
                                 ? "bg-white text-[#2F4454] shadow-md"
+                                : isDark
+                                ? "bg-slate-600 text-white group-hover:from-[#2F4454]/10 group-hover:to-[#DA7B93]/10"
                                 : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 group-hover:from-[#2F4454]/10 group-hover:to-[#DA7B93]/10"
                             }`}
                           >
@@ -563,22 +680,40 @@ const QuizContainer = ({
 
             <div className="mt-auto">
               {!showResult && (
-                <div className="bg-gradient-to-r from-amber-50/80 to-orange-50/80 p-5 rounded-xl border border-amber-200/50 backdrop-blur-sm mb-6">
+                <div
+                  className={`p-5 rounded-xl border backdrop-blur-sm mb-6 transition-colors duration-300 ${
+                    isDark
+                      ? "bg-amber-900/20 border-amber-700/50"
+                      : "bg-gradient-to-r from-amber-50/80 to-orange-50/80 border-amber-200/50"
+                  }`}
+                >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md">
                       <span className="material-symbols-outlined text-white text-sm">
                         psychology
                       </span>
                     </div>
-                    <h4 className="font-bold text-amber-900 text-lg">
+                    <h4
+                      className={`font-bold text-lg transition-colors duration-300 ${
+                        isDark ? "text-amber-300" : "text-amber-900"
+                      }`}
+                    >
                       Hướng dẫn
                     </h4>
                   </div>
-                  <p className="text-amber-800 leading-relaxed text-base mb-3">
+                  <p
+                    className={`leading-relaxed text-base mb-3 transition-colors duration-300 ${
+                      isDark ? "text-amber-300/80" : "text-amber-800"
+                    }`}
+                  >
                     Đọc kỹ câu và từ được gạch chân, sau đó chọn đáp án phù hợp
                     nhất.
                   </p>
-                  <div className="flex items-center gap-2 text-amber-700 text-sm">
+                  <div
+                    className={`flex items-center gap-2 text-sm transition-colors duration-300 ${
+                      isDark ? "text-amber-300/70" : "text-amber-700"
+                    }`}
+                  >
                     <span className="material-symbols-outlined text-xs">
                       info
                     </span>
@@ -588,38 +723,70 @@ const QuizContainer = ({
               )}
 
               {showResult && (
-                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-5 rounded-xl border border-blue-200/50 backdrop-blur-sm mb-6 animate-fade-in">
+                <div
+                  className={`p-5 rounded-xl border backdrop-blur-sm mb-6 animate-fade-in transition-colors duration-300 ${
+                    isDark
+                      ? "bg-blue-900/20 border-blue-700/50"
+                      : "bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border-blue-200/50"
+                  }`}
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
                       <span className="material-symbols-outlined text-white text-sm">
                         lightbulb
                       </span>
                     </div>
-                    <h4 className="font-bold text-blue-900 text-lg">
+                    <h4
+                      className={`font-bold text-lg transition-colors duration-300 ${
+                        isDark ? "text-blue-300" : "text-blue-900"
+                      }`}
+                    >
                       Giải thích
                     </h4>
                   </div>
 
-                  <p className="text-blue-800 mb-4 leading-relaxed text-base">
+                  <p
+                    className={`mb-4 leading-relaxed text-base transition-colors duration-300 ${
+                      isDark ? "text-blue-300/80" : "text-blue-800"
+                    }`}
+                  >
                     {currentQuestion.explanation}
                   </p>
 
-                  <div className="bg-white/80 p-4 rounded-lg border border-emerald-300/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 text-emerald-700 font-semibold">
+                  <div
+                    className={`p-4 rounded-lg border backdrop-blur-sm transition-colors duration-300 ${
+                      isDark
+                        ? "bg-emerald-900/20 border-emerald-700/50"
+                        : "bg-white/80 border-emerald-300/50"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-3 font-semibold transition-colors duration-300 ${
+                        isDark ? "text-emerald-300" : "text-emerald-700"
+                      }`}
+                    >
                       <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
                         <span className="material-symbols-outlined text-white text-xs">
                           check
                         </span>
                       </div>
                       <span className="text-base">Đáp án đúng:</span>
-                      <span className="text-base ml-1 text-emerald-800">
+                      <span
+                        className={`text-base ml-1 transition-colors duration-300 ${
+                          isDark ? "text-emerald-300" : "text-emerald-800"
+                        }`}
+                      >
                         {
                           currentQuestion.options[
                             currentQuestion.correctAnswerIndex
                           ]
                         }
                       </span>
-                      <span className="text-gray-600 text-sm ml-2">
+                      <span
+                        className={`text-sm ml-2 transition-colors duration-300 ${
+                          isDark ? "text-slate-400" : "text-gray-600"
+                        }`}
+                      >
                         (
                         {String.fromCharCode(
                           65 + currentQuestion.correctAnswerIndex
@@ -678,8 +845,18 @@ const QuizContainer = ({
 
               {showResult && isLastQuestion() && !isAllQuestionsAnswered() && (
                 <div className="text-center pt-2">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-center justify-center gap-2 text-amber-700">
+                  <div
+                    className={`border rounded-xl p-4 mb-4 transition-colors duration-300 ${
+                      isDark
+                        ? "bg-amber-900/20 border-amber-700/50"
+                        : "bg-amber-50 border-amber-200"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center justify-center gap-2 transition-colors duration-300 ${
+                        isDark ? "text-amber-300" : "text-amber-700"
+                      }`}
+                    >
                       <span className="material-symbols-outlined text-sm">
                         info
                       </span>
@@ -688,7 +865,11 @@ const QuizContainer = ({
                         hoàn thành quiz
                       </span>
                     </div>
-                    <div className="text-xs text-amber-600 mt-1">
+                    <div
+                      className={`text-xs mt-1 transition-colors duration-300 ${
+                        isDark ? "text-amber-300/70" : "text-amber-600"
+                      }`}
+                    >
                       Còn{" "}
                       {questions.length -
                         userAnswers.filter((answer) => answer !== undefined)

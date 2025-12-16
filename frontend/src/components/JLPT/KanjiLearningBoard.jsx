@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import LessonCard from "./LessonCard";
 import useKanjiStore from "../../store/useKanjiStore";
+import useDarkModeStore from "../../store/useDarkModeStore";
 
 const KanjiLearningBoard = ({
   levels,
@@ -18,6 +19,7 @@ const KanjiLearningBoard = ({
   currentApiPage,
 }) => {
   const isLoggedIn = useKanjiStore((state) => state.isLoggedIn());
+  const isDark = useDarkModeStore((state) => state.isDark);
   
   // 🎯 SỬA: Lấy progressSummary và helper functions từ store
   const progressSummary = useKanjiStore((state) => state.progressSummary);
@@ -43,12 +45,13 @@ const KanjiLearningBoard = ({
             type="button"
           >
             <div
-              className={`w-16 h-16 flex items-center justify-center rounded-full font-bold text-lg transition-all duration-500 relative
-                ${
-                  currentLevel === level.id
-                    ? "text-white scale-110 shadow-2xl"
-                    : "bg-white text-gray-700 hover:bg-[#2F4454]/5 hover:text-[#2F4454] shadow-md hover:shadow-lg"
-                } ${loading && currentLevel !== level.id ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`w-16 h-16 flex items-center justify-center rounded-full font-bold text-lg transition-all duration-500 relative ${
+                currentLevel === level.id
+                  ? "text-white scale-110 shadow-2xl"
+                  : isDark
+                  ? "bg-slate-700 text-slate-100 hover:bg-slate-600 shadow-md hover:shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-[#2F4454]/5 hover:text-[#2F4454] shadow-md hover:shadow-lg"
+              } ${loading && currentLevel !== level.id ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {/* Background gradient cho active state */}
               {currentLevel === level.id && (
@@ -69,6 +72,8 @@ const KanjiLearningBoard = ({
               className={`mt-2 text-xs transition-colors duration-300 ${
                 currentLevel === level.id
                   ? "text-[#DA7B93] font-semibold"
+                  : isDark
+                  ? "text-slate-400 group-hover:text-slate-300"
                   : "text-gray-600 group-hover:text-[#2F4454]"
               }`}
             >
@@ -78,7 +83,9 @@ const KanjiLearningBoard = ({
 
           {index < levels.length - 1 && (
             <div className="flex-1 mx-2 flex items-center">
-              <div className="w-full border-t-2 border-dashed border-[#DA7B93]/30"></div>
+              <div className={`w-full border-t-2 border-dashed transition-colors duration-300 ${
+                isDark ? 'border-slate-600' : 'border-[#DA7B93]/30'
+              }`}></div>
             </div>
           )}
         </React.Fragment>
@@ -88,13 +95,21 @@ const KanjiLearningBoard = ({
 
   if (!loading && !hasData) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <div className={`rounded-2xl shadow-sm border p-6 transition-colors duration-300 ${
+        isDark
+          ? 'bg-slate-800 border-slate-700'
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${
+            isDark ? 'text-slate-100' : 'text-gray-700'
+          }`}>
             Hãy chọn Level để bắt đầu bài học
           </h3>
-          <p className="text-gray-500">
+          <p className={`transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-500'
+          }`}>
             Cố gắng hoàn thành các bài học để học hết kanji trong level bạn chọn!
           </p>
         </div>
@@ -104,7 +119,11 @@ const KanjiLearningBoard = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div className={`rounded-2xl shadow-sm border p-6 transition-colors duration-300 ${
+      isDark
+        ? 'bg-slate-800 border-slate-700'
+        : 'bg-white border-gray-200'
+    }`}>
       <LevelNavigation />
 
       {hasData && isLoggedIn && (
@@ -113,15 +132,21 @@ const KanjiLearningBoard = ({
             <h2 className="text-2xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
               {currentLevelData.title}
             </h2>
-            <div className="text-sm text-gray-600">
+            <div className={`text-sm transition-colors duration-300 ${
+              isDark ? 'text-slate-400' : 'text-gray-600'
+            }`}>
               Tiến độ:{" "}
-              <span className="font-semibold text-[#2F4454]">
+              <span className={`font-semibold transition-colors duration-300 ${
+                isDark ? 'text-rose-400' : 'text-[#2F4454]'
+              }`}>
                 {progress}%
               </span>{" "}
               ({learnedCount}/{totalKanji} kanji)
             </div>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+          <div className={`w-full rounded-full h-3 overflow-hidden transition-colors duration-300 ${
+            isDark ? 'bg-slate-700' : 'bg-gray-100'
+          }`}>
             <motion.div
               className="bg-gradient-to-r from-[#2F4454] to-[#DA7B93] h-3 rounded-full shadow-inner"
               initial={{ width: 0 }}
@@ -137,7 +162,9 @@ const KanjiLearningBoard = ({
           <h2 className="text-2xl font-bold bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
             {currentLevelData.title}
           </h2>
-          <p className="text-gray-600 mt-2">
+          <p className={`mt-2 transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-600'
+          }`}>
             {totalKanji} kanji — Đăng nhập để bắt đầu học
           </p>
         </div>
@@ -145,25 +172,43 @@ const KanjiLearningBoard = ({
 
       {isLoadingCurrentPage && (
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#DA7B93]/30 border-t-[#DA7B93]"></div>
-          <span className="ml-2 text-gray-600">Đang tải dữ liệu bài học...</span>
+          <div className={`animate-spin rounded-full h-8 w-8 border-2 transition-colors duration-300 ${
+            isDark
+              ? 'border-slate-600 border-t-rose-400'
+              : 'border-[#DA7B93]/30 border-t-[#DA7B93]'
+          }`}></div>
+          <span className={`ml-2 transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-600'
+          }`}>
+            Đang tải dữ liệu bài học...
+          </span>
         </div>
       )}
 
       {!isLoadingCurrentPage && hasData && (
         <>
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-[#2F4454] mb-4">
+            <h3 className={`text-lg font-semibold mb-4 transition-colors duration-300 ${
+              isDark ? 'text-rose-400' : 'text-[#2F4454]'
+            }`}>
               Danh sách Bài học (Trang {currentLevelData.lessons.length > 0 ? Math.ceil((currentApiPage + 1) / 10) : 1})
             </h3>
 
             {filteredLessons.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+              <div className={`text-center py-12 rounded-xl border transition-colors duration-300 ${
+                isDark
+                  ? 'bg-slate-700 border-slate-600'
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
                 <div className="text-6xl mb-4">📚</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${
+                  isDark ? 'text-slate-100' : 'text-gray-700'
+                }`}>
                   Chưa có bài học nào được hiển thị
                 </h3>
-                <p className="text-gray-500">
+                <p className={`transition-colors duration-300 ${
+                  isDark ? 'text-slate-400' : 'text-gray-500'
+                }`}>
                   Hãy chọn Lesson đầu tiên để tải dữ liệu.
                 </p>
               </div>

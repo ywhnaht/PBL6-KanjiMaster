@@ -4,6 +4,7 @@ import { useBattleWebSocket } from '../../hooks/useBattleWebSocket';
 import { useBattleStore } from '../../store/useBattleStore';
 import { getBattleStats } from '../../services/battleService';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../store/useDarkModeStore';
 import Sidebar from '../../layouts/Sidebar';
 import Header from '../../layouts/Header';
 import LoginModal from '../../components/Login';
@@ -16,6 +17,7 @@ import QuestionCard from '../../components/Battle/QuestionCard';
 
 export default function BattlePage() {
   const { user } = useAuthStore();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
   
@@ -51,8 +53,8 @@ export default function BattlePage() {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [lastResult, setLastResult] = useState(null);
-  const [isReady, setIsReady] = useState(false); // Track if current player clicked ready
-  const [stats, setStats] = useState(null); // Battle stats
+  const [isReady, setIsReady] = useState(false);
+  const [stats, setStats] = useState(null);
   
   // Login/Register modals
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -71,15 +73,15 @@ export default function BattlePage() {
         .then(res => setStats(res.data.data))
         .catch(err => console.error('Error fetching stats:', err));
     }
-  }, [user, gameState]); // Refetch when game ends
+  }, [user, gameState]);
 
-  // Helper functions - MUST be before useEffect
+  // Helper functions
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
   }, []);
 
   const handleAnswer = useCallback((answerIndex) => {
-    if (selectedAnswer !== null || showResult) return; // Already answered
+    if (selectedAnswer !== null || showResult) return;
 
     setSelectedAnswer(answerIndex);
     const answerTime = Date.now() - startTimeRef.current;
@@ -99,7 +101,7 @@ export default function BattlePage() {
 
   const handleReady = () => {
     ready();
-    setIsReady(true); // Mark as ready
+    setIsReady(true);
   };
 
   const handlePlayAgain = () => {
@@ -113,7 +115,7 @@ export default function BattlePage() {
     setGameResult(null);
     setSelectedAnswer(null);
     setShowResult(false);
-    setIsReady(false); // Reset ready state
+    setIsReady(false);
   };
 
   const handleLoginSuccess = () => {
@@ -136,9 +138,8 @@ export default function BattlePage() {
     showToast('Đăng ký thành công! Vui lòng kiểm tra email để xác thực.', 'success');
   };
 
-  // Connect WebSocket when user logs in - ONCE ONLY
+  // Connect WebSocket when user logs in
   useEffect(() => {
-    // Only connect if user is logged in and not already connected/connecting
     if (!user || isConnected || isConnecting) {
       console.log('⏭️ Skipping connect:', { user: !!user, isConnected, isConnecting });
       return;
@@ -173,9 +174,9 @@ export default function BattlePage() {
     return () => {
       cancelled = true;
     };
-  }, [user]); // ONLY depend on user - connect once when user logs in
+  }, [user]);
 
-  // Setup message handlers using ws from hook
+  // Setup message handlers
   useEffect(() => {
     if (!ws) {
       console.log('⚠️ No WebSocket instance, skipping message handler setup');
@@ -196,7 +197,7 @@ export default function BattlePage() {
           console.log('🎯 Match found:', message.payload);
           setOpponent(message.payload);
           setGameState('MATCHED');
-          setIsReady(false); // Reset ready state for new match
+          setIsReady(false);
           break;
 
         case 'GAME_START':
@@ -244,11 +245,9 @@ export default function BattlePage() {
           console.warn('⚠️ Unknown message type:', message.type);
       }
     };
+  }, [ws]);
 
-    // No cleanup here - let the hook handle it
-  }, [ws]); // Only depend on ws
-
-  // Countdown timer - ALWAYS runs, doesn't stop when player answers
+  // Countdown timer
   useEffect(() => {
     if (gameState === 'PLAYING' && currentQuestion) {
       timerRef.current = setInterval(() => {
@@ -267,13 +266,17 @@ export default function BattlePage() {
         }
       };
     }
-  }, [gameState, currentQuestion, currentQuestionIndex]); // Timer runs continuously
+  }, [gameState, currentQuestion, currentQuestionIndex]);
 
   // Show login required screen if not logged in
   if (!user) {
     return (
       <>
-        <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className={`flex h-screen transition-colors duration-300 ${
+          isDark
+            ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+        }`}>
           <Sidebar />
           <div className="flex-1 flex flex-col overflow-hidden">
             <Header />
@@ -289,48 +292,78 @@ export default function BattlePage() {
                   <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
                     Battle Mode
                   </h1>
-                  <p className="text-lg text-gray-600">
+                  <p className={`text-lg transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
                     Thách đấu người chơi khác trong cuộc thi kanji gay cấn!
                   </p>
                 </div>
 
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-[#2F4454] hover:shadow-xl transition-shadow">
+                  <div className={`rounded-xl p-6 shadow-md border-l-4 border-[#2F4454] hover:shadow-xl transition-shadow duration-300 ${
+                    isDark ? 'bg-slate-800' : 'bg-white'
+                  }`}>
                     <span className="material-symbols-outlined text-[#2F4454] text-3xl mb-2 block">
                       timer
                     </span>
-                    <h3 className="font-bold text-[#2F4454] mb-1">10 Giây/Câu</h3>
-                    <p className="text-sm text-gray-600">Trả lời nhanh để ghi điểm cao</p>
+                    <h3 className={`font-bold mb-1 transition-colors duration-300 ${
+                      isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                    }`}>10 Giây/Câu</h3>
+                    <p className={`text-sm transition-colors duration-300 ${
+                      isDark ? 'text-slate-400' : 'text-gray-600'
+                    }`}>Trả lời nhanh để ghi điểm cao</p>
                   </div>
-                  <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-[#DA7B93] hover:shadow-xl transition-shadow">
+                  <div className={`rounded-xl p-6 shadow-md border-l-4 border-[#DA7B93] hover:shadow-xl transition-shadow duration-300 ${
+                    isDark ? 'bg-slate-800' : 'bg-white'
+                  }`}>
                     <span className="material-symbols-outlined text-[#DA7B93] text-3xl mb-2 block">
                       groups
                     </span>
-                    <h3 className="font-bold text-[#DA7B93] mb-1">Đối Kháng 1v1</h3>
-                    <p className="text-sm text-gray-600">Ghép đối thủ cùng level</p>
+                    <h3 className={`font-bold mb-1 transition-colors duration-300 ${
+                      isDark ? 'text-slate-100' : 'text-[#DA7B93]'
+                    }`}>Đối Kháng 1v1</h3>
+                    <p className={`text-sm transition-colors duration-300 ${
+                      isDark ? 'text-slate-400' : 'text-gray-600'
+                    }`}>Ghép đối thủ cùng level</p>
                   </div>
-                  <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-[#2F4454] hover:shadow-xl transition-shadow">
+                  <div className={`rounded-xl p-6 shadow-md border-l-4 border-[#2F4454] hover:shadow-xl transition-shadow duration-300 ${
+                    isDark ? 'bg-slate-800' : 'bg-white'
+                  }`}>
                     <span className="material-symbols-outlined text-[#2F4454] text-3xl mb-2 block">
                       emoji_events
                     </span>
-                    <h3 className="font-bold text-[#2F4454] mb-1">Xếp Hạng</h3>
-                    <p className="text-sm text-gray-600">Tranh tài top player</p>
+                    <h3 className={`font-bold mb-1 transition-colors duration-300 ${
+                      isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                    }`}>Xếp Hạng</h3>
+                    <p className={`text-sm transition-colors duration-300 ${
+                      isDark ? 'text-slate-400' : 'text-gray-600'
+                    }`}>Tranh tài top player</p>
                   </div>
                 </div>
 
                 {/* Login CTA */}
-                <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center border-2 border-[#DA7B93]/30">
+                <div className={`rounded-2xl shadow-2xl p-8 md:p-12 text-center border-2 border-[#DA7B93]/30 transition-colors duration-300 ${
+                  isDark ? 'bg-slate-800' : 'bg-white'
+                }`}>
                   <div className="mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#2F4454]/10 to-[#DA7B93]/10 mb-4">
+                    <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 transition-colors duration-300 ${
+                      isDark
+                        ? 'bg-slate-700'
+                        : 'bg-gradient-to-br from-[#2F4454]/10 to-[#DA7B93]/10'
+                    }`}>
                       <span className="material-symbols-outlined text-[#DA7B93] text-5xl">
                         lock
                       </span>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold mb-3 text-[#2F4454]">
+                    <h2 className={`text-2xl md:text-3xl font-bold mb-3 transition-colors duration-300 ${
+                      isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                    }`}>
                       Đăng Nhập Để Tham Gia
                     </h2>
-                    <p className="text-gray-600 max-w-md mx-auto">
+                    <p className={`transition-colors duration-300 max-w-md mx-auto ${
+                      isDark ? 'text-slate-400' : 'text-gray-600'
+                    }`}>
                       Đăng nhập ngay để bắt đầu thử thách và leo top bảng xếp hạng!
                     </p>
                   </div>
@@ -347,7 +380,11 @@ export default function BattlePage() {
                         setShowLoginModal(false);
                         setShowRegisterModal(true);
                       }}
-                      className="px-8 py-4 bg-white border-2 border-[#DA7B93] text-[#DA7B93] rounded-xl font-bold text-lg hover:bg-[#DA7B93]/5 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                      className={`px-8 py-4 border-2 border-[#DA7B93] text-[#DA7B93] rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 ${
+                        isDark
+                          ? 'bg-slate-700 hover:bg-slate-600'
+                          : 'bg-white hover:bg-[#DA7B93]/5'
+                      }`}
                     >
                       <span className="material-symbols-outlined">person_add</span>
                       Đăng Ký
@@ -356,7 +393,9 @@ export default function BattlePage() {
                 </div>
 
                 {/* Decorative Elements */}
-                <div className="mt-8 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+                <div className={`mt-8 text-center text-sm flex items-center justify-center gap-2 transition-colors duration-300 ${
+                  isDark ? 'text-slate-500' : 'text-gray-500'
+                }`}>
                   <span className="material-symbols-outlined text-lg">info</span>
                   <p>Bạn cần tài khoản để lưu kết quả và xếp hạng</p>
                 </div>
@@ -397,15 +436,23 @@ export default function BattlePage() {
 
   if (isConnecting) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className={`flex h-screen transition-colors duration-300 ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+          : 'bg-gray-50'
+      }`}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
           <main className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center">
+              <div className={`rounded-2xl shadow-lg p-8 md:p-12 text-center transition-colors duration-300 ${
+                isDark ? 'bg-slate-800' : 'bg-white'
+              }`}>
                 <div className="animate-spin w-16 h-16 border-4 border-[#DA7B93] border-t-transparent rounded-full mx-auto mb-4"></div>
-                <h2 className="text-xl font-bold text-[#2F4454]">Đang kết nối...</h2>
+                <h2 className={`text-xl font-bold transition-colors duration-300 ${
+                  isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                }`}>Đang kết nối...</h2>
               </div>
             </div>
           </main>
@@ -416,7 +463,11 @@ export default function BattlePage() {
 
   // Render based on game state
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className={`flex h-screen transition-colors duration-300 ${
+      isDark
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+        : 'bg-gray-50'
+    }`}>
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
@@ -466,30 +517,48 @@ export default function BattlePage() {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl p-4 shadow-md border-l-4 border-[#2F4454]">
+                <div className={`rounded-xl p-4 shadow-md border-l-4 border-[#2F4454] transition-colors duration-300 ${
+                  isDark ? 'bg-slate-800' : 'bg-white'
+                }`}>
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[#2F4454] text-3xl">timer</span>
                     <div>
-                      <h3 className="font-bold text-[#2F4454]">10 Giây/Câu</h3>
-                      <p className="text-sm text-gray-600">Nhanh = Nhiều điểm</p>
+                      <h3 className={`font-bold transition-colors duration-300 ${
+                        isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                      }`}>10 Giây/Câu</h3>
+                      <p className={`text-sm transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>Nhanh = Nhiều điểm</p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 shadow-md border-l-4 border-[#DA7B93]">
+                <div className={`rounded-xl p-4 shadow-md border-l-4 border-[#DA7B93] transition-colors duration-300 ${
+                  isDark ? 'bg-slate-800' : 'bg-white'
+                }`}>
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[#DA7B93] text-3xl">groups</span>
                     <div>
-                      <h3 className="font-bold text-[#DA7B93]">Đối Kháng 1v1</h3>
-                      <p className="text-sm text-gray-600">Ghép tự động</p>
+                      <h3 className={`font-bold transition-colors duration-300 ${
+                        isDark ? 'text-slate-100' : 'text-[#DA7B93]'
+                      }`}>Đối Kháng 1v1</h3>
+                      <p className={`text-sm transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>Ghép tự động</p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 shadow-md border-l-4 border-[#2F4454]">
+                <div className={`rounded-xl p-4 shadow-md border-l-4 border-[#2F4454] transition-colors duration-300 ${
+                  isDark ? 'bg-slate-800' : 'bg-white'
+                }`}>
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[#2F4454] text-3xl">emoji_events</span>
                     <div>
-                      <h3 className="font-bold text-[#2F4454]">Xếp Hạng</h3>
-                      <p className="text-sm text-gray-600">Top Players</p>
+                      <h3 className={`font-bold transition-colors duration-300 ${
+                        isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                      }`}>Xếp Hạng</h3>
+                      <p className={`text-sm transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>Top Players</p>
                     </div>
                   </div>
                 </div>
@@ -498,8 +567,14 @@ export default function BattlePage() {
 
             {/* IDLE State - Select Level */}
             {gameState === 'IDLE' && (
-              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-[#DA7B93]/20">
-                <h2 className="text-2xl font-bold mb-6 text-center text-[#2F4454]">Chọn Level Đấu</h2>
+              <div className={`rounded-2xl shadow-lg p-6 md:p-8 border transition-colors duration-300 ${
+                isDark
+                  ? 'bg-slate-800 border-slate-700'
+                  : 'bg-white border-[#DA7B93]/20'
+              }`}>
+                <h2 className={`text-2xl font-bold mb-6 text-center transition-colors duration-300 ${
+                  isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                }`}>Chọn Level Đấu</h2>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-8">
                   {['N5', 'N4', 'N3', 'N2', 'N1'].map((level) => (
                     <button
@@ -508,6 +583,8 @@ export default function BattlePage() {
                       className={`py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 ${
                         selectedLevel === level
                           ? 'bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white shadow-lg'
+                          : isDark
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -526,7 +603,11 @@ export default function BattlePage() {
 
             {/* WAITING State */}
             {gameState === 'WAITING' && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center border border-[#DA7B93]/20">
+              <div className={`rounded-2xl shadow-lg p-8 md:p-12 text-center border transition-colors duration-300 ${
+                isDark
+                  ? 'bg-slate-800 border-slate-700'
+                  : 'bg-white border-[#DA7B93]/20'
+              }`}>
                 <div className="relative w-24 h-24 mx-auto mb-6">
                   <div className="absolute inset-0 animate-spin">
                     <div className="w-full h-full border-4 border-[#DA7B93] border-t-transparent rounded-full"></div>
@@ -540,9 +621,15 @@ export default function BattlePage() {
                     </span>
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold mb-2 text-[#2F4454]">Đang tìm đối thủ...</h2>
-                <p className="text-gray-600 mb-1">Level: <span className="font-bold text-[#DA7B93]">{selectedLevel}</span></p>
-                <p className="text-sm text-gray-500 mb-6">Chờ một chút, chúng tôi đang tìm đối thủ xứng tầm với bạn!</p>
+                <h2 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${
+                  isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                }`}>Đang tìm đối thủ...</h2>
+                <p className={`transition-colors duration-300 mb-1 ${
+                  isDark ? 'text-slate-400' : 'text-gray-600'
+                }`}>Level: <span className="font-bold text-[#DA7B93]">{selectedLevel}</span></p>
+                <p className={`text-sm transition-colors duration-300 mb-6 ${
+                  isDark ? 'text-slate-500' : 'text-gray-500'
+                }`}>Chờ một chút, chúng tôi đang tìm đối thủ xứng tầm với bạn!</p>
                 <button
                   onClick={handleLeaveQueue}
                   className="px-8 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-300 transform hover:scale-105 font-semibold"
@@ -554,15 +641,31 @@ export default function BattlePage() {
 
             {/* MATCHED State */}
             {gameState === 'MATCHED' && opponent && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center border border-[#DA7B93]/20">
+              <div className={`rounded-2xl shadow-lg p-8 md:p-12 text-center border transition-colors duration-300 ${
+                isDark
+                  ? 'bg-slate-800 border-slate-700'
+                  : 'bg-white border-[#DA7B93]/20'
+              }`}>
                 <div className="mb-6">
                   <div className="text-6xl mb-4 animate-bounce">🎯</div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4 text-[#2F4454]">Đã Tìm Thấy Đối Thủ!</h2>
+                  <h2 className={`text-2xl md:text-3xl font-bold mb-4 transition-colors duration-300 ${
+                    isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                  }`}>Đã Tìm Thấy Đối Thủ!</h2>
                 </div>
-                <div className="mb-8 p-6 bg-gradient-to-r from-[#2F4454]/5 to-[#DA7B93]/5 rounded-xl border border-[#DA7B93]/20">
-                  <p className="text-lg mb-2 text-gray-600">Đối thủ của bạn</p>
-                  <p className="text-2xl font-bold mb-3 text-[#2F4454]">{opponent.opponentName}</p>
-                  <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+                <div className={`mb-8 p-6 rounded-xl border transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-700/50 border-slate-600'
+                    : 'bg-gradient-to-r from-[#2F4454]/5 to-[#DA7B93]/5 border-[#DA7B93]/20'
+                }`}>
+                  <p className={`text-lg mb-2 transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>Đối thủ của bạn</p>
+                  <p className={`text-2xl font-bold mb-3 transition-colors duration-300 ${
+                    isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                  }`}>{opponent.opponentName}</p>
+                  <div className={`flex items-center justify-center gap-6 text-sm transition-colors duration-300 ${
+                    isDark ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-[#DA7B93]">emoji_events</span>
                       Level: <strong>{opponent.level}</strong>
@@ -582,11 +685,19 @@ export default function BattlePage() {
                   </button>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-3 px-8 py-4 bg-blue-50 border-2 border-blue-300 rounded-xl">
+                    <div className={`flex items-center gap-3 px-8 py-4 rounded-xl border-2 transition-colors duration-300 ${
+                      isDark
+                        ? 'bg-blue-900/30 border-blue-700'
+                        : 'bg-blue-50 border-blue-300'
+                    }`}>
                       <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                      <span className="text-blue-700 font-semibold text-lg">Đang đợi đối thủ sẵn sàng...</span>
+                      <span className={`font-semibold text-lg transition-colors duration-300 ${
+                        isDark ? 'text-blue-300' : 'text-blue-700'
+                      }`}>Đang đợi đối thủ sẵn sàng...</span>
                     </div>
-                    <p className="text-sm text-gray-500">Đối thủ đang chuẩn bị, vui lòng chờ một chút!</p>
+                    <p className={`text-sm transition-colors duration-300 ${
+                      isDark ? 'text-slate-500' : 'text-gray-500'
+                    }`}>Đối thủ đang chuẩn bị, vui lòng chờ một chút!</p>
                   </div>
                 )}
               </div>
@@ -608,13 +719,19 @@ export default function BattlePage() {
                 />
 
                 {/* Countdown Timer */}
-                <div className="bg-white rounded-xl shadow-md p-4 border border-[#DA7B93]/20">
+                <div className={`rounded-xl shadow-md p-4 border transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-slate-700'
+                    : 'bg-white border-[#DA7B93]/20'
+                }`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600">
+                    <span className={`text-sm font-medium transition-colors duration-300 ${
+                      isDark ? 'text-slate-400' : 'text-gray-600'
+                    }`}>
                       Câu {currentQuestionIndex + 1}/{questions.length}
                     </span>
-                    <span className={`text-2xl font-bold ${
-                      timeLeft <= 3 ? 'text-red-600 animate-pulse' : 'text-[#2F4454]'
+                    <span className={`text-2xl font-bold transition-colors duration-300 ${
+                      timeLeft <= 3 ? 'text-red-600 animate-pulse' : isDark ? 'text-slate-100' : 'text-[#2F4454]'
                     }`}>
                       {timeLeft}s
                     </span>
@@ -637,7 +754,6 @@ export default function BattlePage() {
 
             {/* ENDED State */}
             {gameState === 'ENDED' && gameResult && (() => {
-              // Determine which player is current user based on name match
               const isPlayer1 = gameResult.player1Name === (user?.fullName || user?.email);
               const myScore = isPlayer1 ? gameResult.player1Score : gameResult.player2Score;
               const opponentScore = isPlayer1 ? gameResult.player2Score : gameResult.player1Score;
@@ -646,7 +762,11 @@ export default function BattlePage() {
               const isWinner = gameResult.winnerId === user?.id;
               
               return (
-                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-12 text-center border border-[#DA7B93]/20">
+                <div className={`rounded-2xl shadow-lg p-6 md:p-12 text-center border transition-colors duration-300 ${
+                  isDark
+                    ? 'bg-slate-800 border-slate-700'
+                    : 'bg-white border-[#DA7B93]/20'
+                }`}>
                   <div className="mb-6">
                     {gameResult.winnerId === null ? (
                       <div className="text-6xl mb-4">🤝</div>
@@ -655,48 +775,74 @@ export default function BattlePage() {
                     ) : (
                       <div className="text-6xl mb-4">😢</div>
                     )}
-                    <h2 className="text-2xl md:text-4xl font-bold mb-2">
+                    <h2 className={`text-2xl md:text-4xl font-bold mb-2 transition-colors duration-300 ${
+                      isDark ? 'text-slate-100' : 'text-[#2F4454]'
+                    }`}>
                       {gameResult.winnerId === null ? 'Hòa!' :
                        isWinner ? 'Bạn Thắng!' : 'Bạn Thua!'}
                     </h2>
                   </div>
 
                   {gameResult.reason && (
-                    <p className="text-red-600 mb-6 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <p className={`mb-6 p-3 rounded-lg border transition-colors duration-300 ${
+                      isDark
+                        ? 'bg-red-900/30 border-red-700/50 text-red-400'
+                        : 'bg-red-50 border-red-200 text-red-600'
+                    }`}>
                       {gameResult.reason}
                     </p>
                   )}
 
                   <div className="grid grid-cols-2 gap-4 md:gap-8 mb-8">
-                    <div className={`p-6 rounded-xl border ${
+                    <div className={`p-6 rounded-xl border transition-colors duration-300 ${
                       isWinner 
-                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-300' 
+                        ? isDark
+                          ? 'bg-green-900/30 border-green-700/50'
+                          : 'bg-gradient-to-br from-green-50 to-green-100 border-green-300'
+                        : isDark
+                        ? 'bg-slate-700/50 border-slate-600'
                         : 'bg-gradient-to-br from-[#2F4454]/10 to-[#2F4454]/5 border-[#2F4454]/20'
                     }`}>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className={`text-sm mb-2 transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>
                         Bạn {isWinner && '🏆'}
                       </p>
-                      <p className={`text-3xl md:text-5xl font-bold mb-1 ${
-                        isWinner ? 'text-green-600' : 'text-[#2F4454]'
+                      <p className={`text-3xl md:text-5xl font-bold mb-1 transition-colors duration-300 ${
+                        isWinner 
+                          ? 'text-green-600'
+                          : isDark
+                          ? 'text-slate-100'
+                          : 'text-[#2F4454]'
                       }`}>
                         {myScore}
                       </p>
-                      <p className="text-xs text-gray-500">{myName}</p>
+                      <p className={`text-xs transition-colors duration-300 ${
+                        isDark ? 'text-slate-500' : 'text-gray-500'
+                      }`}>{myName}</p>
                     </div>
-                    <div className={`p-6 rounded-xl border ${
+                    <div className={`p-6 rounded-xl border transition-colors duration-300 ${
                       gameResult.winnerId !== null && !isWinner
-                        ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300' 
+                        ? isDark
+                          ? 'bg-yellow-900/30 border-yellow-700/50'
+                          : 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300'
+                        : isDark
+                        ? 'bg-slate-700/50 border-slate-600'
                         : 'bg-gradient-to-br from-[#DA7B93]/10 to-[#DA7B93]/5 border-[#DA7B93]/20'
                     }`}>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className={`text-sm mb-2 transition-colors duration-300 ${
+                        isDark ? 'text-slate-400' : 'text-gray-600'
+                      }`}>
                         Đối thủ {gameResult.winnerId !== null && !isWinner && '🏆'}
                       </p>
-                      <p className={`text-3xl md:text-5xl font-bold mb-1 ${
-                        gameResult.winnerId !== null && !isWinner ? 'text-yellow-600' : 'text-[#DA7B93]'
+                      <p className={`text-3xl md:text-5xl font-bold mb-1 transition-colors duration-300 ${
+                        gameResult.winnerId !== null && !isWinner ? 'text-yellow-600' : isDark ? 'text-slate-100' : 'text-[#DA7B93]'
                       }`}>
                         {opponentScore}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">{opponentName}</p>
+                      <p className={`text-xs truncate transition-colors duration-300 ${
+                        isDark ? 'text-slate-500' : 'text-gray-500'
+                      }`}>{opponentName}</p>
                     </div>
                   </div>
 
@@ -724,4 +870,3 @@ export default function BattlePage() {
     </div>
   );
 }
-

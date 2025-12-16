@@ -1,15 +1,26 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const ScoreDisplay = memo(({ player, opponent }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
+
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-[#2F4454]/10 to-[#DA7B93]/10 rounded-xl p-4 mb-4 border border-[#DA7B93]/20">
+    <div className={`flex justify-between items-center rounded-xl p-4 mb-4 border transition-colors duration-300 ${
+      isDark
+        ? 'bg-gradient-to-r from-slate-700/50 to-slate-700/30 border-slate-600'
+        : 'bg-gradient-to-r from-[#2F4454]/10 to-[#DA7B93]/10 border-[#DA7B93]/20'
+    }`}>
       <div className="flex items-center">
-        <div className="w-10 h-10 rounded-full mr-2 border-2 border-[#2F4454] bg-gradient-to-br from-[#2F4454] to-[#DA7B93] flex items-center justify-center">
+        <div className={`w-10 h-10 rounded-full mr-2 border-2 bg-gradient-to-br from-[#2F4454] to-[#DA7B93] flex items-center justify-center transition-colors duration-300 ${
+          isDark ? 'border-[#2F4454]' : 'border-[#2F4454]'
+        }`}>
           <span className="material-symbols-outlined text-white text-lg">person</span>
         </div>
         <div>
-          <p className="font-bold text-sm">{player.name}</p>
+          <p className={`font-bold text-sm transition-colors duration-300 ${
+            isDark ? 'text-slate-100' : 'text-gray-800'
+          }`}>{player.name}</p>
           <div className="flex items-center">
             <motion.span 
               key={`player-${player.score}`}
@@ -20,7 +31,9 @@ const ScoreDisplay = memo(({ player, opponent }) => {
             >
               {player.score}
             </motion.span>
-            <span className="text-gray-500 text-sm ml-1">điểm</span>
+            <span className={`text-sm ml-1 transition-colors duration-300 ${
+              isDark ? 'text-slate-400' : 'text-gray-500'
+            }`}>điểm</span>
           </div>
         </div>
       </div>
@@ -32,7 +45,9 @@ const ScoreDisplay = memo(({ player, opponent }) => {
       
       <div className="flex items-center">
         <div className="text-right mr-2">
-          <p className="font-bold text-sm">{opponent.name}</p>
+          <p className={`font-bold text-sm transition-colors duration-300 ${
+            isDark ? 'text-slate-100' : 'text-gray-800'
+          }`}>{opponent.name}</p>
           <div className="flex items-center justify-end">
             <motion.span 
               key={`opponent-${opponent.score}`}
@@ -43,10 +58,14 @@ const ScoreDisplay = memo(({ player, opponent }) => {
             >
               {opponent.score}
             </motion.span>
-            <span className="text-gray-500 text-sm ml-1">điểm</span>
+            <span className={`text-sm ml-1 transition-colors duration-300 ${
+              isDark ? 'text-slate-400' : 'text-gray-500'
+            }`}>điểm</span>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-full border-2 border-[#DA7B93] bg-gradient-to-br from-[#DA7B93] to-[#2F4454] flex items-center justify-center">
+        <div className={`w-10 h-10 rounded-full border-2 bg-gradient-to-br from-[#DA7B93] to-[#2F4454] flex items-center justify-center transition-colors duration-300 ${
+          isDark ? 'border-[#DA7B93]' : 'border-[#DA7B93]'
+        }`}>
           <span className="material-symbols-outlined text-white text-lg">person</span>
         </div>
       </div>

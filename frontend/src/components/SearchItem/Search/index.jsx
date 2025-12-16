@@ -2,10 +2,12 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DrawBoard from "../DrawBoard";
 import useSearchStore from "../../../store/useSearchStore";
+import useDarkModeStore from "../../../store/useDarkModeStore";
 
 export default function Search({ placeholder = "日本, nihon, ひらがな" }) {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
+    const isDark = useDarkModeStore((state) => state.isDark);
     const {
         query,
         results,
@@ -103,10 +105,14 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className="w-full py-4 px-5 pr-16 border border-gray-300 rounded-2xl 
+                className={`w-full py-4 px-5 pr-16 border rounded-2xl 
                             focus:outline-none focus:ring-3 focus:ring-primary-500 
                             focus:border-transparent transition-all duration-300 
-                            shadow-sm group-hover:shadow-md bg-white"
+                            shadow-sm group-hover:shadow-md ${
+                  isDark
+                    ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-blue-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-primary-500'
+                }`}
             />
 
             {/* Icons bên phải */}
@@ -120,8 +126,12 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
                                 setShowDropdown(false);
                             }
                         }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full 
-                                hover:bg-gray-100 transition-all duration-300 hover:scale-110"
+                        className={`w-10 h-10 flex items-center justify-center rounded-full 
+                                transition-all duration-300 hover:scale-110 ${
+                          isDark
+                            ? 'hover:bg-slate-600 text-slate-300'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
                     >
                         <span className="material-symbols-outlined">{icon}</span>
                     </button>
@@ -131,35 +141,54 @@ export default function Search({ placeholder = "日本, nihon, ひらがな" }) 
             {/* Dropdown gợi ý */}
             {showDropdown && (query || results.length > 0) && (
                 <div
-                    className="absolute top-full left-0 mt-2 w-full 
-                                 bg-white bg-opacity-100 border border-gray-200 
-                                 rounded-xl shadow-2xl overflow-hidden 
-                                 z-[5000] pointer-events-auto"
+                    className={`absolute top-full left-0 mt-2 w-full 
+                                 bg-opacity-100 border rounded-xl shadow-2xl overflow-hidden 
+                                 z-[5000] pointer-events-auto transition-colors duration-300 ${
+                      isDark
+                        ? 'bg-slate-800 border-slate-700'
+                        : 'bg-white border-gray-200'
+                    }`}
                 >
-                    <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                    <ul className={`divide-y max-h-80 overflow-y-auto ${
+                      isDark ? 'divide-slate-700' : 'divide-gray-100'
+                    }`}>
                         {isLoading ? (
-                            <li className="p-3 text-gray-500 text-sm italic">Đang tìm...</li>
+                            <li className={`p-3 text-sm italic transition-colors duration-300 ${
+                              isDark ? 'text-slate-400' : 'text-gray-500'
+                            }`}>Đang tìm...</li>
                         ) : results.length > 0 ? (
                             results.map((item) => (
                                 <li
                                     key={item.id}
-                                    className="flex items-start gap-3 p-3 hover:bg-primary-50 cursor-pointer transition-all duration-200"
+                                    className={`flex items-start gap-3 p-3 cursor-pointer transition-all duration-200 ${
+                                      isDark
+                                        ? 'hover:bg-slate-700 text-slate-100'
+                                        : 'hover:bg-primary-50 text-gray-800'
+                                    }`}
                                     onClick={() => handleSelect(item)}
                                 >
-                                    <span className="material-symbols-outlined text-gray-400">
+                                    <span className={`material-symbols-outlined ${
+                                      isDark ? 'text-slate-500' : 'text-gray-400'
+                                    }`}>
                                         history
                                     </span>
                                     <div>
-                                        <div className="text-lg font-semibold text-gray-800">
+                                        <div className="text-lg font-semibold">
                                             {item.text}
                                         </div>
-                                        <div className="text-sm text-gray-500">{item.reading}</div>
-                                        <div className="text-sm text-gray-700">{item.meaning}</div>
+                                        <div className={`text-sm transition-colors duration-300 ${
+                                          isDark ? 'text-slate-400' : 'text-gray-500'
+                                        }`}>{item.reading}</div>
+                                        <div className={`text-sm transition-colors duration-300 ${
+                                          isDark ? 'text-slate-300' : 'text-gray-700'
+                                        }`}>{item.meaning}</div>
                                     </div>
                                 </li>
                             ))
                         ) : (
-                            <li className="p-3 text-gray-500 text-sm italic">
+                            <li className={`p-3 text-sm italic transition-colors duration-300 ${
+                              isDark ? 'text-slate-400' : 'text-gray-500'
+                            }`}>
                                 Không tìm thấy từ nào
                             </li>
                         )}

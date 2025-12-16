@@ -1,9 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import useDarkModeStore from "../../../store/useDarkModeStore";
 
 const WS_URL = "ws://web-production-a4fdd2.up.railway.app/ws/recognize/";
 const THROTTLE_TIME = 50;
 
 export default function DrawBoard({ onClose, onSearchComplete }) {
+  const isDark = useDarkModeStore((state) => state.isDark);
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
   const isDrawing = useRef(false);
@@ -125,7 +127,7 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
     const canvas = canvasRef.current;
     if (!canvas || !ctxRef.current) return;
 
-    ctxRef.current.fillStyle = "#FFFFFF";
+    ctxRef.current.fillStyle = isDark ? "#1e293b" : "#FFFFFF";
     ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
 
     const strokesToDraw = allStrokes.current.slice(
@@ -145,14 +147,14 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
         ctxRef.current.closePath();
       }
     });
-  }, []);
+  }, [isDark]);
 
   /* ---------------------- Clear & Undo ---------------------- */
   const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    ctxRef.current.fillStyle = "#FFFFFF";
+    ctxRef.current.fillStyle = isDark ? "#1e293b" : "#FFFFFF";
     ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
 
     currentStroke.current = [];
@@ -162,7 +164,7 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
     setPredictions([]);
     setHasDrawn(false);
     setCanUndo(false);
-  }, []);
+  }, [isDark]);
 
   const undoStroke = useCallback(() => {
     if (displayedStrokeCount.current > 0) {
@@ -184,11 +186,11 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = isDark ? "#1e293b" : "#FFFFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctxRef.current = ctx;
-  }, []);
+  }, [isDark]);
 
   const startDrawing = (e) => {
     setHasDrawn(true);
@@ -283,10 +285,16 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
 
   /* ---------------------- UI ---------------------- */
   return (
-    <div className="absolute left-0 mt-3 w-[800px] bg-white border border-gray-300 rounded-xl shadow-lg z-50 p-3">
+    <div className={`absolute left-0 mt-3 w-[800px] border rounded-xl shadow-lg z-50 p-3 transition-colors duration-300 ${
+      isDark
+        ? 'bg-slate-800 border-slate-700'
+        : 'bg-white border-gray-300'
+    }`}>
       <div className={`flex flex-wrap gap-2 mb-3 h-10 items-center ${!hasDrawn && "hidden"}`}>
         {isLoading ? (
-          <span className="text-gray-500 text-sm">Đang xử lý...</span>
+          <span className={`text-sm transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-500'
+          }`}>Đang xử lý...</span>
         ) : predictions.length > 0 ? (
           predictions.map((p, i) => (
             <span
@@ -296,19 +304,27 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
                 clearCanvas();
                 onClose();
               }}
-              className="px-3 py-1 rounded-lg bg-gray-100 text-sm font-semibold text-gray-800 hover:bg-blue-100 hover:text-blue-800 transition-colors cursor-pointer"
+              className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors duration-300 cursor-pointer ${
+                isDark
+                  ? 'bg-slate-700 text-slate-100 hover:bg-blue-600 hover:text-white'
+                  : 'bg-gray-100 text-gray-800 hover:bg-blue-100 hover:text-blue-800'
+              }`}
             >
-              <span className="text-xl font-bold text-gray-800">{p.chars}</span>
+              <span className="text-xl font-bold">{p.chars}</span>
             </span>
           ))
         ) : (
-          <span className="text-gray-500 text-sm">Chưa có kết quả...</span>
+          <span className={`text-sm transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-500'
+          }`}>Chưa có kết quả...</span>
         )}
       </div>
 
       {!hasDrawn && (
         <div className="flex flex-wrap gap-2 mb-3 h-10 items-center">
-          <span className="text-gray-500 text-sm">Hãy vẽ nét đầu tiên để bắt đầu nhận diện.</span>
+          <span className={`text-sm transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-gray-500'
+          }`}>Hãy vẽ nét đầu tiên để bắt đầu nhận diện.</span>
         </div>
       )}
 
@@ -320,20 +336,32 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
-        className="border border-gray-200 rounded-lg cursor-crosshair bg-white"
+        className={`border rounded-lg cursor-crosshair transition-colors duration-300 ${
+          isDark
+            ? 'border-slate-600 bg-slate-700'
+            : 'border-gray-200 bg-white'
+        }`}
       />
 
       <div className="flex justify-between items-center mt-2">
         <button
           onClick={onClose}
-          className="px-3 py-1 text-sm rounded-md bg-gray-200 hover:bg-gray-300 transition-colors"
+          className={`px-3 py-1 text-sm rounded-md transition-colors duration-300 ${
+            isDark
+              ? 'bg-slate-700 hover:bg-slate-600 text-slate-100'
+              : 'bg-gray-200 hover:bg-gray-300'
+          }`}
         >
           Đóng
         </button>
         <div className="flex gap-3">
           <button
             onClick={clearCanvas}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className={`p-2 rounded-full transition-colors duration-300 ${
+              isDark
+                ? 'hover:bg-slate-700 text-slate-300'
+                : 'hover:bg-gray-100'
+            }`}
             title="Xóa"
           >
             <span className="material-symbols-outlined">delete</span>
@@ -341,8 +369,14 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
           <button
             onClick={undoStroke}
             disabled={!canUndo}
-            className={`p-2 rounded-full transition-colors ${
-              canUndo ? "hover:bg-gray-100 cursor-pointer" : "text-gray-400 cursor-not-allowed"
+            className={`p-2 rounded-full transition-colors duration-300 ${
+              canUndo 
+                ? isDark
+                  ? 'hover:bg-slate-700 cursor-pointer text-slate-300'
+                  : 'hover:bg-gray-100 cursor-pointer'
+                : isDark
+                  ? 'text-slate-600 cursor-not-allowed'
+                  : 'text-gray-400 cursor-not-allowed'
             }`}
             title="Quay lại nét vẽ"
           >
@@ -350,7 +384,11 @@ export default function DrawBoard({ onClose, onSearchComplete }) {
           </button>
           <button
             onClick={saveCanvas}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className={`p-2 rounded-full transition-colors duration-300 ${
+              isDark
+                ? 'hover:bg-slate-700 text-slate-300'
+                : 'hover:bg-gray-100'
+            }`}
             title="Lưu về máy"
           >
             <span className="material-symbols-outlined">download</span>

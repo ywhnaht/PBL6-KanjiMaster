@@ -1,13 +1,14 @@
-// src/components/SearchSection.jsx
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Search from "../Search";
 import useSearchStore from "../../../store/useSearchStore";
+import useDarkModeStore from "../../../store/useDarkModeStore";
 
 export default function SearchSection() {
   const navigate = useNavigate();
   const { type, value } = useParams();
+  const isDark = useDarkModeStore((state) => state.isDark);
   const {
     wordDetail,
     kanjiDetail,
@@ -72,21 +73,31 @@ export default function SearchSection() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+    <div className={`rounded-2xl shadow-lg p-8 mb-8 transition-colors duration-300 ${
+      isDark 
+        ? 'bg-slate-800 border border-slate-700' 
+        : 'bg-white'
+    }`}>
       <div className="flex flex-col gap-6">
         {/* Search Input */}
         <Search placeholder="日本, nihon, Nhật Bản" />
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
+        <div className={`flex border-b overflow-x-auto scrollbar-hide transition-colors duration-300 ${
+          isDark ? 'border-slate-700' : 'border-gray-200'
+        }`}>
           {tabs.map((tab, i) => (
             <button
               key={i}
               onClick={() => handleTabClick(tab)}
               className={`px-5 py-3 whitespace-nowrap transition-all duration-200 rounded-t-lg ${
                 currentTab === tab
-                  ? "text-primary-600 border-b-2 border-primary-600 font-medium hover:bg-primary-50"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? isDark
+                    ? 'text-blue-400 border-b-2 border-blue-400 font-medium hover:bg-slate-700'
+                    : 'text-primary-600 border-b-2 border-primary-600 font-medium hover:bg-primary-50'
+                  : isDark
+                    ? 'text-slate-400 hover:text-slate-300 hover:bg-slate-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
               {tab}
