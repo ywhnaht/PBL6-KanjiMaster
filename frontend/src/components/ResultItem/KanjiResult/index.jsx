@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react"; 
+import React, { useState, useMemo, useEffect, useCallback } from "react"; 
 import KanjiStroke from "../../../ultis/KanjiStroke"; 
 import { useNavigate } from "react-router-dom"; 
 import useSearchStore from "../../../store/useSearchStore"; 
@@ -11,6 +11,111 @@ import NotebookSelectionModal from "../../../components/Notebooks/NBList";
 import NotebookCreateModal from "../../../components/Notebooks/NBCreate";
 import LoginModal from "../../../components/Login";
 import SuggestionModal from "../../../components/SuggestionModal";
+
+const NotificationModalComponent = React.memo(({ notification, notificationCountdown, isDark, onClose }) => {
+  if (!notification) return null;
+
+  const iconMap = {
+    success: "bookmark_add",
+    warning: "info",
+    error: "error",
+    info: "info",
+  };
+
+  const colorMap = {
+    success: {
+      bg: "from-green-500 to-emerald-500",
+      icon: "text-white",
+      border: isDark ? "border-green-700" : "border-green-200",
+      text: isDark ? "text-green-300" : "text-green-800",
+      bgLight: isDark ? "bg-green-900/30" : "bg-green-50",
+    },
+    warning: {
+      bg: "from-amber-500 to-orange-500",
+      icon: "text-white",
+      border: isDark ? "border-amber-700" : "border-amber-200",
+      text: isDark ? "text-amber-300" : "text-amber-800",
+      bgLight: isDark ? "bg-amber-900/30" : "bg-amber-50",
+    },
+    error: {
+      bg: "from-red-500 to-rose-500",
+      icon: "text-white",
+      border: isDark ? "border-red-700" : "border-red-200",
+      text: isDark ? "text-red-300" : "text-red-800",
+      bgLight: isDark ? "bg-red-900/30" : "bg-red-50",
+    },
+  };
+
+  const theme = colorMap[notification.type] || colorMap.info;
+
+  return (
+    <div className="fixed top-4 right-4 z-[10001]">
+      <div className={`rounded-2xl shadow-2xl border ${theme.border} p-6 max-w-sm transform animate-slide-in-right transition-colors duration-300 ${
+        isDark ? "bg-slate-800" : "bg-white"
+      }`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 bg-gradient-to-br ${theme.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+            <span className={`material-symbols-outlined ${theme.icon} text-lg`}>
+              {iconMap[notification.type] || "info"}
+            </span>
+          </div>
+
+          <div className="flex-1">
+            <h3 className={`font-bold text-lg bg-gradient-to-r ${theme.bg} bg-clip-text text-transparent`}>
+              {notification.title}
+            </h3>
+            <p className={`${theme.text} text-sm leading-relaxed transition-colors duration-300`}>
+              {notification.message}
+            </p>
+          </div>
+
+          <div className="flex-shrink-0">
+            <div
+              className={`w-8 h-8 rounded-full border-2 border-opacity-30 flex items-center justify-center relative`}
+              style={{
+                borderColor:
+                  notification.type === "success"
+                    ? "#22c55e"
+                    : notification.type === "warning"
+                    ? "#f59e0b"
+                    : "#ef4444",
+              }}
+            >
+              <span
+                className="font-bold text-sm"
+                style={{
+                  color:
+                    notification.type === "success"
+                      ? "#22c55e"
+                      : notification.type === "warning"
+                      ? "#f59e0b"
+                      : "#ef4444",
+                }}
+              >
+                {notificationCountdown}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`text-xs transition-colors duration-300 ${
+              isDark
+                ? "text-slate-500 hover:text-slate-300"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+NotificationModalComponent.displayName = 'NotificationModalComponent';
 
 export default function KanjiResult({ 
   kanjis = [], 
@@ -27,7 +132,6 @@ export default function KanjiResult({
   const isDark = useDarkModeStore((state) => state.isDark);
   const isAuthenticated = !!user && !!accessToken;
 
-  // ✅ SỬA: Lấy kanjiDetail từ store (không phải kanji)
   const kanjiDetail = useKanjiDetailStore((state) => state.kanjiDetail);
 
   console.log("🔍 [KanjiResult] kanjiDetail from store:", {
@@ -73,18 +177,29 @@ export default function KanjiResult({
     return searchResults.slice(0, 5);
   }, [searchResults]);
 
+  // ✅ FIX: Tách notification countdown logic thành effect riêng
   useEffect(() => {
+    if (!notification) return;
+
     let interval;
-    if (notification && notificationCountdown > 0) {
-      interval = setInterval(() => {
-        setNotificationCountdown((prev) => prev - 1);
-      }, 1000);
-    } else if (notificationCountdown === 0 && notification) {
-      setNotification(null);
-      setNotificationCountdown(3);
-    }
-    return () => clearInterval(interval);
-  }, [notification, notificationCountdown]);
+    // Reset countdown khi notification thay đổi
+    setNotificationCountdown(3);
+
+    interval = setInterval(() => {
+      setNotificationCountdown((prev) => {
+        if (prev <= 1) {
+          // Khi countdown đạt 0, xóa notification
+          setNotification(null);
+          return 3;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [notification]);
 
   useEffect(() => { 
     setCompoundPage(0); 
@@ -107,21 +222,24 @@ export default function KanjiResult({
     Math.ceil(compoundsForSelected.length / pageSize) 
   ); 
 
-  const paginatedCompounds = compoundsForSelected.slice( 
-    compoundPage * pageSize, 
-    (compoundPage + 1) * pageSize 
-  ); 
+  const paginatedCompounds = useMemo(() => {
+    return compoundsForSelected.slice( 
+      compoundPage * pageSize, 
+      (compoundPage + 1) * pageSize 
+    );
+  }, [compoundsForSelected, compoundPage, pageSize]);
 
-  const prevPage = () => setCompoundPage((p) => Math.max(0, p - 1)); 
-  const nextPage = () => 
-    setCompoundPage((p) => Math.min(totalPages - 1, p + 1)); 
-  const goToPage = (i) => setCompoundPage(i); 
+  const prevPage = useCallback(() => setCompoundPage((p) => Math.max(0, p - 1)), []);
+  const nextPage = useCallback(() => 
+    setCompoundPage((p) => Math.min(totalPages - 1, p + 1)), [totalPages]
+  );
+  const goToPage = useCallback((i) => setCompoundPage(i), []);
 
-  const handleRedrawStrokes = () => { 
+  const handleRedrawStrokes = useCallback(() => { 
     setKanjiStrokeKey((prev) => prev + 1); 
-  }; 
+   }, []);
 
-  const getJLPTColor = (level) => { 
+  const getJLPTColor = useCallback((level) => { 
     const colors = { 
       N5: isDark ? "bg-green-900/30 text-green-300 border-green-700" : "bg-green-100 text-green-800 border-green-200", 
       N4: isDark ? "bg-blue-900/30 text-blue-300 border-blue-700" : "bg-blue-100 text-blue-800 border-blue-200", 
@@ -130,18 +248,18 @@ export default function KanjiResult({
       N1: isDark ? "bg-red-900/30 text-red-300 border-red-700" : "bg-red-100 text-red-800 border-red-200", 
     }; 
     return colors[level] || (isDark ? "bg-slate-700 text-slate-300 border-slate-600" : "bg-gray-100 text-gray-800 border-gray-200"); 
-  }; 
+  }, [isDark]); 
 
-  const handleCompoundClick = (item) => { 
+  const handleCompoundClick = useCallback((item) => { 
     if (!item?.id) return; 
     if (item.word) { 
       setQuery(item.word); 
     } 
     setCurrentWordId(item.id); 
     navigate(`/search/word/${item.id}`); 
-  }; 
+  }, [setQuery, setCurrentWordId, navigate]);
 
-  const handleKanjiClick = async (kanji) => { 
+  const handleKanjiClick = useCallback(async (kanji) => { 
     if (!kanji?.id) return; 
     if (kanji.kanji) { 
       setQuery(kanji.kanji); 
@@ -149,10 +267,10 @@ export default function KanjiResult({
     setCurrentKanjiId(kanji.id); 
     await fetchKanjiDetail(kanji.id); 
     navigate(`/search/kanji/${kanji.id}`); 
-  }; 
+  }, [setQuery, setCurrentKanjiId, fetchKanjiDetail, navigate]);
 
   // ✅ SỬA: Hàm getKanjiId - lấy từ kanjiDetail ĐẦU TIÊN
-  const getKanjiId = () => {
+  const getKanjiId = useCallback(() => {
     console.log("🔍 [getKanjiId] Debug info:", {
       kanjiDetailId: kanjiDetail?.id,
       searchStoreCurrentKanjiId: currentKanjiId,
@@ -164,19 +282,16 @@ export default function KanjiResult({
       },
     });
 
-    // 1. ✅ ƯỚI TIÊN: kanjiDetail từ KanjiDetailStore (được fetch chi tiết)
     if (kanjiDetail?.id) {
       console.log("✅ Using kanji ID from kanjiDetail:", kanjiDetail.id);
       return kanjiDetail.id;
     }
     
-    // 2. currentKanjiId từ SearchStore
     if (currentKanjiId) {
       console.log("✅ Using kanji ID from currentKanjiId (SearchStore):", currentKanjiId);
       return currentKanjiId;
     }
     
-    // 3. mainKanji.id từ props (fallback cuối cùng)
     if (mainKanji?.id) {
       console.log("✅ Using kanji ID from mainKanji (props):", mainKanji.id);
       return mainKanji.id;
@@ -184,9 +299,9 @@ export default function KanjiResult({
     
     console.error("❌ [getKanjiId] No valid kanji ID found in any source!");
     return null;
-  };
+  }, [kanjiDetail, currentKanjiId, mainKanji]);
 
-  const handleFavoriteClick = async () => {
+  const handleFavoriteClick = useCallback(async () => {
     if (!isAuthenticated) {
       console.log("⚠️ User not authenticated, showing login modal");
       setShowLoginModal(true);
@@ -214,9 +329,9 @@ export default function KanjiResult({
 
     setSelectedKanjiId(kanjiId);
     setShowNotebookModal(true);
-  };
+  }, [isAuthenticated, getKanjiId, mainKanji]);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = useCallback(() => {
     setShowLoginModal(false);
     const kanjiId = getKanjiId();
     
@@ -233,9 +348,9 @@ export default function KanjiResult({
         icon: "error",
       });
     }
-  };
+  }, [getKanjiId]);
 
-  const handleSelectNotebook = async (notebook) => {
+  const handleSelectNotebook = useCallback(async (notebook) => {
     try {
       setIsAddingToNotebook(true);
 
@@ -251,7 +366,6 @@ export default function KanjiResult({
         notebookName: notebook.name,
       });
 
-      // ✅ Validate entityId
       if (!entityId || entityId === 0 || entityId === undefined || entityId === null) {
         throw new Error(
           `❌ Kanji ID không hợp lệ: ${entityId}. Vui lòng reload trang!`
@@ -290,12 +404,14 @@ export default function KanjiResult({
 
       console.log("✅ [handleSelectNotebook] Backend response received:", result);
 
+      // ✅ FIX: Tách notification update thành state change riêng
       setNotification({
         type: "success",
         title: "Lưu thành công!",
         message: `Kanji "${mainKanji?.kanji}" đã được lưu vào notebook "${notebook.name}"`,
         icon: "bookmark_add",
       });
+      
       setShowNotebookModal(false);
     } catch (error) {
       console.error("❌ [handleSelectNotebook] Error occurred:", {
@@ -342,140 +458,41 @@ export default function KanjiResult({
     } finally {
       setIsAddingToNotebook(false);
     }
-  };
+  }, [getKanjiId, selectedKanjiId, entryExists, addEntryToNotebook, axiosPrivateHook, mainKanji]);
 
-  const handleCreateNotebook = () => {
+  const handleCreateNotebook = useCallback(() => {
     setShowNotebookModal(false);
     setShowCreateModal(true);
-  };
+  }, []);
 
-  const handleCreateSuccess = () => {
+  const handleCreateSuccess = useCallback(() => {
     setShowCreateModal(false);
     setShowNotebookModal(true);
-  };
+  }, []);
 
-  const handleCloseCreateModal = () => {
+  const handleCloseCreateModal = useCallback(() => {
     setShowCreateModal(false);
     setShowNotebookModal(true);
-  };
+  }, []);
 
-  const handleCloseNotebookModal = () => {
+  const handleCloseNotebookModal = useCallback(() => {
     setShowNotebookModal(false);
     setSelectedKanjiId(null);
-  };
+  }, []);
 
-  const handleCloseLoginModal = () => {
+  const handleCloseLoginModal = useCallback(() => {
     setShowLoginModal(false);
-  };
+  }, []);
 
-  const handleSwitchToRegister = () => {
+  const handleSwitchToRegister = useCallback(() => {
     console.log("Switch to register modal");
-  };
+  }, []);
 
-  const NotificationModal = () => {
-    if (!notification) return null;
+  const handleCloseNotification = useCallback(() => {
+    setNotification(null);
+  }, []);
 
-    const iconMap = {
-      success: "bookmark_add",
-      warning: "info",
-      error: "error",
-      info: "info",
-    };
-
-    const colorMap = {
-      success: {
-        bg: "from-green-500 to-emerald-500",
-        icon: "text-white",
-        border: isDark ? "border-green-700" : "border-green-200",
-        text: isDark ? "text-green-300" : "text-green-800",
-        bgLight: isDark ? "bg-green-900/30" : "bg-green-50",
-      },
-      warning: {
-        bg: "from-amber-500 to-orange-500",
-        icon: "text-white",
-        border: isDark ? "border-amber-700" : "border-amber-200",
-        text: isDark ? "text-amber-300" : "text-amber-800",
-        bgLight: isDark ? "bg-amber-900/30" : "bg-amber-50",
-      },
-      error: {
-        bg: "from-red-500 to-rose-500",
-        icon: "text-white",
-        border: isDark ? "border-red-700" : "border-red-200",
-        text: isDark ? "text-red-300" : "text-red-800",
-        bgLight: isDark ? "bg-red-900/30" : "bg-red-50",
-      },
-    };
-
-    const theme = colorMap[notification.type] || colorMap.info;
-
-    return (
-      <div className="fixed top-4 right-4 z-[10001]">
-        <div className={`rounded-2xl shadow-2xl border ${theme.border} p-6 max-w-sm transform animate-slide-in-right transition-colors duration-300 ${
-          isDark ? "bg-slate-800" : "bg-white"
-        }`}>
-          <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 bg-gradient-to-br ${theme.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
-              <span className={`material-symbols-outlined ${theme.icon} text-lg`}>
-                {iconMap[notification.type] || "info"}
-              </span>
-            </div>
-
-            <div className="flex-1">
-              <h3 className={`font-bold text-lg bg-gradient-to-r ${theme.bg} bg-clip-text text-transparent`}>
-                {notification.title}
-              </h3>
-              <p className={`${theme.text} text-sm leading-relaxed transition-colors duration-300`}>
-                {notification.message}
-              </p>
-            </div>
-
-            <div className="flex-shrink-0">
-              <div
-                className={`w-8 h-8 rounded-full border-2 border-opacity-30 flex items-center justify-center relative`}
-                style={{
-                  borderColor:
-                    notification.type === "success"
-                      ? "#22c55e"
-                      : notification.type === "warning"
-                      ? "#f59e0b"
-                      : "#ef4444",
-                }}
-              >
-                <span
-                  className="font-bold text-sm"
-                  style={{
-                    color:
-                      notification.type === "success"
-                        ? "#22c55e"
-                        : notification.type === "warning"
-                        ? "#f59e0b"
-                        : "#ef4444",
-                  }}
-                >
-                  {notificationCountdown}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => setNotification(null)}
-              className={`text-xs transition-colors duration-300 ${
-                isDark
-                  ? "text-slate-500 hover:text-slate-300"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const separateReadings = (joyoReading) => {
+  const separateReadings = useCallback((joyoReading) => {
     if (!joyoReading) return { onyomi: "-", kunyomi: "-" };
     
     const katakanaRegex = /[\u30A0-\u30FF]/;
@@ -498,11 +515,11 @@ export default function KanjiResult({
       onyomi: onyomi.length > 0 ? onyomi.join('、') : "-",
       kunyomi: kunyomi.length > 0 ? kunyomi.join('、') : "-"
     };
-  };
+  }, []);
 
-  const readings = separateReadings(mainKanji?.joyoReading);
+  const readings = useMemo(() => separateReadings(mainKanji?.joyoReading), [mainKanji, separateReadings]);
 
-  const handleSearchResultClick = async (item) => {
+  const handleSearchResultClick = useCallback(async (item) => {
     if (!item?.id) return;
     setQuery(item.text || "");
     
@@ -515,7 +532,7 @@ export default function KanjiResult({
       await fetchCompoundDetail(item.id);
       navigate(`/search/word/${item.id}`);
     }
-  };
+  }, [setQuery, setCurrentKanjiId, fetchKanjiDetail, setCurrentWordId, fetchCompoundDetail, navigate]);
 
   return ( 
     <>
@@ -678,7 +695,7 @@ export default function KanjiResult({
                             </span> 
                           </div> 
                         </div> 
-                        {/* ✅ Buttons - Gọi handleFavoriteClick */}
+                        {/* ✅ Buttons */}
                         <div className="flex md:flex-col justify-center items-center md:items-start gap-3 mt-4 md:mt-0"> 
                           <button 
                             onClick={handleFavoriteClick}
@@ -1059,7 +1076,12 @@ export default function KanjiResult({
       />
 
       {/* ✅ Notification Modal */}
-      <NotificationModal />
+       <NotificationModalComponent 
+        notification={notification}
+        notificationCountdown={notificationCountdown}
+        isDark={isDark}
+        onClose={handleCloseNotification}
+      />
     </>
   ); 
 }
