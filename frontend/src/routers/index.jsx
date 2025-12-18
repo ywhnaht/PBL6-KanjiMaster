@@ -14,6 +14,7 @@ import AdminDashboard from "../pages/Admin/Dashboard";
 import AdminUsers from "../pages/Admin/Users";
 import AdminKanji from "../pages/Admin/Kanji";
 import AdminCompounds from "../pages/Admin/Compounds";
+import AdminSuggestions from "../pages/Admin/Suggestions";
 import ProtectedAdminRoute from "../components/ProtectedAdminRoute"; 
 
 const AppRoutes = () => {
@@ -36,6 +37,7 @@ const AppRoutes = () => {
       <Route path="/admin/users" element={<ProtectedAdminRoute><AdminUsers /></ProtectedAdminRoute>} />
       <Route path="/admin/kanji" element={<ProtectedAdminRoute><AdminKanji /></ProtectedAdminRoute>} />
       <Route path="/admin/compounds" element={<ProtectedAdminRoute><AdminCompounds /></ProtectedAdminRoute>} />
+      <Route path="/admin/suggestions" element={<ProtectedAdminRoute><AdminSuggestions /></ProtectedAdminRoute>} />
       
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="*" element={<Navigate to="/home" replace />} />

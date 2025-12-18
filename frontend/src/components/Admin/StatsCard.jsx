@@ -3,7 +3,7 @@ import React from 'react';
 const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 'slate' }) => {
   const getTrendColor = () => {
     if (!trend) return '';
-    return trend === 'up' ? 'text-green-600' : 'text-red-600';
+    return trend === 'up' ? 'text-slate-600' : 'text-slate-500';
   };
 
   const getTrendIcon = () => {
@@ -14,28 +14,28 @@ const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 's
   const getColorClasses = () => {
     const colors = {
       blue: {
-        gradient: 'from-blue-400 to-blue-600',
-        text: 'text-blue-600',
-        bg: 'bg-blue-50'
+        gradient: 'from-slate-500 to-rose-400',
+        text: 'text-slate-700',
+        bg: 'bg-slate-50'
       },
       red: {
-        gradient: 'from-red-400 to-red-600',
-        text: 'text-red-600',
-        bg: 'bg-red-50'
+        gradient: 'from-slate-500 to-rose-400',
+        text: 'text-slate-700',
+        bg: 'bg-slate-50'
       },
       purple: {
-        gradient: 'from-purple-400 to-purple-600',
-        text: 'text-purple-600',
-        bg: 'bg-purple-50'
+        gradient: 'from-slate-500 to-rose-400',
+        text: 'text-slate-700',
+        bg: 'bg-slate-50'
       },
       green: {
-        gradient: 'from-green-400 to-green-600',
-        text: 'text-green-600',
-        bg: 'bg-green-50'
+        gradient: 'from-slate-500 to-rose-400',
+        text: 'text-slate-700',
+        bg: 'bg-slate-50'
       },
       slate: {
         gradient: 'from-slate-500 to-rose-400',
-        text: 'text-rose-500',
+        text: 'text-slate-700',
         bg: 'bg-slate-50'
       }
     };
@@ -49,12 +49,12 @@ const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 's
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-3">
-            <div className={`w-14 h-14 bg-gradient-to-br ${colorClasses.gradient} rounded-xl flex items-center justify-center text-white shadow-lg`}>
+            <div className={`w-14 h-14 bg-gradient-to-br from-slate-500 to-rose-400 rounded-xl flex items-center justify-center text-white shadow-lg`}>
               <span className="material-symbols-outlined text-3xl">{icon}</span>
             </div>
             <div className="flex-1">
-              <p className="text-sm text-gray-600 font-medium mb-1">{title}</p>
-              <p className={`text-4xl font-bold ${colorClasses.text}`}>{value.toLocaleString()}</p>
+              <p className="text-sm text-white font-medium mb-1 bg-gradient-to-r from-slate-500 to-rose-400 px-3 py-1 rounded-lg inline-block">{title}</p>
+              <p className={`text-4xl font-bold bg-gradient-to-r from-slate-500 to-rose-400 bg-clip-text text-transparent`}>{value.toLocaleString()}</p>
             </div>
           </div>
           {subtitle && (

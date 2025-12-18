@@ -10,6 +10,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }) {
     { icon: "group", label: "Users", path: "/admin/users" },
     { icon: "translate", label: "Kanji", path: "/admin/kanji" },
     { icon: "menu_book", label: "Compounds", path: "/admin/compounds" },
+    { icon: "pending_actions", label: "Suggestions", path: "/admin/suggestions" },
     { icon: "home", label: "Back to Home", path: "/home", highlight: true },
   ];
 

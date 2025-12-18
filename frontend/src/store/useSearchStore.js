@@ -122,6 +122,7 @@ const useSearchStore = create((set, get) => ({
       const wordDetail = {
         id: data.id,
         word: data.word,
+        reading: data.reading || "",
         hiragana: data.hiragana || "",
         meaning: data.meaning || "",
         meaningEn: data.meaningEn || "",
