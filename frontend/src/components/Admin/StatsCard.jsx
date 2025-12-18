@@ -1,6 +1,9 @@
 import React from 'react';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 'slate' }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
+  
   const getTrendColor = () => {
     if (!trend) return '';
     return trend === 'up' ? 'text-slate-600' : 'text-slate-500';
@@ -45,7 +48,7 @@ const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 's
   const colorClasses = getColorClasses();
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
+    <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-lg border p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-3">
@@ -58,8 +61,8 @@ const StatsCard = ({ icon, title, value, subtitle, trend, trendValue, color = 's
             </div>
           </div>
           {subtitle && (
-            <div className={`${colorClasses.bg} rounded-lg px-3 py-2 mt-3`}>
-              <p className="text-sm text-gray-700 font-medium">{subtitle}</p>
+            <div className={`${isDark ? 'bg-gray-700' : colorClasses.bg} rounded-lg px-3 py-2 mt-3`}>
+              <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{subtitle}</p>
             </div>
           )}
           {trend && trendValue && (

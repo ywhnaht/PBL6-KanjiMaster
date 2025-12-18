@@ -1,4 +1,5 @@
 import React from 'react';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const Pagination = ({ 
   currentPage, 
@@ -7,6 +8,7 @@ const Pagination = ({
   pageSize = 10,
   totalElements = 0
 }) => {
+  const isDark = useDarkModeStore((state) => state.isDark);
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
@@ -31,9 +33,9 @@ const Pagination = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+    <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-lg border p-4`}>
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600">
+        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Hiển thị <span className="font-semibold text-[#2F4454]">{startItem}</span> đến{' '}
           <span className="font-semibold text-[#2F4454]">{endItem}</span> trong tổng số{' '}
           <span className="font-semibold text-[#2F4454]">{totalElements}</span> mục
@@ -45,8 +47,8 @@ const Pagination = ({
             disabled={currentPage === 0}
             className={`px-3 py-2 rounded-lg font-medium transition-colors duration-200 ${
               currentPage === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 hover:bg-[#2F4454] hover:text-white text-gray-700'
+                ? isDark ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : isDark ? 'bg-gray-700 hover:bg-[#2F4454] hover:text-white text-gray-300' : 'bg-gray-100 hover:bg-[#2F4454] hover:text-white text-gray-700'
             }`}
           >
             ← Trước
@@ -59,7 +61,7 @@ const Pagination = ({
               className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
                 page === currentPage
                   ? 'bg-gradient-to-r from-[#2F4454] to-[#DA7B93] text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  : isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
               {page + 1}
@@ -71,8 +73,8 @@ const Pagination = ({
             disabled={currentPage >= totalPages - 1}
             className={`px-3 py-2 rounded-lg font-medium transition-colors duration-200 ${
               currentPage >= totalPages - 1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 hover:bg-[#2F4454] hover:text-white text-gray-700'
+                ? isDark ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : isDark ? 'bg-gray-700 hover:bg-[#2F4454] hover:text-white text-gray-300' : 'bg-gray-100 hover:bg-[#2F4454] hover:text-white text-gray-700'
             }`}
           >
             Sau →

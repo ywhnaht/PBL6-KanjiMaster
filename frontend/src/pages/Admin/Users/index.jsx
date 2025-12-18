@@ -6,6 +6,7 @@ import ConfirmDialog from '../../../components/Admin/ConfirmDialog';
 import NotificationModal from '../../../components/Admin/NotificationModal';
 import { getAllUsers, searchUsers, banUser, unbanUser, updateUserRole, deleteUser } from '../../../apis/admin';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../../store/useDarkModeStore';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -16,6 +17,7 @@ const AdminUsers = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [pageSize] = useState(10);
+  const isDark = useDarkModeStore((state) => state.isDark);
   
   const [selectedUser, setSelectedUser] = useState(null);
   const [showBanDialog, setShowBanDialog] = useState(false);
@@ -245,7 +247,7 @@ const AdminUsers = () => {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-lg border p-6`}>
           <div className="flex gap-4 mb-4">
             <input
               type="text"
@@ -253,7 +255,7 @@ const AdminUsers = () => {
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Tìm kiếm theo tên, email..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              className={`flex-1 px-4 py-3 border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'} rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent`}
             />
             <button
               onClick={handleSearch}
@@ -268,7 +270,7 @@ const AdminUsers = () => {
                 setRoleFilter('ALL');
                 fetchUsers();
               }}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2"
+              className={`px-6 py-3 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2`}
             >
               <span className="material-symbols-outlined">refresh</span>
               Reset
@@ -277,7 +279,7 @@ const AdminUsers = () => {
           
           {/* Role Filter */}
           <div className="flex gap-2">
-            <span className="text-sm font-medium text-gray-700 flex items-center">Lọc theo role:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center`}>Lọc theo role:</span>
             {['ALL', 'USER', 'ADMIN'].map((role) => (
               <button
                 key={role}
@@ -288,7 +290,7 @@ const AdminUsers = () => {
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   roleFilter === role
                     ? 'bg-gradient-to-r from-slate-500 to-rose-400 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 {role === 'ALL' ? 'Tất cả' : role}
@@ -373,16 +375,16 @@ const AdminUsers = () => {
         {/* Role Update Dialog */}
         {showRoleDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-fade-in">
+            <div className={`rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-fade-in ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="p-6">
-                <h3 className="text-xl font-bold text-[#2F4454] mb-4">Cập nhật Role</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>Cập nhật Role</h3>
+                <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   Chọn role cho người dùng: <strong>{selectedUser?.fullName}</strong>
                 </p>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F4454]"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F4454] ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 text-gray-900'}`}
                 >
                   <option value="USER">USER - Người dùng thường</option>
                   <option value="ADMIN">ADMIN - Quản trị viên</option>
@@ -392,7 +394,7 @@ const AdminUsers = () => {
               <div className="flex gap-3 p-6 pt-0">
                 <button
                   onClick={() => setShowRoleDialog(false)}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200"
+                  className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-colors duration-200 ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   Hủy
                 </button>

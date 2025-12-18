@@ -8,6 +8,7 @@ import CsvUploadButton from '../../../components/Admin/CsvUploadButton';
 import ImportPreview from '../../../components/Admin/ImportPreview';
 import { getAllKanji, createKanji, updateKanji, deleteKanji, importKanjiFromCsv } from '../../../apis/adminKanji';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../../store/useDarkModeStore';
 
 const AdminKanji = () => {
   const [kanjis, setKanjis] = useState([]);
@@ -19,6 +20,7 @@ const AdminKanji = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [pageSize] = useState(20);
+  const isDark = useDarkModeStore((state) => state.isDark);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -223,18 +225,18 @@ const AdminKanji = () => {
       header: 'Kanji',
       field: 'kanji',
       render: (value) => (
-        <span className="text-4xl font-bold text-[#2F4454]">{value}</span>
+        <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>{value}</span>
       )
     },
     {
       header: 'Hán Việt',
       field: 'hanViet',
-      render: (value) => <span className="font-semibold">{value}</span>
+      render: (value) => <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{value}</span>
     },
     {
       header: 'Âm đọc',
       field: 'joyoReading',
-      render: (value) => <span className="text-sm text-gray-600">{value}</span>
+      render: (value) => <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{value}</span>
     },
     {
       header: 'Level',
@@ -255,7 +257,7 @@ const AdminKanji = () => {
   const KanjiFormFields = () => (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Kanji *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Kanji *</label>
         <input
           type="text"
           value={formData.kanji}
@@ -267,7 +269,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Hán Việt *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Hán Việt *</label>
         <input
           type="text"
           value={formData.hanViet}
@@ -278,7 +280,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Âm đọc Joyo</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Âm đọc Joyo</label>
         <input
           type="text"
           value={formData.joyoReading}
@@ -289,7 +291,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Kunyomi</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Kunyomi</label>
         <input
           type="text"
           value={formData.kunyomi}
@@ -300,7 +302,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Onyomi</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Onyomi</label>
         <input
           type="text"
           value={formData.onyomi}
@@ -311,7 +313,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Level (1-5) *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Level (1-5) *</label>
         <input
           type="number"
           min="1"
@@ -324,7 +326,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Bộ thủ</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Bộ thủ</label>
         <input
           type="text"
           value={formData.radical}
@@ -335,7 +337,7 @@ const AdminKanji = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Số nét *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Số nét *</label>
         <input
           type="number"
           value={formData.strokes}
@@ -346,7 +348,7 @@ const AdminKanji = () => {
       </div>
       
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">SVG Link</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>SVG Link</label>
         <input
           type="text"
           value={formData.svgLink}
@@ -388,7 +390,7 @@ const AdminKanji = () => {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-lg border p-6`}>
           <div className="flex gap-4 mb-4">
             <input
               type="text"
@@ -396,7 +398,7 @@ const AdminKanji = () => {
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Tìm kiếm theo chữ Hán, âm Hán Việt..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
             />
             <button
               onClick={handleSearch}
@@ -411,7 +413,7 @@ const AdminKanji = () => {
                 setLevelFilter('ALL');
                 fetchKanjis();
               }}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2"
+              className={`px-6 py-3 font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2 ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               <span className="material-symbols-outlined">refresh</span>
               Reset
@@ -420,7 +422,7 @@ const AdminKanji = () => {
           
           {/* Level Filter */}
           <div className="flex gap-2">
-            <span className="text-sm font-medium text-gray-700 flex items-center">Lọc theo cấp độ:</span>
+            <span className={`text-sm font-medium flex items-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Lọc theo cấp độ:</span>
             {['ALL', 'N5', 'N4', 'N3', 'N2', 'N1'].map((level) => (
               <button
                 key={level}
@@ -431,7 +433,7 @@ const AdminKanji = () => {
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   levelFilter === level
                     ? 'bg-gradient-to-r from-slate-500 to-rose-400 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 {level === 'ALL' ? 'Tất cả' : level}
@@ -469,9 +471,9 @@ const AdminKanji = () => {
         {/* Create Dialog */}
         {showCreateDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-[#2F4454]">Thêm Kanji mới</h3>
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in`}>
+              <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>Thêm Kanji mới</h3>
               </div>
               <div className="p-6">
                 <KanjiFormFields />
@@ -482,7 +484,7 @@ const AdminKanji = () => {
                     setShowCreateDialog(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                  className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   Hủy
                 </button>
@@ -500,9 +502,9 @@ const AdminKanji = () => {
         {/* Edit Dialog */}
         {showEditDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-[#2F4454]">Chỉnh sửa Kanji</h3>
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in`}>
+              <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>Chỉnh sửa Kanji</h3>
               </div>
               <div className="p-6">
                 <KanjiFormFields />
@@ -513,7 +515,7 @@ const AdminKanji = () => {
                     setShowEditDialog(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                  className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   Hủy
                 </button>

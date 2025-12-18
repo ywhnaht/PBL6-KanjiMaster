@@ -3,12 +3,14 @@ import AdminLayout from '../../../layouts/AdminLayout';
 import StatsCard from '../../../components/Admin/StatsCard';
 import { getDashboardStats } from '../../../apis/admin';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../../store/useDarkModeStore';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const axiosPrivate = useAxiosPrivate();
+  const isDark = useDarkModeStore((state) => state.isDark);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -36,7 +38,7 @@ const AdminDashboard = () => {
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 border-4 border-slate-500 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-gray-600 text-lg">Đang tải thống kê...</span>
+            <span className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Đang tải thống kê...</span>
           </div>
         </div>
       </AdminLayout>
@@ -119,49 +121,49 @@ const AdminDashboard = () => {
 
         {/* Secondary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-5 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-orange-600">quiz</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600 font-medium">Tổng Quiz</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Tổng Quiz</p>
                 <p className="text-2xl font-bold text-orange-600">{(stats?.totalQuizzes || 0).toLocaleString()}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-5 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-pink-600">swords</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600 font-medium">Tổng Battles</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Tổng Battles</p>
                 <p className="text-2xl font-bold text-pink-600">{(stats?.totalBattles || 0).toLocaleString()}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-5 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-teal-600">trending_up</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600 font-medium">User tuần này</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} font-medium`}>User tuần này</p>
                 <p className="text-2xl font-bold text-teal-600">{(stats?.newUsersThisWeek || 0).toLocaleString()}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-5 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-cyan-600">calendar_month</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600 font-medium">User tháng này</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} font-medium`}>User tháng này</p>
                 <p className="text-2xl font-bold text-cyan-600">{(stats?.newUsersThisMonth || 0).toLocaleString()}</p>
               </div>
             </div>
@@ -170,50 +172,66 @@ const AdminDashboard = () => {
 
         {/* Detailed Info */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-6 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-white text-2xl">admin_panel_settings</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Phân quyền</h3>
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Phân quyền</h3>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg border border-rose-200">
+              <div className={`flex items-center justify-between p-4 rounded-lg border ${
+                isDark 
+                  ? 'bg-gradient-to-r from-rose-900/30 to-pink-900/30 border-rose-700/50' 
+                  : 'bg-gradient-to-r from-rose-50 to-pink-50 border-rose-200'
+              }`}>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-rose-600">shield_person</span>
-                  <span className="text-gray-700 font-medium">Quản trị viên</span>
+                  <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Quản trị viên</span>
                 </div>
                 <span className="text-2xl font-bold text-rose-600">{(stats?.adminUsers || 0).toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+              <div className={`flex items-center justify-between p-4 rounded-lg border ${
+                isDark 
+                  ? 'bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border-blue-700/50' 
+                  : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200'
+              }`}>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-blue-600">person</span>
-                  <span className="text-gray-700 font-medium">Người dùng thường</span>
+                  <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Người dùng thường</span>
                 </div>
                 <span className="text-2xl font-bold text-blue-600">{(stats?.regularUsers || 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-6 hover:shadow-lg transition-shadow`}>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-white text-2xl">verified_user</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Trạng thái xác thực</h3>
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Trạng thái xác thực</h3>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+              <div className={`flex items-center justify-between p-4 rounded-lg border ${
+                isDark 
+                  ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-green-700/50' 
+                  : 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+              }`}>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-green-600">check_circle</span>
-                  <span className="text-gray-700 font-medium">Đã xác thực</span>
+                  <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Đã xác thực</span>
                 </div>
                 <span className="text-2xl font-bold text-green-600">{(stats?.verifiedUsers || 0).toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200">
+              <div className={`flex items-center justify-between p-4 rounded-lg border ${
+                isDark 
+                  ? 'bg-gradient-to-r from-orange-900/30 to-amber-900/30 border-orange-700/50' 
+                  : 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200'
+              }`}>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-orange-600">pending</span>
-                  <span className="text-gray-700 font-medium">Chưa xác thực</span>
+                  <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Chưa xác thực</span>
                 </div>
                 <span className="text-2xl font-bold text-orange-600">{(stats?.unverifiedUsers || 0).toLocaleString()}</span>
               </div>
@@ -222,40 +240,52 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-md border p-6`}>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'} mb-4 flex items-center gap-2`}>
             <span className="material-symbols-outlined text-2xl text-slate-500">bolt</span>
             Thao tác nhanh
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <a
               href="/admin/users"
-              className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl transition-all duration-200"
+              className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'bg-gradient-to-br from-blue-900/40 to-blue-800/40 hover:from-blue-800/50 hover:to-blue-700/50'
+                  : 'bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200'
+              }`}
             >
               <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-white">group</span>
               </div>
-              <p className="font-semibold text-blue-700">Quản lý Users</p>
+              <p className={`font-semibold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Quản lý Users</p>
             </a>
             
             <a
               href="/admin/kanji"
-              className="flex items-center gap-3 p-4 bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl transition-all duration-200"
+              className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'bg-gradient-to-br from-purple-900/40 to-purple-800/40 hover:from-purple-800/50 hover:to-purple-700/50'
+                  : 'bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200'
+              }`}
             >
               <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-white">translate</span>
               </div>
-              <p className="font-semibold text-purple-700">Quản lý Kanji</p>
+              <p className={`font-semibold ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>Quản lý Kanji</p>
             </a>
             
             <a
               href="/admin/compounds"
-              className="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl transition-all duration-200"
+              className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'bg-gradient-to-br from-green-900/40 to-green-800/40 hover:from-green-800/50 hover:to-green-700/50'
+                  : 'bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200'
+              }`}
             >
               <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-white">menu_book</span>
               </div>
-              <p className="font-semibold text-green-700">Quản lý Compounds</p>
+              <p className={`font-semibold ${isDark ? 'text-green-400' : 'text-green-700'}`}>Quản lý Compounds</p>
             </a>
           </div>
         </div>

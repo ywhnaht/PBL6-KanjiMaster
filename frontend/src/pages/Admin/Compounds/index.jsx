@@ -7,6 +7,7 @@ import NotificationModal from '../../../components/Admin/NotificationModal';
 import ImportPreview from '../../../components/Admin/ImportPreview';
 import { getAllCompounds, createCompound, updateCompound, deleteCompound, importCompoundsFromCsv } from '../../../apis/adminCompound';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../../store/useDarkModeStore';
 
 const AdminCompounds = () => {
   const [compounds, setCompounds] = useState([]);
@@ -17,6 +18,7 @@ const AdminCompounds = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [pageSize] = useState(20);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const isDark = useDarkModeStore((state) => state.isDark);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -227,23 +229,23 @@ const AdminCompounds = () => {
       header: 'Từ',
       field: 'word',
       render: (value) => (
-        <span className="text-2xl font-bold text-[#2F4454]">{value}</span>
+        <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>{value}</span>
       )
     },
     {
       header: 'Nghĩa',
       field: 'meaning',
-      render: (value) => <span className="text-sm">{value}</span>
+      render: (value) => <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>{value}</span>
     },
     {
       header: 'Đọc',
       field: 'reading',
-      render: (value) => <span className="text-sm text-gray-600">{value}</span>
+      render: (value) => <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{value}</span>
     },
     {
       header: 'Hiragana',
       field: 'hiragana',
-      render: (value) => <span className="text-sm font-semibold">{value}</span>
+      render: (value) => <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{value}</span>
     },
     {
       header: 'Tần suất',
@@ -259,7 +261,7 @@ const AdminCompounds = () => {
   const CompoundFormFields = () => (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Từ ghép *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Từ ghép *</label>
         <input
           type="text"
           value={formData.word}
@@ -270,7 +272,7 @@ const AdminCompounds = () => {
       </div>
       
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Nghĩa *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Nghĩa *</label>
         <input
           type="text"
           value={formData.meaning}
@@ -281,7 +283,7 @@ const AdminCompounds = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Cách đọc *</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Cách đọc *</label>
         <input
           type="text"
           value={formData.reading}
@@ -292,7 +294,7 @@ const AdminCompounds = () => {
       </div>
       
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Hiragana</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Hiragana</label>
         <input
           type="text"
           value={formData.hiragana}
@@ -303,7 +305,7 @@ const AdminCompounds = () => {
       </div>
       
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Tần suất</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Tần suất</label>
         <input
           type="number"
           value={formData.frequency}
@@ -314,7 +316,7 @@ const AdminCompounds = () => {
       </div>
       
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Ví dụ</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Ví dụ</label>
         <input
           type="text"
           value={formData.example}
@@ -325,7 +327,7 @@ const AdminCompounds = () => {
       </div>
       
       <div className="col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Nghĩa ví dụ</label>
+        <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Nghĩa ví dụ</label>
         <input
           type="text"
           value={formData.exampleMeaning}
@@ -367,7 +369,7 @@ const AdminCompounds = () => {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-lg border p-6`}>
           <div className="flex gap-4 mb-4">
             <input
               type="text"
@@ -375,7 +377,7 @@ const AdminCompounds = () => {
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Tìm kiếm theo từ, nghĩa, cách đọc, hiragana..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
             />
             <button
               onClick={handleSearch}
@@ -389,7 +391,7 @@ const AdminCompounds = () => {
                 setSearchKeyword('');
                 fetchCompounds();
               }}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2"
+              className={`px-6 py-3 font-semibold rounded-xl transition-colors duration-200 flex items-center gap-2 ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               <span className="material-symbols-outlined">refresh</span>
               Reset
@@ -426,9 +428,9 @@ const AdminCompounds = () => {
         {/* Create Dialog */}
         {showCreateDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-[#2F4454]">Thêm Compound mới</h3>
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in`}>
+              <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>Thêm Compound mới</h3>
               </div>
               <div className="p-6">
                 <CompoundFormFields />
@@ -439,7 +441,7 @@ const AdminCompounds = () => {
                     setShowCreateDialog(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                  className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   Hủy
                 </button>
@@ -457,9 +459,9 @@ const AdminCompounds = () => {
         {/* Edit Dialog */}
         {showEditDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-[#2F4454]">Chỉnh sửa Compound</h3>
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full my-8 animate-fade-in`}>
+              <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#2F4454]'}`}>Chỉnh sửa Compound</h3>
               </div>
               <div className="p-6">
                 <CompoundFormFields />
@@ -470,7 +472,7 @@ const AdminCompounds = () => {
                     setShowEditDialog(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                  className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   Hủy
                 </button>

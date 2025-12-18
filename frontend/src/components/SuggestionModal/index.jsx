@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { createSuggestion } from '../../apis/suggestions';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useDarkModeStore from '../../store/useDarkModeStore';
 
 const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
   const axiosPrivate = useAxiosPrivate();
+  const isDark = useDarkModeStore((state) => state.isDark);
+  
+  // Utility class for input fields
+  const inputClass = `w-full px-4 py-3 border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'} rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all`;
+  const labelClass = `block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`;
   
   const [formData, setFormData] = useState({
     type: type || 'ADD_KANJI',
@@ -105,7 +111,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
         }
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8">
+      <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full my-8`}>
         <div className={`px-6 py-4 rounded-t-2xl bg-gradient-to-r ${getIconColor()}`}>
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-white text-3xl">
@@ -121,8 +127,8 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
             <span className="material-symbols-outlined text-6xl text-green-500 mb-4 inline-block">
               check_circle
             </span>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Gửi yêu cầu thành công!</h3>
-            <p className="text-gray-600">Admin sẽ xem xét và phản hồi sớm nhất.</p>
+            <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'} mb-2`}>Gửi yêu cầu thành công!</h3>
+            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Admin sẽ xem xét và phản hồi sớm nhất.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col max-h-[80vh]">
@@ -138,7 +144,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
             {/* Type selector - chỉ hiện khi không có initialData */}
             {!initialData && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                   Loại yêu cầu <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -149,14 +155,14 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                       onClick={() => setFormData({...formData, type: t})}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         formData.type === t
-                          ? 'border-slate-500 bg-slate-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-slate-500 bg-slate-50 dark:bg-slate-700'
+                          : isDark ? 'border-gray-600 hover:border-gray-500 bg-gray-700' : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-2xl mb-2 block">
+                      <span className={`material-symbols-outlined text-2xl mb-2 block ${isDark ? 'text-gray-300' : ''}`}>
                         {t === 'ADD_KANJI' ? 'translate' : t === 'ADD_COMPOUND' ? 'menu_book' : 'flag'}
                       </span>
-                      <span className="text-xs font-medium">
+                      <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : ''}`}>
                         {t === 'ADD_KANJI' ? 'Thêm Kanji' : t === 'ADD_COMPOUND' ? 'Thêm từ ghép' : 'Báo lỗi'}
                       </span>
                     </button>
@@ -167,13 +173,13 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
 
             {/* Kanji fields - chỉ hiện khi type là ADD_KANJI */}
             {formData.type === 'ADD_KANJI' && (
-              <div className="space-y-4 bg-slate-50 p-4 rounded-xl">
-                <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+              <div className={`space-y-4 ${isDark ? 'bg-slate-800' : 'bg-slate-50'} p-4 rounded-xl`}>
+                <h3 className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'} flex items-center gap-2`}>
                   <span className="material-symbols-outlined">translate</span>
                   Thông tin Kanji
                 </h3>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelClass}>
                     Kanji <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -181,14 +187,14 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                     name="kanji"
                     value={formData.kanji}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all text-2xl text-center"
+                    className={`${inputClass} text-2xl text-center focus:ring-slate-500`}
                     placeholder="例: 漢"
                     required
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={labelClass}>
                       Hán Việt
                     </label>
                     <input
@@ -196,12 +202,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                       name="hanViet"
                       value={formData.hanViet}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className={`${inputClass} focus:ring-purple-500`}
                       placeholder="例: Hán"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={labelClass}>
                       Onyomi (音読み)
                     </label>
                     <input
@@ -209,13 +215,13 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                       name="onyomi"
                       value={formData.onyomi}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                      className={`${inputClass} focus:ring-slate-500`}
                       placeholder="例: カン"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelClass}>
                     Kunyomi (訓読み)
                   </label>
                   <input
@@ -223,12 +229,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                     name="kunyomi"
                     value={formData.kunyomi}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                    className={`${inputClass} focus:ring-slate-500`}
                     placeholder="例: から"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelClass}>
                     Joyo Reading (常用読み方)
                   </label>
                   <input
@@ -236,7 +242,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                     name="joyoReading"
                     value={formData.joyoReading}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                    className={`${inputClass} focus:ring-slate-500`}
                     placeholder="例: カン, から"
                   />
                 </div>
@@ -245,13 +251,13 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
 
             {/* Compound fields - chỉ hiện khi type là ADD_COMPOUND */}
             {formData.type === 'ADD_COMPOUND' && (
-              <div className="space-y-4 bg-rose-50 p-4 rounded-xl">
-                <h3 className="font-semibold text-rose-700 flex items-center gap-2">
+              <div className={`space-y-4 ${isDark ? 'bg-rose-900/30' : 'bg-rose-50'} p-4 rounded-xl`}>
+                <h3 className={`font-semibold ${isDark ? 'text-rose-400' : 'text-rose-700'} flex items-center gap-2`}>
                   <span className="material-symbols-outlined">menu_book</span>
                   Thông tin từ ghép
                 </h3>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelClass}>
                     Từ ghép <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -259,14 +265,14 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                     name="word"
                     value={formData.word}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all text-2xl text-center"
+                    className={`${inputClass} text-2xl text-center focus:ring-rose-400`}
                     placeholder="例: 日本語"
                     required
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={labelClass}>
                       Reading (Romaji)
                     </label>
                     <input
@@ -274,12 +280,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                       name="reading"
                       value={formData.reading}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                      className={`${inputClass} focus:ring-rose-400`}
                       placeholder="例: nihongo"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={labelClass}>
                       Hiragana
                     </label>
                     <input
@@ -287,7 +293,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                       name="hiragana"
                       value={formData.hiragana}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                      className={`${inputClass} focus:ring-rose-400`}
                       placeholder="例: にほんご"
                     />
                   </div>
@@ -297,8 +303,8 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
 
             {/* Correction fields - chỉ hiện field có trong database */}
             {formData.type === 'CORRECTION' && (
-              <div className="space-y-4 bg-slate-50 p-4 rounded-xl">
-                <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+              <div className={`space-y-4 ${isDark ? 'bg-slate-800' : 'bg-slate-50'} p-4 rounded-xl`}>
+                <h3 className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'} flex items-center gap-2`}>
                   <span className="material-symbols-outlined">flag</span>
                   Thông tin cần sửa đổi
                 </h3>
@@ -306,16 +312,16 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                 {initialData?.kanji && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={labelClass}>
                         Kanji hiện tại
                       </label>
-                      <div className="px-4 py-3 bg-white border border-gray-300 rounded-xl text-2xl text-center text-gray-500">
+                      <div className={`px-4 py-3 ${isDark ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-white border-gray-300 text-gray-500'} border rounded-xl text-2xl text-center`}>
                         {initialData.kanji}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Hán Việt mới (nếu cần sửa)
                         </label>
                         <input
@@ -323,12 +329,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="hanViet"
                           value={formData.hanViet}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-slate-500`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Onyomi mới (nếu cần sửa)
                         </label>
                         <input
@@ -336,12 +342,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="onyomi"
                           value={formData.onyomi}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-slate-500`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Kunyomi mới (nếu cần sửa)
                         </label>
                         <input
@@ -349,12 +355,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="kunyomi"
                           value={formData.kunyomi}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-slate-500`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Joyo Reading mới (nếu cần sửa)
                         </label>
                         <input
@@ -362,7 +368,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="joyoReading"
                           value={formData.joyoReading}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-slate-500`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
@@ -373,16 +379,16 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                 {initialData?.word && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={labelClass}>
                         Từ ghép hiện tại
                       </label>
-                      <div className="px-4 py-3 bg-white border border-gray-300 rounded-xl text-2xl text-center text-gray-500">
+                      <div className={`px-4 py-3 ${isDark ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-white border-gray-300 text-gray-500'} border rounded-xl text-2xl text-center`}>
                         {initialData.word}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Hiragana mới (nếu cần sửa)
                         </label>
                         <input
@@ -390,12 +396,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="hiragana"
                           value={formData.hiragana}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-rose-400`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Reading mới (nếu cần sửa)
                         </label>
                         <input
@@ -403,12 +409,12 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="reading"
                           value={formData.reading}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-rose-400`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={labelClass}>
                           Nghĩa mới (nếu cần sửa)
                         </label>
                         <input
@@ -416,7 +422,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                           name="meaning"
                           value={formData.meaning}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all"
+                          className={`${inputClass} focus:ring-rose-400`}
                           placeholder="Để trống nếu không sửa"
                         />
                       </div>
@@ -429,7 +435,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
             {/* Common fields - chỉ cho ADD mode, không cho CORRECTION */}
             {formData.type !== 'CORRECTION' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   Nghĩa (tiếng Việt)
                 </label>
                 <input
@@ -437,14 +443,14 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                   name="meaning"
                   value={formData.meaning}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                  className={`${inputClass} focus:ring-slate-500`}
                   placeholder="例: Tiếng Nhật"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={labelClass}>
                 Lý do / Giải thích <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -452,7 +458,7 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
                 value={formData.reason}
                 onChange={handleChange}
                 rows="4"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all resize-none"
+                className={`${inputClass} focus:ring-slate-500 resize-none`}
                 placeholder="Vui lòng cho biết lý do bạn muốn thêm/sửa từ này..."
                 required
               />
@@ -460,11 +466,11 @@ const SuggestionModal = ({ isOpen, onClose, type, initialData = null }) => {
             </div>
 
             {/* Fixed buttons at bottom */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex gap-3">
+            <div className={`sticky bottom-0 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t p-6 flex gap-3`}>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                className={`flex-1 px-6 py-3 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} font-semibold rounded-xl transition-colors`}
                 disabled={loading}
               >
                 Hủy
