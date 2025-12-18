@@ -79,8 +79,8 @@ const useKanjiDetailStore = create((set, get) => ({
     }
   },
 
-  // 🆕 CẬP NHẬT markAsMastered - VỚI MANUAL TOKEN
-  markAsMastered: async (kanjiId) => {
+  // 🆕 CẬP NHẬT markAsMastered - VỚI MANUAL TOKEN & REFRESH PROFILE
+  markAsMastered: async (kanjiId, axiosPrivate = null) => {
     try {
       const token = getAuthToken(); // 🎯 LẤY TOKEN TRỰC TIẾP
       
@@ -127,6 +127,32 @@ const useKanjiDetailStore = create((set, get) => ({
           }
         } catch (error) {
           console.error("❌ Failed to update kanji store:", error);
+        }
+
+        // 🔥 CẬP NHẬT PROFILE VÀ AUTHSTORE ĐỂ REFRESH STREAK
+        if (axiosPrivate) {
+          try {
+            const { default: useProfileStore } = await import("./useProfileStore");
+            const { default: useAuthStore } = await import("./useAuthStore");
+            
+            const profileStore = useProfileStore.getState();
+            const authStore = useAuthStore.getState();
+            
+            // Fetch lại profile để lấy streak mới
+            const updatedProfile = await profileStore.fetchProfile(axiosPrivate);
+            
+            // Cập nhật streak trong authStore
+            if (updatedProfile && updatedProfile.streakDays !== undefined) {
+              authStore.setUser({
+                ...authStore.user,
+                streakDays: updatedProfile.streakDays,
+                totalKanjiLearned: updatedProfile.totalKanjiLearned
+              });
+              console.log("✅ Updated streak in authStore:", updatedProfile.streakDays);
+            }
+          } catch (error) {
+            console.error("❌ Failed to refresh profile/streak:", error);
+          }
         }
 
         return response;
