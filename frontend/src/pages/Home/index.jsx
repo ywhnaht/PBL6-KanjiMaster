@@ -160,6 +160,70 @@ export default function Home() {
     console.log("🔐 Auth state after login:", { isAuthenticated, user: user?.fullName, accessToken: !!accessToken });
   };
 
+  const WelcomeModal = () => {
+    if (!showWelcomeModal) return null;
+
+    return (
+      <div className="fixed top-4 right-4 z-[10001]">
+        <div className={`rounded-2xl shadow-2xl border p-6 max-w-sm transform animate-slide-in-right transition-colors duration-300 ${
+          isDark 
+            ? 'bg-slate-800 border-[#DA7B93]/40' 
+            : 'bg-white border-[#DA7B93]/20'
+        }`}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#2F4454] to-[#DA7B93] rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-white text-lg">
+                waving_hand
+              </span>
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="font-bold text-lg bg-gradient-to-r from-[#2F4454] to-[#DA7B93] bg-clip-text text-transparent">
+                Chào mừng!
+              </h3>
+              <p className={`text-sm leading-relaxed transition-colors duration-300 ${
+                isDark ? 'text-slate-300' : 'text-[#2F4454]/80'
+              }`}>
+                {user?.fullName}
+              </p>
+              <p className={`text-xs mt-1 transition-colors duration-300 ${
+                isDark ? 'text-slate-400' : 'text-gray-500'
+              }`}>
+                Bạn đã đăng nhập thành công
+              </p>
+            </div>
+
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 rounded-full border-2 border-[#DA7B93]/30 flex items-center justify-center relative">
+                <span className="text-[#DA7B93] font-bold text-sm">
+                  {welcomeCountdown}
+                </span>
+                <div 
+                  className="absolute inset-0 rounded-full border-2 border-[#DA7B93] border-t-transparent animate-spin"
+                  style={{
+                    animation: `spin ${welcomeCountdown}s linear`
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => setShowWelcomeModal(false)}
+              className={`text-xs transition-colors duration-300 ${
+                isDark
+                  ? 'text-slate-500 hover:text-slate-300'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   // ✅ useCallback để tránh tạo hàm mới mỗi lần
   const handleCloseWelcomeModal = useCallback(() => {
     setShowWelcomeModal(false);
