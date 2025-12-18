@@ -8,7 +8,6 @@ import LoginModal from "../../components/Login";
 import RegisterModal from "../../components/Register";
 import { useAuthStore } from "../../store/useAuthStore";
 import useDarkModeStore from "../../store/useDarkModeStore";
-import useSidebarStore from "../../store/useSidebarStore";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // dictionary mẫu
@@ -109,7 +108,6 @@ export default function Home() {
   
   // ✅ Lấy isDark từ store
   const isDark = useDarkModeStore((state) => state.isDark);
-  const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   
   // 🎯 Lấy cả isAuthenticated, user, accessToken
   const { user, isAuthenticated, accessToken } = useAuthStore();
@@ -175,13 +173,7 @@ export default function Home() {
           : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50'
       } ${activeModal ? 'brightness-95' : 'brightness-100'}`}>
         <Sidebar />
-        <div 
-          className="flex-1 flex flex-col overflow-hidden"
-          style={{
-            marginLeft: isCollapsed ? '72px' : '240px',
-            transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        >
+        <div className="flex-1 flex flex-col overflow-hidden">
           <Header 
             onOpenLogin={handleOpenLogin}
             onOpenRegister={handleOpenRegister}

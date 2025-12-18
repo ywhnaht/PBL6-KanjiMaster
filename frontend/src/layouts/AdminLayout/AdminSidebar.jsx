@@ -115,9 +115,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }) {
       <div className={`p-4 border-t transition-all duration-300 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`w-full flex items-center p-3 rounded-xl bg-slate-500/5 hover:bg-slate-500/10 transition-all duration-200 group ${
-            isCollapsed ? 'justify-center' : 'gap-3'
-          }`}
+          className="w-full flex items-center justify-center gap-3 p-3 rounded-xl bg-slate-500/5 hover:bg-slate-500/10 transition-all duration-200 group"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span

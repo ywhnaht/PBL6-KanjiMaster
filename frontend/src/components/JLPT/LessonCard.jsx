@@ -11,6 +11,7 @@ import KanjiResult from "../ResultItem/KanjiResult";
 import useKanjiStore from "../../store/useKanjiStore";
 import useKanjiDetailStore from "../../store/useKanjiDetailStore";
 import useDarkModeStore from "../../store/useDarkModeStore";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // Tối ưu KanjiButton
 const KanjiButton = React.memo(({ kanji, hanViet, learned, onClick, isDark }) => {
@@ -75,6 +76,7 @@ KanjiButton.displayName = "KanjiButton";
 const GlobalKanjiModal = React.memo(({ onKanjiStatusChange }) => {
   const modalRef = useRef(null);
   const isDark = useDarkModeStore((state) => state.isDark);
+  const axiosPrivate = useAxiosPrivate();
 
   const {
     kanjiDetail,
@@ -181,7 +183,7 @@ const GlobalKanjiModal = React.memo(({ onKanjiStatusChange }) => {
     setCurrentStatus("MASTERED");
     updateKanjiStatus(kanjiDetail.id, "MASTERED");
 
-    const result = await markAsMastered(kanjiDetail.id);
+    const result = await markAsMastered(kanjiDetail.id, axiosPrivate);
 
     if (result.success) {
       updateKanjiStatus(kanjiDetail.id, "MASTERED");
@@ -193,7 +195,7 @@ const GlobalKanjiModal = React.memo(({ onKanjiStatusChange }) => {
       setCurrentStatus(kanjiDetail.status);
       updateKanjiStatus(kanjiDetail.id, kanjiDetail.status);
     }
-  }, [kanjiDetail, markAsMastered, updateKanjiStatus, onKanjiStatusChange]);
+  }, [kanjiDetail, markAsMastered, updateKanjiStatus, onKanjiStatusChange, axiosPrivate]);
 
   const kanjiData = useMemo(() => {
     if (!kanjiDetail) return [];

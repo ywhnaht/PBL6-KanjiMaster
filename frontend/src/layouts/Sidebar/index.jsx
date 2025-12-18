@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDarkModeStore from "../../store/useDarkModeStore";
-import useSidebarStore from "../../store/useSidebarStore";
 
 export default function Sidebar() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const isDark = useDarkModeStore((state) => state.isDark);
-  const isCollapsed = useSidebarStore((state) => state.isCollapsed);
-  const toggleCollapsed = useSidebarStore((state) => state.toggleCollapsed);
+  const isDark = useDarkModeStore((state) => state.isDark); // ✅ FIX: Dùng selector
 
   const menus = [
     { icon: "search", label: "Search", path: "/home" },
@@ -28,12 +26,11 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`shadow-xl shrink-0 h-screen flex flex-col border-r fixed left-0 top-0 bottom-0 z-40 ${
+      className={`shadow-xl transition-all duration-300 ease-in-out shrink-0 h-screen flex flex-col border-r ${
         isDark
           ? 'bg-slate-800 border-slate-700'
           : 'bg-white border-gray-200'
-      } ${isCollapsed ? "w-[72px]" : "w-[240px]"} overflow-hidden`}
-      style={{ transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+      } ${isCollapsed ? "w-[72px]" : "w-[240px]"} overflow-x-hidden`}
     >
       {/* 🔝 Header */}
       <div className={`border-b transition-all duration-300 h-[72px] flex items-center px-5 ${
@@ -144,12 +141,12 @@ export default function Sidebar() {
           : 'border-gray-200 bg-white'
       }`}>
         <button
-          onClick={toggleCollapsed}
-          className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={`w-full flex items-center justify-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
             isDark
               ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
               : 'bg-[#2F4454]/5 hover:bg-[#2F4454]/10 text-[#2F4454]'
-          } ${isCollapsed ? 'justify-center' : 'gap-3'}`}
+          }`}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span
