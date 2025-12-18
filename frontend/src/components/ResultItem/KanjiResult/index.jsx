@@ -177,6 +177,7 @@ export default function KanjiResult({
     return searchResults.slice(0, 5);
   }, [searchResults]);
 
+  // ✅ FIX: Tách notification countdown logic thành effect riêng
   useEffect(() => {
     if (!notification) return;
 
@@ -330,7 +331,7 @@ export default function KanjiResult({
     setShowNotebookModal(true);
   }, [isAuthenticated, getKanjiId, mainKanji]);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = useCallback(() => {
     setShowLoginModal(false);
     const kanjiId = getKanjiId();
     
@@ -347,7 +348,7 @@ export default function KanjiResult({
         icon: "error",
       });
     }
-  };
+  }, [getKanjiId]);
 
   const handleSelectNotebook = useCallback(async (notebook) => {
     try {
@@ -365,7 +366,6 @@ export default function KanjiResult({
         notebookName: notebook.name,
       });
 
-      // ✅ Validate entityId
       if (!entityId || entityId === 0 || entityId === undefined || entityId === null) {
         throw new Error(
           `❌ Kanji ID không hợp lệ: ${entityId}. Vui lòng reload trang!`
@@ -404,12 +404,14 @@ export default function KanjiResult({
 
       console.log("✅ [handleSelectNotebook] Backend response received:", result);
 
+      // ✅ FIX: Tách notification update thành state change riêng
       setNotification({
         type: "success",
         title: "Lưu thành công!",
         message: `Kanji "${mainKanji?.kanji}" đã được lưu vào notebook "${notebook.name}"`,
         icon: "bookmark_add",
       });
+      
       setShowNotebookModal(false);
     } catch (error) {
       console.error("❌ [handleSelectNotebook] Error occurred:", {
@@ -463,10 +465,10 @@ export default function KanjiResult({
     setShowCreateModal(true);
   }, []);
 
-  const handleCreateSuccess = () => {
+  const handleCreateSuccess = useCallback(() => {
     setShowCreateModal(false);
     setShowNotebookModal(true);
-  };
+  }, []);
 
   const handleCloseCreateModal = useCallback(() => {
     setShowCreateModal(false);
@@ -693,7 +695,7 @@ export default function KanjiResult({
                             </span> 
                           </div> 
                         </div> 
-                        {/* ✅ Buttons - Gọi handleFavoriteClick */}
+                        {/* ✅ Buttons */}
                         <div className="flex md:flex-col justify-center items-center md:items-start gap-3 mt-4 md:mt-0"> 
                           <button 
                             onClick={handleFavoriteClick}

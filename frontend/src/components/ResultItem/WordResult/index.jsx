@@ -460,14 +460,18 @@ export default function WordResult({
                 <div className="flex justify-between items-start mb-4 px-[20px]">
                   {/* Left side: Word + Reading */}
                   <div className="text-center">
-                    <div className={`text-8xl font-light select-text transition-colors duration-300 ${
-                      isDark ? "text-slate-100" : "text-gray-800"
-                    }`}>
+                    <div
+                      className={`text-8xl font-light select-text transition-colors duration-300 ${
+                        isDark ? "text-slate-100" : "text-gray-800"
+                      }`}
+                    >
                       {word}
                     </div>
-                    <div className={`text-2xl font-medium mt-3 transition-colors duration-300 ${
-                      isDark ? "text-slate-400" : "text-gray-600"
-                    }`}>
+                    <div
+                      className={`text-2xl font-medium mt-3 transition-colors duration-300 ${
+                        isDark ? "text-slate-400" : "text-gray-600"
+                      }`}
+                    >
                       {hiragana}
                     </div>
                   </div>
@@ -488,11 +492,13 @@ export default function WordResult({
                           : "Đăng nhập để lưu notebook"
                       }
                     >
-                      <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
-                        isDark
-                          ? "text-red-400 group-hover:text-red-300"
-                          : "text-red-500 group-hover:text-red-600"
-                      }`}>
+                      <span
+                        className={`material-symbols-outlined text-base transition-colors duration-300 ${
+                          isDark
+                            ? "text-red-400 group-hover:text-red-300"
+                            : "text-red-500 group-hover:text-red-600"
+                        }`}
+                      >
                         favorite
                       </span>
                     </button>
@@ -550,19 +556,25 @@ export default function WordResult({
 
               {/* Meaning */}
               <div className="space-y-6">
-                <div className={`p-4 rounded-lg transition-colors duration-300 ${
-                  isDark
-                    ? "bg-blue-900/30 border border-blue-700"
-                    : "bg-blue-50"
-                }`}>
-                  <h3 className={`font-semibold mb-2 transition-colors duration-300 ${
-                    isDark ? "text-blue-300" : "text-blue-800"
-                  }`}>
+                <div
+                  className={`p-4 rounded-lg transition-colors duration-300 ${
+                    isDark
+                      ? "bg-blue-900/30 border border-blue-700"
+                      : "bg-blue-50"
+                  }`}
+                >
+                  <h3
+                    className={`font-semibold mb-2 transition-colors duration-300 ${
+                      isDark ? "text-blue-300" : "text-blue-800"
+                    }`}
+                  >
                     Ý nghĩa
                   </h3>
-                  <p className={`font-medium transition-colors duration-300 ${
-                    isDark ? "text-blue-200" : "text-blue-700"
-                  }`}>
+                  <p
+                    className={`font-medium transition-colors duration-300 ${
+                      isDark ? "text-blue-200" : "text-blue-700"
+                    }`}
+                  >
                     {meaning}
                   </p>
                 </div>
@@ -571,14 +583,18 @@ export default function WordResult({
 
             {/* Examples */}
             {examples.length > 0 && (
-              <div className={`rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300 ${
-                isDark
-                  ? "bg-slate-800 border border-slate-700"
-                  : "bg-white"
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
-                  isDark ? "text-slate-100" : "text-gray-800"
-                }`}>
+              <div
+                className={`rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300 ${
+                  isDark
+                    ? "bg-slate-800 border border-slate-700"
+                    : "bg-white"
+                }`}
+              >
+                <h3
+                  className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                    isDark ? "text-slate-100" : "text-gray-800"
+                  }`}
+                >
                   Câu ví dụ
                 </h3>
                 <div className="space-y-4">
@@ -586,27 +602,35 @@ export default function WordResult({
                     <div
                       key={ex.id || i}
                       className={`border-l-4 pl-4 py-2 transition-colors duration-300 ${
-                        isDark
-                          ? "border-blue-700"
-                          : "border-blue-200"
+                        isDark ? "border-blue-700" : "border-blue-200"
                       }`}
                     >
-                      <p className={`text-lg font-medium transition-colors duration-300 ${
-                        isDark ? "text-slate-100" : "text-gray-800"
-                      }`}>
+                      <p
+                        className={`text-lg font-medium transition-colors duration-300 ${
+                          isDark ? "text-slate-100" : "text-gray-800"
+                        }`}
+                      >
                         {ex.sentence || ex.example}
                       </p>
                       {ex.meaning && (
-                        <p className={`text-sm italic transition-colors duration-300 ${
-                          isDark ? "text-slate-400" : "text-gray-500"
-                        }`}>
+                        <p
+                          className={`text-sm italic transition-colors duration-300 ${
+                            isDark
+                              ? "text-slate-400"
+                              : "text-gray-500"
+                          }`}
+                        >
                           {ex.meaning}
                         </p>
                       )}
                       {ex.meaningEn && (
-                        <p className={`text-sm transition-colors duration-300 ${
-                          isDark ? "text-slate-500" : "text-gray-400"
-                        }`}>
+                        <p
+                          className={`text-sm transition-colors duration-300 ${
+                            isDark
+                              ? "text-slate-500"
+                              : "text-gray-400"
+                          }`}
+                        >
                           {ex.meaningEn}
                         </p>
                       )}
@@ -621,14 +645,18 @@ export default function WordResult({
           <div className="space-y-6">
             {/* Kanji cấu thành */}
             {compoundKanjis && compoundKanjis.length > 0 && (
-              <div className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
-                isDark
-                  ? "bg-slate-800 border border-slate-700"
-                  : "bg-white"
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
-                  isDark ? "text-slate-100" : "text-gray-800"
-                }`}>
+              <div
+                className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
+                  isDark
+                    ? "bg-slate-800 border border-slate-700"
+                    : "bg-white"
+                }`}
+              >
+                <h3
+                  className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                    isDark ? "text-slate-100" : "text-gray-800"
+                  }`}
+                >
                   Kanji cấu thành
                 </h3>
                 <div className="space-y-3">
@@ -651,23 +679,30 @@ export default function WordResult({
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xl font-semibold transition-colors duration-300 ${
-                          isDark ? "text-slate-100" : "text-gray-800"
-                        }`}>
+                        <span
+                          className={`text-xl font-semibold transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
                           {k.kanji}
                         </span>
-                        <span className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
-                          isDark
-                            ? "text-slate-300 bg-slate-700"
-                            : "text-gray-500 bg-gray-100"
-                        }`}>
+                        <span
+                          className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
+                            isDark
+                              ? "text-slate-300 bg-slate-700"
+                              : "text-gray-500 bg-gray-100"
+                          }`}
+                        >
                           {k.hanViet}
                         </span>
                       </div>
-                      <p className={`text-sm transition-colors duration-300 ${
-                        isDark ? "text-slate-400" : "text-gray-600"
-                      }`}>
-                        Level: {k.level} | ON: {k.onyomi} | KUN: {k.kunyomi}
+                      <p
+                        className={`text-sm transition-colors duration-300 ${
+                          isDark ? "text-slate-400" : "text-gray-600"
+                        }`}
+                      >
+                        Level: {k.level} | ON: {k.onyomi} | KUN:{" "}
+                        {k.kunyomi}
                       </p>
                     </div>
                   ))}
@@ -677,20 +712,26 @@ export default function WordResult({
 
             {/* Từ liên quan */}
             {relatedWords.length > 0 && (
-              <div className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
-                isDark
-                  ? "bg-slate-800 border border-slate-700"
-                  : "bg-white"
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 transition-colors duration-300 ${
-                  isDark ? "text-slate-100" : "text-gray-800"
-                }`}>
+              <div
+                className={`rounded-xl shadow-lg p-6 transition-colors duration-300 ${
+                  isDark
+                    ? "bg-slate-800 border border-slate-700"
+                    : "bg-white"
+                }`}
+              >
+                <h3
+                  className={`font-bold text-lg mb-4 transition-colors duration-300 ${
+                    isDark ? "text-slate-100" : "text-gray-800"
+                  }`}
+                >
                   Từ liên quan với{" "}
-                  <span className={`px-3 py-1 rounded-lg transition-colors duration-300 ${
-                    isDark
-                      ? "text-blue-300 bg-blue-900/30"
-                      : "text-blue-600 bg-blue-50"
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-lg transition-colors duration-300 ${
+                      isDark
+                        ? "text-blue-300 bg-blue-900/30"
+                        : "text-blue-600 bg-blue-50"
+                    }`}
+                  >
                     {displayQuery}
                   </span>
                 </h3>
@@ -714,30 +755,42 @@ export default function WordResult({
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-lg font-semibold transition-colors duration-300 ${
-                          isDark ? "text-slate-100" : "text-gray-800"
-                        }`}>
+                        <span
+                          className={`text-lg font-semibold transition-colors duration-300 ${
+                            isDark ? "text-slate-100" : "text-gray-800"
+                          }`}
+                        >
                           {relatedWord.word}
                         </span>
-                        <span className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
-                          isDark
-                            ? "text-slate-300 bg-slate-700"
-                            : "text-gray-500 bg-gray-100"
-                        }`}>
-                          {relatedWord.reading || relatedWord.hiragana || ""}
+                        <span
+                          className={`text-sm px-2 py-1 rounded transition-colors duration-300 ${
+                            isDark
+                              ? "text-slate-300 bg-slate-700"
+                              : "text-gray-500 bg-gray-100"
+                          }`}
+                        >
+                          {relatedWord.reading ||
+                            relatedWord.hiragana ||
+                            ""}
                         </span>
                       </div>
-                      <p className={`text-sm transition-colors duration-300 ${
-                        isDark ? "text-slate-400" : "text-gray-600"
-                      }`}>
-                        {relatedWord.meaning || relatedWord.meaningEn || ""}
+                      <p
+                        className={`text-sm transition-colors duration-300 ${
+                          isDark ? "text-slate-400" : "text-gray-600"
+                        }`}
+                      >
+                        {relatedWord.meaning ||
+                          relatedWord.meaningEn ||
+                          ""}
                       </p>
                       {relatedWord.partOfSpeech && (
-                        <span className={`inline-block mt-1 px-2 py-1 text-xs rounded-full transition-colors duration-300 ${
-                          isDark
-                            ? "bg-purple-900/30 text-purple-300"
-                            : "bg-purple-100 text-purple-800"
-                        }`}>
+                        <span
+                          className={`inline-block mt-1 px-2 py-1 text-xs rounded-full transition-colors duration-300 ${
+                            isDark
+                              ? "bg-purple-900/30 text-purple-300"
+                              : "bg-purple-100 text-purple-800"
+                          }`}
+                        >
                           {relatedWord.partOfSpeech}
                         </span>
                       )}
