@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, use } from "react"; 
+import React, { useState, useMemo, useEffect, useCallback } from "react"; 
 import KanjiStroke from "../../../ultis/KanjiStroke"; 
 import { useNavigate } from "react-router-dom"; 
 import useSearchStore from "../../../store/useSearchStore"; 
