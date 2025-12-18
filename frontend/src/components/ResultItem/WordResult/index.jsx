@@ -8,9 +8,11 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import NotebookSelectionModal from "../../../components/Notebooks/NBList";
 import NotebookCreateModal from "../../../components/Notebooks/NBCreate";
 import LoginModal from "../../../components/Login";
+import SuggestionModal from "../../../components/SuggestionModal";
 
 export default function WordResult({
   word,
+  reading,
   hiragana,
   meaning,
   examples = [],
@@ -33,6 +35,8 @@ export default function WordResult({
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isAddingToNotebook, setIsAddingToNotebook] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState(null);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [suggestionType, setSuggestionType] = useState('ADD_COMPOUND');
 
   const [notification, setNotification] = useState(null);
   const [notificationCountdown, setNotificationCountdown] = useState(3);
@@ -453,30 +457,52 @@ export default function WordResult({
                         favorite
                       </span>
                     </button>
-                    <button className={`group p-1 rounded-full transition-colors duration-300 ${
+                    <button 
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          setShowLoginModal(true);
+                          return;
+                        }
+                        setSuggestionType('CORRECTION');
+                        setShowSuggestionModal(true);
+                      }}
+                      className={`group p-1 rounded-full transition-colors duration-300 ${
                       isDark
                         ? "bg-blue-900/30 hover:bg-blue-800/50"
                         : "bg-blue-50 hover:bg-blue-100"
-                    }`}>
+                      }`}
+                      title={isAuthenticated ? "Báo lỗi / Sửa đổi" : "Đăng nhập để báo lỗi"}
+                    >
                       <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
                         isDark
                           ? "text-blue-400 group-hover:text-blue-300"
                           : "text-blue-500 group-hover:text-blue-600"
                       }`}>
-                        share
+                        flag
                       </span>
                     </button>
-                    <button className={`group p-1 rounded-full transition-colors duration-300 ${
+                    <button 
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          setShowLoginModal(true);
+                          return;
+                        }
+                        setSuggestionType('ADD_COMPOUND');
+                        setShowSuggestionModal(true);
+                      }}
+                      className={`group p-1 rounded-full transition-colors duration-300 ${
                       isDark
                         ? "bg-green-900/30 hover:bg-green-800/50"
                         : "bg-green-50 hover:bg-green-100"
-                    }`}>
+                      }`}
+                      title={isAuthenticated ? "Đề xuất thêm từ ghép mới" : "Đăng nhập để đề xuất"}
+                    >
                       <span className={`material-symbols-outlined text-base transition-colors duration-300 ${
                         isDark
                           ? "text-green-400 group-hover:text-green-300"
                           : "text-green-500 group-hover:text-green-600"
                       }`}>
-                        bookmark
+                        add_circle
                       </span>
                     </button>
                   </div>
@@ -707,6 +733,19 @@ export default function WordResult({
         isOpen={showCreateModal}
         onClose={handleCloseCreateModal}
         onSuccess={handleCreateSuccess}
+      />
+
+      {/* Suggestion Modal */}
+      <SuggestionModal
+        isOpen={showSuggestionModal}
+        onClose={() => setShowSuggestionModal(false)}
+        type={suggestionType}
+        initialData={{
+          word: word,
+          reading: reading,
+          hiragana: hiragana,
+          meaning: meaning
+        }}
       />
 
       {/* Notification Modal */}

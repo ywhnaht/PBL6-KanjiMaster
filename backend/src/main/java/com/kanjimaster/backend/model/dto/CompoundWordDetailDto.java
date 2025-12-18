@@ -13,6 +13,7 @@ import java.util.List;
 public class CompoundWordDetailDto {
     Integer id;
     String word;
+    String reading;
     String hiragana;
     String meaning;
     String example;

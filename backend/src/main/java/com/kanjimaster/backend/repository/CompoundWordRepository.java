@@ -15,6 +15,11 @@ import java.util.Optional;
 @Repository
 public interface CompoundWordRepository extends JpaRepository<CompoundWords, Integer> {
     Optional<CompoundWords> findByWordOrHiragana(String word, String hiragana);
+    Optional<CompoundWords> findByWord(String word);
+    
+    // Admin methods
+    boolean existsByWord(String word);
+    Page<CompoundWords> findAll(Pageable pageable);
 
     @Query(value = "SELECT * FROM compound_words " +
             "WHERE MATCH(meaning) AGAINST(:meaning IN NATURAL LANGUAGE MODE)",

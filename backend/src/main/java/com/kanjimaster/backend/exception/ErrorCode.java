@@ -28,15 +28,20 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCH(1016, "Mật khẩu xác nhận không khớp", HttpStatus.BAD_REQUEST),
     WRONG_PASSWORD(1017, "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
     SAME_PASSWORD(1018, "Mật khẩu mới phải khác mật khẩu cũ", HttpStatus.BAD_REQUEST),
-    FILE_EMPTY(1019, "File không được để trống", HttpStatus.BAD_REQUEST),
-    FILE_TOO_LARGE(1020, "File quá lớn (tối đa 5MB)", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_TYPE(1021, "Chỉ chấp nhận file ảnh", HttpStatus.BAD_REQUEST),
-    FILE_UPLOAD_FAILED(1022, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
-    NOTIFICATION_NOT_FOUND(1023, "Không tìm thấy thông báo", HttpStatus.NOT_FOUND),
+    USER_BANNED(1019, "Tài khoản của bạn đã bị chặn. Vui lòng liên hệ quản trị viên.", HttpStatus.FORBIDDEN),
+    FILE_EMPTY(1020, "File không được để trống", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE(1021, "File quá lớn (tối đa 5MB)", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE(1022, "Chỉ chấp nhận file ảnh", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FAILED(1023, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    NOTIFICATION_NOT_FOUND(1024, "Không tìm thấy thông báo", HttpStatus.NOT_FOUND),
 
     // Resource Errors (2xxx)
     KANJI_NOT_FOUND(2001, "Không tìm thấy Kanji", HttpStatus.NOT_FOUND),
-    COMPOUND_NOT_FOUND(2002, "Không tìm thấy Compound", HttpStatus.NOT_FOUND),
+    KANJI_ALREADY_EXISTS(2002, "Kanji này đã tồn tại", HttpStatus.BAD_REQUEST),
+    COMPOUND_NOT_FOUND(2003, "Không tìm thấy Compound", HttpStatus.NOT_FOUND),
+    COMPOUND_ALREADY_EXISTS(2004, "Compound word này đã tồn tại", HttpStatus.BAD_REQUEST),
+    SUGGESTION_NOT_FOUND(2005, "Không tìm thấy yêu cầu", HttpStatus.NOT_FOUND),
+    SUGGESTION_ALREADY_REVIEWED(2006, "Yêu cầu này đã được xem xét", HttpStatus.BAD_REQUEST),
 
     // Infrastructure Errors (3xxx)
     REDIS_CONNECTION_FAILURE(3001, "Không thể kết nối đến máy chủ Redis", HttpStatus.INTERNAL_SERVER_ERROR);

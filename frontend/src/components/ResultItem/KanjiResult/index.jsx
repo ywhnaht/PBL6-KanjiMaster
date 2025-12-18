@@ -10,6 +10,7 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import NotebookSelectionModal from "../../../components/Notebooks/NBList";
 import NotebookCreateModal from "../../../components/Notebooks/NBCreate";
 import LoginModal from "../../../components/Login";
+import SuggestionModal from "../../../components/SuggestionModal";
 
 export default function KanjiResult({ 
   kanjis = [], 
@@ -60,6 +61,8 @@ export default function KanjiResult({
   const [selectedKanjiId, setSelectedKanjiId] = useState(null);
   const [notification, setNotification] = useState(null);
   const [notificationCountdown, setNotificationCountdown] = useState(3);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [suggestionType, setSuggestionType] = useState('ADD_KANJI');
 
   const pageSize = 4; 
   const mainKanji = kanjis[selected]; 
@@ -695,30 +698,48 @@ export default function KanjiResult({
                               favorite 
                             </span> 
                           </button> 
-                          <button className={`group p-3 rounded-full transition-colors duration-300 ${
+                          <button 
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                setShowLoginModal(true);
+                                return;
+                              }
+                              setSuggestionType('CORRECTION');
+                              setShowSuggestionModal(true);
+                            }}
+                            className={`group p-3 rounded-full transition-colors duration-300 ${
                             isDark
                               ? "bg-blue-900/30 hover:bg-blue-800/50"
                               : "bg-blue-50 hover:bg-blue-100"
-                          }`}> 
-                            <span className={`material-symbols-outlined text-2xl transition-colors duration-300 ${
-                              isDark
-                                ? "text-blue-400 group-hover:text-blue-300"
-                                : "text-blue-500 group-hover:text-blue-600"
-                            }`}> 
-                              share 
+                            }`}
+                            title={isAuthenticated ? "Báo lỗi / Sửa đổi" : "Đăng nhập để báo lỗi"}
+                          > 
+                            <span className="material-symbols-outlined text-orange-500 group-hover:text-orange-600 text-2xl"> 
+                              flag 
                             </span> 
                           </button> 
-                          <button className={`group p-3 rounded-full transition-colors duration-300 ${
+                          <button 
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                setShowLoginModal(true);
+                                return;
+                              }
+                              setSuggestionType('ADD_KANJI');
+                              setShowSuggestionModal(true);
+                            }}
+                            className={`group p-3 rounded-full transition-colors duration-300 ${
                             isDark
                               ? "bg-green-900/30 hover:bg-green-800/50"
                               : "bg-green-50 hover:bg-green-100"
-                          }`}> 
-                            <span className={`material-symbols-outlined text-2xl transition-colors duration-300 ${
+                            }`}
+                            title={isAuthenticated ? "Đề xuất thêm Kanji mới" : "Đăng nhập để đề xuất"}
+                          > 
+                           <span className={`material-symbols-outlined text-2xl transition-colors duration-300 ${
                               isDark
                                 ? "text-green-400 group-hover:text-green-300"
                                 : "text-green-500 group-hover:text-green-600"
                             }`}> 
-                              bookmark 
+                              add_circle 
                             </span> 
                           </button> 
                         </div> 
@@ -1020,6 +1041,21 @@ export default function KanjiResult({
         isOpen={showCreateModal}
         onClose={handleCloseCreateModal}
         onSuccess={handleCreateSuccess}
+      />
+
+      {/* ✅ Suggestion Modal */}
+      <SuggestionModal
+        isOpen={showSuggestionModal}
+        onClose={() => setShowSuggestionModal(false)}
+        type={suggestionType}
+        initialData={mainKanji ? {
+          kanji: mainKanji.kanji,
+          hanViet: mainKanji.hanViet,
+          onyomi: mainKanji.onyomi,
+          kunyomi: mainKanji.kunyomi,
+          joyoReading: mainKanji.joyoReading,
+          meaning: mainKanji.meaning
+        } : null}
       />
 
       {/* ✅ Notification Modal */}
