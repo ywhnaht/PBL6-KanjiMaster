@@ -40,6 +40,8 @@ public enum ErrorCode {
     KANJI_ALREADY_EXISTS(2002, "Kanji này đã tồn tại", HttpStatus.BAD_REQUEST),
     COMPOUND_NOT_FOUND(2003, "Không tìm thấy Compound", HttpStatus.NOT_FOUND),
     COMPOUND_ALREADY_EXISTS(2004, "Compound word này đã tồn tại", HttpStatus.BAD_REQUEST),
+    SUGGESTION_NOT_FOUND(2005, "Không tìm thấy yêu cầu", HttpStatus.NOT_FOUND),
+    SUGGESTION_ALREADY_REVIEWED(2006, "Yêu cầu này đã được xem xét", HttpStatus.BAD_REQUEST),
 
     // Infrastructure Errors (3xxx)
     REDIS_CONNECTION_FAILURE(3001, "Không thể kết nối đến máy chủ Redis", HttpStatus.INTERNAL_SERVER_ERROR);
