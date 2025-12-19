@@ -15,8 +15,8 @@ export default function Sidebar() {
     { icon: "quiz", label: "Test", path: "/test" },
     { icon: "swords", label: "Battle", path: "/battle" },
     { icon: "emoji_events", label: "Leaderboard", path: "/leaderboard" },
-    { icon: "settings", label: "Setting", path: "/setting" },
-    { icon: "block", label: "Block", path: "/block" },
+    // { icon: "settings", label: "Setting", path: "/setting" },
+    // { icon: "block", label: "Block", path: "/block" },
   ];
 
   // Hàm kiểm tra menu item có active không
