@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { getKanjiDetail } from "../apis/getKanjiDetail";
 import { updateKanjiStatus } from "../apis/updateKanjiStatus";
 import { useAuthStore } from "./useAuthStore";
+import useProfileStore from "./useProfileStore";
 
 // 🆕 BIẾN GLOBAL ĐỂ TRÁNH CIRCULAR DEPENDENCY
 let kanjiStoreRef = null;
@@ -132,9 +133,6 @@ const useKanjiDetailStore = create((set, get) => ({
         // 🔥 CẬP NHẬT PROFILE VÀ AUTHSTORE ĐỂ REFRESH STREAK
         if (axiosPrivate) {
           try {
-            const { default: useProfileStore } = await import("./useProfileStore");
-            const { default: useAuthStore } = await import("./useAuthStore");
-            
             const profileStore = useProfileStore.getState();
             const authStore = useAuthStore.getState();
             
@@ -143,8 +141,7 @@ const useKanjiDetailStore = create((set, get) => ({
             
             // Cập nhật streak trong authStore
             if (updatedProfile && updatedProfile.streakDays !== undefined) {
-              authStore.setUser({
-                ...authStore.user,
+              authStore.updateUser({
                 streakDays: updatedProfile.streakDays,
                 totalKanjiLearned: updatedProfile.totalKanjiLearned
               });

@@ -126,12 +126,18 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
     }
 
     private void updateStreakDays(UserProfile userProfile, LocalDateTime previousLastStudyDate) {
-        LocalDateTime now = LocalDateTime.now();
+        // Sử dụng ZoneId của hệ thống để tính toán chính xác
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneId.systemDefault());
         LocalDate today = now.toLocalDate();
 
         if (previousLastStudyDate == null) {
-            userProfile.setStreakDays(1);
-            streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), 1);
+            // Lần đầu tiên học - kiểm tra xem có streak cũ không
+            Integer currentStreak = userProfile.getStreakDays();
+            if (currentStreak == null || currentStreak == 0) {
+                userProfile.setStreakDays(1);
+                streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), 1);
+            }
+            // Nếu đã có streak cũ thì giữ nguyên (trường hợp đã học trước đó)
             return;
         }
 
@@ -140,7 +146,7 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
         long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastStudyDate, today);
 
         if (daysBetween == 0) {
-            // Học cùng ngày, giữ nguyên streak
+            // Học cùng ngày, giữ nguyên streak - không làm gì
         } else if (daysBetween == 1) {
             // Học liên tiếp, tăng streak
             Integer currentStreak = userProfile.getStreakDays();
@@ -149,8 +155,9 @@ public Map<String, Serializable> masterKanji(String userId, Integer kanjiId) {
             userProfile.setStreakDays(newStreak);
             streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), newStreak);
         } else {
-            // Gián đoạn, reset streak về 1
+            // Gián đoạn > 1 ngày, reset streak về 1
             userProfile.setStreakDays(1);
+            streakService.checkAndNotifyStreakMilestone(userProfile.getUser().getId(), 1);
         }
     }
 }
