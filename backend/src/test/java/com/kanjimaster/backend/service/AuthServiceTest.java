@@ -2,12 +2,15 @@ package com.kanjimaster.backend.service;
 
 import com.kanjimaster.backend.exception.AppException;
 import com.kanjimaster.backend.exception.ErrorCode;
+import com.kanjimaster.backend.model.dto.AuthResponse;
 import com.kanjimaster.backend.model.dto.LoginDto;
 import com.kanjimaster.backend.model.dto.RegisterDto;
+import com.kanjimaster.backend.model.dto.UserProfileDto;
 import com.kanjimaster.backend.model.entity.CompoundWords;
 import com.kanjimaster.backend.model.entity.Kanji;
 import com.kanjimaster.backend.model.entity.Role;
 import com.kanjimaster.backend.model.entity.User;
+import com.kanjimaster.backend.model.entity.UserProfile;
 import com.kanjimaster.backend.repository.CompoundWordRepository;
 import com.kanjimaster.backend.repository.KanjiRepository;
 import com.kanjimaster.backend.repository.RoleRepository;
@@ -67,17 +70,37 @@ public class AuthServiceTest {
     private static final List<CompoundWords> MOCK_COMPOUNDS = new ArrayList<>();
 
     static {
+        UserProfile profile1 = UserProfile.builder()
+                .fullName("Ho Thanh Huy")
+                .avatarUrl("https://ui-avatars.com/api/?name=Ho+Thanh+Huy")
+                .totalKanjiLearned(0)
+                .streakDays(1)
+                .build();
+        
         User user1 = new User();
+        user1.setId("user-1");
         user1.setEmail("hothanhhuy@gmail.com");
         user1.setPassword("$2a$10$n3TNojcoeBZh3Li3lidr9.6IxDb4Ha72LmWSvNOBH54XIVeuNRu2K");
         user1.setVerified(true);
+        user1.setUserProfile(profile1);
+        profile1.setUser(user1);
         USERS_IN_DB.put("hothanhhuy@gmail.com", user1);
         PASSWORD_MAP.put("huyho2004", "$2a$10$n3TNojcoeBZh3Li3lidr9.6IxDb4Ha72LmWSvNOBH54XIVeuNRu2K");
 
+        UserProfile profile2 = UserProfile.builder()
+                .fullName("Son Tung MTP")
+                .avatarUrl("https://ui-avatars.com/api/?name=Son+Tung")
+                .totalKanjiLearned(0)
+                .streakDays(1)
+                .build();
+        
         User user2 = new User();
+        user2.setId("user-2");
         user2.setEmail("sontung2000@gmail.com");
         user2.setPassword("$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe");
         user2.setVerified(false);
+        user2.setUserProfile(profile2);
+        profile2.setUser(user2);
         USERS_IN_DB.put("sontung2000@gmail.com", user2);
         PASSWORD_MAP.put("12345678", "$2a$10$28rLv03EJmqntqCUzZXG8uQRZHiqCS.s10qWoYnIrqE3ljFY.f6Qe");
     }
@@ -166,8 +189,8 @@ public class AuthServiceTest {
         Mockito.doNothing().when(emailService).sendVerificationEmail(Mockito.anyString(), Mockito.anyString());
 
         // Mock Search - SỬA LẠI LOGIC
-        Mockito.when(kanjiRepository.findTop2ByKanjiContainingOrHanVietContaining(
-                        Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(kanjiRepository.findByKanjiContainingOrHanVietContaining(
+                        Mockito.anyString(), Mockito.anyString(), Mockito.any()))
                 .thenAnswer(invocation -> {
                     String q = invocation.getArgument(0);
                     return MOCK_KANJIS.stream()
@@ -176,8 +199,8 @@ public class AuthServiceTest {
                             .toList();
                 });
 
-        Mockito.when(compoundWordRepository.findTop3ByWordContainingOrMeaningContainingOrHiraganaContaining(
-                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(compoundWordRepository.findByWordContainingOrMeaningContainingOrHiraganaContaining(
+                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any()))
                 .thenAnswer(invocation -> {
                     String q = invocation.getArgument(0);
                     return MOCK_COMPOUNDS.stream()
@@ -365,7 +388,7 @@ public class AuthServiceTest {
 
         try {
             var response = searchService.searchSuggest(query,
-                    com.kanjimaster.backend.model.entity.SearchMode.SUGGEST, 5);
+                    com.kanjimaster.backend.model.enums.SearchMode.SUGGEST, 5, null);
             actualStatus = "200";
 
             String actualType = determineSearchType(response);
