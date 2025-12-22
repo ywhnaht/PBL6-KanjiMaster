@@ -1,81 +1,123 @@
-# effnet_version_of_code.py
+# ==== BUILD EfficientNet-B3 ====
+# effnet_version_of_code2.py
 import os
 import json
+import threading
+from collections import Counter, OrderedDict
+import cv2
 import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models, transforms
-import cv2
-import threading
+import torch.nn.functional as F
+from huggingface_hub import hf_hub_download
 
-# =========================================================
-# CONFIG
-# =========================================================
+# ====== HUGGINGFACE CONFIG ======# ==== CONFIG ====
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-IMG_SIZE = 224   # giống training
+IMG_SIZE = 224
 TOPK = 5
+REPO_ID = "TuanVu219/Vit_Checkpoint_New"
+EFFNET_FILENAME = "best_effnet_ema.pth"
 
-# Path đến checkpoint và labels
-CKPT_PATH = os.path.join(os.path.dirname(__file__), "best_effnet_ema.pth")
-LABELS_JSON = os.path.join(os.path.dirname(__file__), "class_names.json")
+effnet_ckpt_path = hf_hub_download(
+    repo_id=REPO_ID,
+    filename=EFFNET_FILENAME
+)
 
-# =========================================================
-# LOAD LABELS
-# =========================================================
-with open(LABELS_JSON, "r", encoding="utf-8") as f:
+# ====== CLASS LABELS ======
+with open("core/class_names.json", "r", encoding="utf-8") as f:
     labels = json.load(f)
 
 idx2label = {i: l for i, l in enumerate(labels)}
 num_classes = len(labels)
 
-# =========================================================
-# BUILD EfficientNet-B3 MODEL
-# =========================================================
+# ====== DEVICE ======
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", device)
+
+
+# ==========================================================
+#     🎯 build_efficientnet_b3 — tên hàm bạn yêu cầu
+# ==========================================================
 def build_efficientnet_b3(num_classes, pretrained=True, device=None):
-    model = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.IMAGENET1K_V1 if pretrained else None)
+    """
+    Xây EfficientNet-B3 với classifier được thay bằng đúng số class.
+    """
+    if pretrained:
+        model = models.efficientnet_b3(
+            weights=models.EfficientNet_B3_Weights.IMAGENET1K_V1
+        )
+    else:
+        model = models.efficientnet_b3(weights=None)
+
+    # Replace classifier
     in_features = model.classifier[1].in_features
     model.classifier = nn.Sequential(
         nn.Dropout(0.3),
         nn.Linear(in_features, num_classes)
     )
+
     if device:
         model.to(device)
+
     return model
 
-# =========================================================
-# LOAD CHECKPOINT
-# =========================================================
-def load_checkpoint_to_model(model, ckpt_path, device):
-    if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(f"❌ Checkpoint not found: {ckpt_path}")
-    print("🔁 Loading EMA checkpoint...")
-    ckpt = torch.load(ckpt_path, map_location=device)
-    if isinstance(ckpt, dict) and "ema" in ckpt:
-        sd = ckpt["ema"]
-    elif isinstance(ckpt, dict) and "model" in ckpt:
-        sd = ckpt["model"]
+
+# ==========================================================
+#     🎯 load_checkpoint_to_model — giữ nguyên tên cũ
+# ==========================================================
+def load_checkpoint_to_model(model, ckpt_path, use_ema_if_available=True, map_location=None):
+    print("Loading EfficientNet checkpoint:", ckpt_path)
+
+    map_location = map_location or device
+    ckpt = torch.load(ckpt_path, map_location=map_location, weights_only=False)
+
+    # Chọn state_dict
+    if isinstance(ckpt, dict):
+        if use_ema_if_available and "ema" in ckpt:
+            sd = ckpt["ema"]
+            print("🔁 Loading EMA weights")
+        elif "model" in ckpt:
+            sd = ckpt["model"]
+            print("🔁 Loading model weights")
+        else:
+            sd = ckpt
+            print("🔁 Loading raw state_dict")
     else:
         sd = ckpt
 
-    # strip "module." nếu có
+    # Loại bỏ phần "module."
     new_sd = {}
     for k, v in sd.items():
         if k.startswith("module."):
-            new_sd[k[7:]] = v
+            new_sd[k.replace("module.", "", 1)] = v
         else:
             new_sd[k] = v
 
-    model.load_state_dict(new_sd, strict=True)
+    # Load state_dict
+    try:
+        model.load_state_dict(new_sd, strict=False)
+        print("✅ state_dict loaded (strict=False)")
+    except Exception as e:
+        print("⚠ load_state_dict error:", e)
+        model_dict = model.state_dict()
+
+        partial = {k: v for k, v in new_sd.items()
+                   if k in model_dict and v.size() == model_dict[k].size()}
+
+        model_dict.update(partial)
+        model.load_state_dict(model_dict)
+        print("✅ Partial weights loaded")
+
     model.to(device)
     model.eval()
-    print("✅ EMA model loaded.")
     return model
 
-# =========================================================
-# MODEL SINGLETON (thread-safe)
-# =========================================================
+
+# ==========================================================
+#     🎯 get_effnet_model — tên cuối cùng bạn sẽ dùng
+# ==========================================================
 _model = None
 _model_lock = threading.Lock()
 
@@ -84,36 +126,47 @@ def get_effnet_model():
     if _model is None:
         with _model_lock:
             if _model is None:
-                print("🔹 Loading EfficientNet-B3 model (only once)...")
-                model = build_efficientnet_b3(num_classes=num_classes, pretrained=True, device=DEVICE)
-                model = load_checkpoint_to_model(model, CKPT_PATH, DEVICE)
+                print("🔹 Loading EfficientNet model (only once)...")
+
+                model = build_efficientnet_b3(
+                    num_classes=num_classes,
+                    pretrained=True,
+                    device=device
+                )
+
+                model = load_checkpoint_to_model(
+                    model,
+                    effnet_ckpt_path,
+                    use_ema_if_available=True
+                )
+
+                # 🔥 WARMUP — CỰC QUAN TRỌNG
+                dummy = torch.zeros(1, 3, IMG_SIZE, IMG_SIZE).to(device)
+                with torch.no_grad():
+                    model(dummy)
+
                 _model = model
+
     return _model
 
-# =========================================================
-# TRANSFORM / PREPROCESS
-# =========================================================
+
+
+# ==== TRANSFORM ====
 preprocess_transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
+    transforms.Normalize([0.485, 0.456, 0.406],
+                         [0.229, 0.224, 0.225])
 ])
 
 def preprocess_canvas_image(img):
-    """PIL.Image -> tensor [1,C,H,W] on device"""
     if img.mode != "RGB":
         img = img.convert("RGB")
     img = img.resize((IMG_SIZE, IMG_SIZE))
     return preprocess_transform(img).unsqueeze(0).to(DEVICE)
 
-# =========================================================
-# RECOGNITION
-# =========================================================
+# ==== RECOGNITION ====
 def recognize_char(img, k=TOPK):
-    """Nhận diện ký tự và trả về top-k nhãn dự đoán"""
     model = get_effnet_model()
     x = preprocess_canvas_image(img)
     with torch.no_grad():
@@ -121,7 +174,8 @@ def recognize_char(img, k=TOPK):
         probs = F.softmax(logits, dim=1)[0]
         top_probs, top_idxs = torch.topk(probs, k)
     results = [(idx2label[top_idxs[i].item()], float(top_probs[i].item())) for i in range(k)]
-    return results  # list [(label, prob), ...]
+    return results
+
 
 # =========================================================
 # MERGE BOXES
@@ -144,7 +198,12 @@ def merge_boxes(boxes, min_dist=10):
                 merged.append([x, y, w, h])
     return merged
 
-def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=None, k=TOPK):
+def recognize_and_merge_boxes_exhaustive(
+    gray,
+    boxes,
+    max_span=None,
+    k=TOPK
+):
     n = len(boxes)
     merged_boxes = []
     i = 0
@@ -152,12 +211,19 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
     H, W = gray.shape[:2]
 
     while i < n:
-        best_prob = -1
+        best_prob = -1.0
         best_box = None
         best_j = i
         best_preds = None
 
-        nx, ny, nx2, ny2 = boxes[i][0], boxes[i][1], boxes[i][0] + boxes[i][2], boxes[i][1] + boxes[i][3]
+        # init merged box
+        nx, ny, nx2, ny2 = (
+            boxes[i][0],
+            boxes[i][1],
+            boxes[i][0] + boxes[i][2],
+            boxes[i][1] + boxes[i][3]
+        )
+
         j_limit = n if max_span is None else min(n, i + max_span)
 
         for j in range(i, j_limit):
@@ -172,6 +238,7 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
             y1 = max(0, int(ny))
             x2c = min(W, int(nx2))
             y2c = min(H, int(ny2))
+
             if x2c <= x1 or y2c <= y1:
                 continue
 
@@ -179,9 +246,14 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
             if key in cache:
                 preds = cache[key]
             else:
-                crop = Image.fromarray(gray[y1:y2c, x1:x2c]).convert("RGB")
+                crop = Image.fromarray(
+                    gray[y1:y2c, x1:x2c]
+                ).convert("RGB")
                 preds = recognize_char(crop, k=k)
                 cache[key] = preds
+
+            if not preds:
+                continue
 
             top_label, top_p = preds[0]
             if top_p > best_prob:
@@ -190,21 +262,23 @@ def recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, max_span=No
                 best_j = j
                 best_preds = preds
 
+        # fallback cực hiếm: model không trả gì
         if best_box is None:
-            merged_boxes.append(([0, 0, 0, 0], [("?", 0.0)]))
-            i += 1
-        elif best_j == i:
-            merged_boxes.append((best_box, best_preds))
-            i += 1
-        else:
-            if best_prob >= threshold:
-                merged_boxes.append((best_box, best_preds))
-                i = best_j + 1
-            else:
-                merged_boxes.append((boxes[i], [("?", 0.0)]))
-                i += 1
+            crop = Image.fromarray(
+                gray[
+                    boxes[i][1]:boxes[i][1] + boxes[i][3],
+                    boxes[i][0]:boxes[i][0] + boxes[i][2]
+                ]
+            ).convert("RGB")
+            best_preds = recognize_char(crop, k=k)
+            best_box = boxes[i]
+            best_j = i
 
-    return merged_boxes  # [(box, predictions)]
+        merged_boxes.append((best_box, best_preds))
+        i = best_j + 1
+
+    return merged_boxes
+
 
 # =========================================================
 # SEGMENT CHARACTERS
@@ -218,8 +292,8 @@ def segment_characters_from_image(img, k=TOPK):
     boxes = [cv2.boundingRect(c) for c in contours]
     boxes = merge_boxes(boxes, min_dist=5)
     boxes = sorted(boxes, key=lambda b: b[0])
-    merged = recognize_and_merge_boxes_exhaustive(gray, boxes, threshold=0.7, k=k)
-    return merged  # [(box, predictions)]
+    merged = recognize_and_merge_boxes_exhaustive(gray, boxes, k=k)
+    return merged
 
 # =========================================================
 # STROKES -> IMAGE
@@ -231,17 +305,16 @@ def strokes_to_image(strokes, canvas_size=600, filename="output.png"):
             x1, y1 = stroke[i - 1]
             x2, y2 = stroke[i]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), thickness=25, lineType=cv2.LINE_AA)
+            cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), thickness=15, lineType=cv2.LINE_AA)
     pil_img = Image.fromarray(img)
     folder_path = os.path.dirname(os.path.abspath(__file__))
     save_path = os.path.join(folder_path, filename)
     pil_img.save(save_path)
     print(f"✅ Image saved to {save_path}")
-    return Image.fromarray(img)
+    return pil_img
 
 # =========================================================
 # HỖ TRỢ KIỂM TRA KANJI
 # =========================================================
 def is_kanji(word):
-    """Kiểm tra từ toàn bộ là Kanji"""
     return all('\u4e00' <= c <= '\u9fff' for c in word)
